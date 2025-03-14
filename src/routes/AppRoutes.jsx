@@ -7,6 +7,10 @@ import RoutesPage from "../pages/Routes";
 import Emergency from "../pages/Emergency";
 import Login from "../pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
+import Button from "../components/Button";
+import ChatBot from "../components/ChatBot";
+import EmergencyButton from "../components/EmergencyButton";
+import Menu from "../components/Menu";
 
 const AppRoutes = () => {
   return (
@@ -26,6 +30,10 @@ const AppRoutes = () => {
                     <Route path="/drivers" element={<Drivers />} />
                     <Route path="/routes" element={<RoutesPage />} />
                     <Route path="/emergency" element={<Emergency />} />
+                    <Route path="/menu" element={<Menu />} />
+                    <Route path="/chatbot" element={<ChatBot />} />
+                    <Route path="/emergency-button" element={<EmergencyButton />} />
+                    <Route path="/button" element={<Button />} />
                   </Routes>
                 </div>
               </>

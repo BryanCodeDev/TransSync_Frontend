@@ -1,51 +1,121 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaUser, FaLock, FaBus } from "react-icons/fa";
+import "../styles/login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    // Simulación de autenticación (Reemplazar con API en el backend)
-    if (email === "admin@transsync.com" && password === "admin123") {
-      localStorage.setItem("isAuthenticated", "true");
-      navigate("/dashboard");
-    } else {
-      alert("Credenciales incorrectas");
+    try {
+      // Simulación de un delay de API
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Simulación de autenticación (Reemplazar con API en el backend)
+      if (email === "admin@transsync.com" && password === "admin123") {
+        localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("userName", "Admin");
+        navigate("/dashboard");
+      } else {
+        setError("Credenciales incorrectas. Por favor, intente nuevamente.");
+      }
+    } catch (err) {
+      setError("Error al conectar con el servidor. Por favor, intente nuevamente.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    // Aquí implementarías la lógica para recuperar contraseña
+    // Por ahora solo mostramos una alerta
+    alert("Funcionalidad de recuperación de contraseña en desarrollo.");
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-4 text-center">Iniciar Sesión</h2>
-        <form onSubmit={handleLogin}>
-          <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 border rounded mb-3"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 border rounded mb-3"
-            required
-          />
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-header">
+          <div className="login-logo">
+            <FaBus className="logo-icon" />
+          </div>
+          <h1>TransSync</h1>
+          <p className="login-subtitle">Sistema de Gestión de Transporte Público</p>
+        </div>
+
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="login-form">
+          <div className="form-group">
+            <label htmlFor="email">Correo electrónico</label>
+            <div className="input-wrapper">
+              <FaUser className="input-icon" />
+              <input
+                id="email"
+                type="email"
+                placeholder="Ingrese su correo"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Contraseña</label>
+            <div className="input-wrapper">
+              <FaLock className="input-icon" />
+              <input
+                id="password"
+                type="password"
+                placeholder="Ingrese su contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="remember-forgot">
+            <label className="remember-container">
+              <input type="checkbox" />
+              <span className="checkmark"></span>
+              Recordarme
+            </label>
+            <button 
+              type="button" 
+              className="forgot-link" 
+              onClick={handleForgotPassword}
+            >
+              ¿Olvidó su contraseña?
+            </button>
+          </div>
+
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-800 transition"
+            className={`login-button ${loading ? 'loading' : ''}`}
+            disabled={loading}
           >
-            Iniciar Sesión
+            {loading ? 'Verificando...' : 'Iniciar Sesión'}
           </button>
         </form>
+
+        <div className="login-footer">
+          <p>© 2025 TransSync. Todos los derechos reservados.</p>
+        </div>
       </div>
     </div>
   );
