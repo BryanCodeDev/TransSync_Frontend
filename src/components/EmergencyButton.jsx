@@ -1,1 +1,1 @@
-// Botón de emergencia
+import "../styles/emergency.css";

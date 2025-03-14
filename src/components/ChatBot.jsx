@@ -1,1 +1,1 @@
-// Chat en tiempo real
+import "../styles/chatbot.css";

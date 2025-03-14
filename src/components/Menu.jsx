@@ -1,1 +1,1 @@
-// Menú lateral
+import "../styles/menu.css";
