@@ -29,13 +29,13 @@ const Sidebar = () => {
 
   const menuItems = [
     { path: "/", icon: <FaHome />, label: "Inicio" },
-    { path: "/dashboard", icon: <FaChartLine />, label: "Dashboard" },
-    { path: "/drivers", icon: <FaUserTie />, label: "Conductores" },
-    { path: "/routes", icon: <FaRoute />, label: "Rutas" },
-    { path: "/vehiculos", icon: <FaBus />, label: "Vehículos" }, // RUTA CORRECTA
-    { path: "/horarios", icon: <FaClock />, label: "Horarios" }, // RUTA CORRECTA
-    { path: "/emergency", icon: <FaExclamationTriangle />, label: "Emergencias" },
-    { path: "/informes", icon: <FaFileAlt />, label: "Informes" }, // RUTA CORRECTA
+    { path: "/Dashboard", icon: <FaChartLine />, label: "Dashboard" },
+    { path: "/Drivers", icon: <FaUserTie />, label: "Conductores" },
+    { path: "/Rutas", icon: <FaRoute />, label: "Rutas" },
+    { path: "/Vehiculos", icon: <FaBus />, label: "Vehículos" }, 
+    { path: "/Horarios", icon: <FaClock />, label: "Horarios" }, 
+    { path: "/Emergency", icon: <FaExclamationTriangle />, label: "Emergencias" },
+    { path: "/Informes", icon: <FaFileAlt />, label: "Informes" }, 
   ];
 
   return (

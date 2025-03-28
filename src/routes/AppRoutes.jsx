@@ -3,7 +3,7 @@ import Sidebar from "../components/Sidebar";
 import Home from "../pages/Home";
 import Dashboard from "../pages/Dashboard";
 import Drivers from "../pages/Drivers";
-import RoutesPage from "../pages/RoutesPage";  
+import RoutesPage from "../pages/Rutas"; 
 import Vehiculos from "../pages/Vehiculos"; 
 import Horarios from "../pages/Horarios"; 
 import Emergency from "../pages/Emergency";
