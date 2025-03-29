@@ -1,0 +1,21 @@
+.horarios-container {
+    padding: 20px;
+  }
+  
+  .title {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .schedule-table th, .schedule-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+  

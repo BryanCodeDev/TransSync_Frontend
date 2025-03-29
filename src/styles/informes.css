@@ -1,0 +1,11 @@
+.informes-container {
+    padding: 20px;
+  }
+  
+  .title {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
