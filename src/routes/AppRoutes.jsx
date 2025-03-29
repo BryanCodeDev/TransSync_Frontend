@@ -3,27 +3,40 @@ import Sidebar from "../components/Sidebar";
 import Home from "../pages/Home";
 import Dashboard from "../pages/Dashboard";
 import Drivers from "../pages/Drivers";
-import RoutesPage from "../pages/Rutas"; 
-import Vehiculos from "../pages/Vehiculos"; 
-import Horarios from "../pages/Horarios"; 
+import Rutas from "../pages/Rutas"; 
 import Emergency from "../pages/Emergency";
-import Informes from "../pages/Informes";
 import Login from "../pages/Login";
+import ProtectedRoute from "./ProtectedRoute";
+import Button from "../components/Button";
+import ChatBot from "../components/ChatBot";
 
 const AppRoutes = () => {
   return (
     <Router>
-      <Sidebar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/drivers" element={<Drivers />} />
-        <Route path="/routes" element={<RoutesPage />} />
-        <Route path="/vehiculos" element={<Vehiculos />} /> 
-        <Route path="/horarios" element={<Horarios />} /> 
-        <Route path="/emergency" element={<Emergency />} />
-        <Route path="/informes" element={<Informes />} />
         <Route path="/login" element={<Login />} />
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <>
+                <Sidebar />
+                <div style={{ marginLeft: "260px", padding: "20px" }}>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/drivers" element={<Drivers />} />
+                    <Route path="/Rutas" element={<Rutas />} />
+                    <Route path="/emergency" element={<Emergency />} />
+                    <Route path="/chatbot" element={<ChatBot />} />
+                    <Route path="/emergency" element={<Emergency />} />
+                    <Route path="/button" element={<Button />} />
+                  </Routes>
+                </div>
+              </>
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );
