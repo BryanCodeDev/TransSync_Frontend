@@ -29,19 +29,19 @@ const Sidebar = () => {
 
   const menuItems = [
     { path: "/", icon: <FaHome />, label: "Inicio" },
-    { path: "/Dashboard", icon: <FaChartLine />, label: "Dashboard" },
-    { path: "/Drivers", icon: <FaUserTie />, label: "Conductores" },
-    { path: "/Rutas", icon: <FaRoute />, label: "Rutas" },
-    { path: "/Vehiculos", icon: <FaBus />, label: "Vehículos" }, 
-    { path: "/Horarios", icon: <FaClock />, label: "Horarios" }, 
-    { path: "/Emergency", icon: <FaExclamationTriangle />, label: "Emergencias" },
-    { path: "/Informes", icon: <FaFileAlt />, label: "Informes" }, 
+    { path: "/dashboard", icon: <FaChartLine />, label: "Dashboard" },
+    { path: "/drivers", icon: <FaUserTie />, label: "Conductores" },
+    { path: "/rutas", icon: <FaRoute />, label: "Rutas" },
+    { path: "/vehiculos", icon: <FaBus />, label: "Vehículos" }, 
+    { path: "/horarios", icon: <FaClock />, label: "Horarios" }, 
+    { path: "/emergency", icon: <FaExclamationTriangle />, label: "Emergencias" },
+    { path: "/informes", icon: <FaFileAlt />, label: "Informes" }, 
   ];
 
   return (
     <div className={`sidebar ${isOpen ? "open" : "closed"}`}>
       <div className="sidebar-header">
-        <img src="/logo.png" alt="Logo" className="sidebar-logo" />
+        <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="Logo" className="sidebar-logo" />
         {isOpen && <span className="sidebar-title">TransSync</span>}
       </div>
 

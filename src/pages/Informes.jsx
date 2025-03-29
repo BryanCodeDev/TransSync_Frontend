@@ -1,10 +1,10 @@
-import { FaFileAlt } from "react-icons/fa";
+import React from "react";
 
 const Informes = () => {
   return (
-    <div className="informes-container">
-      <h2 className="title"><FaFileAlt /> Generación de Informes</h2>
-      <p>Seleccione un informe para descargar.</p>
+    <div>
+      <h1>Informes</h1>
+      <p>Aquí puedes visualizar y generar informes sobre el transporte.</p>
     </div>
   );
 };
