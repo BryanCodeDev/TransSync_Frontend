@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock, FaBus } from "react-icons/fa";
 import "../styles/login.css";
@@ -16,10 +16,8 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Simulación de un delay de API
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Simulación de autenticación (Reemplazar con API en el backend)
       if (email === "admin@transsync.com" && password === "admin123") {
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userName", "Admin");
@@ -36,8 +34,6 @@ const Login = () => {
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
-    // Aquí implementarías la lógica para recuperar contraseña
-    // Por ahora solo mostramos una alerta
     alert("Funcionalidad de recuperación de contraseña en desarrollo.");
   };
 
@@ -114,7 +110,16 @@ const Login = () => {
         </form>
 
         <div className="login-footer">
-          <p>© 2025 TransSync. Todos los derechos reservados.</p>
+          <p>¿No tienes una cuenta?</p>
+          <div className="register-link">
+            <button 
+              type="button" 
+              className="login-button"
+              onClick={() => navigate("/register")}
+            >
+              Registrarse
+            </button>
+          </div>
         </div>
       </div>
     </div>

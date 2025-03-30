@@ -6,6 +6,7 @@ import Drivers from "../pages/Drivers";
 import Rutas from "../pages/Rutas"; 
 import Emergency from "../pages/Emergency";
 import Login from "../pages/Login";
+import Register from "../pages/Register"; // Importamos el componente de registro
 import ProtectedRoute from "./ProtectedRoute";
 import Button from "../components/Button";
 import ChatBot from "../components/ChatBot";
@@ -15,6 +16,7 @@ const AppRoutes = () => {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} /> {/* Nueva ruta */}
         <Route
           path="/*"
           element={
@@ -29,7 +31,6 @@ const AppRoutes = () => {
                     <Route path="/Rutas" element={<Rutas />} />
                     <Route path="/emergency" element={<Emergency />} />
                     <Route path="/chatbot" element={<ChatBot />} />
-                    <Route path="/emergency" element={<Emergency />} />
                     <Route path="/button" element={<Button />} />
                   </Routes>
                 </div>
