@@ -1,17 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUser, FaLock, FaBus } from "react-icons/fa";
+import { FaUser, FaLock, FaBus, FaExclamationTriangle } from "react-icons/fa";
 import "../styles/login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [formTouched, setFormTouched] = useState(false);
   const navigate = useNavigate();
+
+  // Verificar si hay credenciales guardadas al cargar el componente
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
+    
+    if (savedEmail && savedRememberMe) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  // Validación de email
+  const isEmailValid = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Validación de contraseña (al menos 6 caracteres)
+  const isPasswordValid = (password) => {
+    return password.length >= 6;
+  };
+
+  const handleInputChange = (setter) => (e) => {
+    setter(e.target.value);
+    setFormTouched(true);
+    setError(""); // Limpiar errores al cambiar input
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setFormTouched(true);
+    
+    // Validaciones
+    if (!isEmailValid(email)) {
+      setError("Por favor ingrese un correo electrónico válido");
+      return;
+    }
+    
+    if (!isPasswordValid(password)) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
@@ -20,19 +63,34 @@ const Login = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        credentials: "include", // Para manejar cookies si las usas
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        // Guardar estado de "recordarme"
+        if (rememberMe) {
+          localStorage.setItem("rememberedEmail", email);
+          localStorage.setItem("rememberMe", "true");
+        } else {
+          localStorage.removeItem("rememberedEmail");
+          localStorage.setItem("rememberMe", "false");
+        }
+        
+        // Guardar información de autenticación
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userName", data.name);
+        localStorage.setItem("userToken", data.token); // Si tu API devuelve un token
+        
+        // Redirigir al dashboard
         navigate("/dashboard");
       } else {
-        setError(data.message);
+        setError(data.message || "Error de autenticación. Verifique sus credenciales.");
       }
     } catch (err) {
-      setError("Error al conectar con el servidor. Intente nuevamente.");
+      console.error("Error de login:", err);
+      setError("Error al conectar con el servidor. Verifique su conexión e intente nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -40,11 +98,12 @@ const Login = () => {
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
-    alert("Funcionalidad de recuperación de contraseña en desarrollo.");
+    navigate("/forgot-password"); // Asumiendo que tendrás esta ruta en el futuro
   };
 
   return (
     <div className="login-container">
+      <div className="background-overlay"></div>
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">
@@ -56,6 +115,7 @@ const Login = () => {
 
         {error && (
           <div className="error-message">
+            <FaExclamationTriangle className="error-icon" />
             {error}
           </div>
         )}
@@ -70,10 +130,15 @@ const Login = () => {
                 type="email"
                 placeholder="Ingrese su correo"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleInputChange(setEmail)}
+                className={formTouched && !isEmailValid(email) && email ? "input-error" : ""}
                 required
+                autoComplete="email"
               />
             </div>
+            {formTouched && !isEmailValid(email) && email && (
+              <p className="field-error">Por favor ingrese un correo válido</p>
+            )}
           </div>
 
           <div className="form-group">
@@ -85,15 +150,24 @@ const Login = () => {
                 type="password"
                 placeholder="Ingrese su contraseña"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleInputChange(setPassword)}
+                className={formTouched && !isPasswordValid(password) && password ? "input-error" : ""}
                 required
+                autoComplete="current-password"
               />
             </div>
+            {formTouched && !isPasswordValid(password) && password && (
+              <p className="field-error">La contraseña debe tener al menos 6 caracteres</p>
+            )}
           </div>
 
           <div className="remember-forgot">
             <label className="remember-container">
-              <input type="checkbox" />
+              <input 
+                type="checkbox" 
+                checked={rememberMe}
+                onChange={() => setRememberMe(!rememberMe)}
+              />
               <span className="checkmark"></span>
               Recordarme
             </label>
@@ -111,7 +185,14 @@ const Login = () => {
             className={`login-button ${loading ? 'loading' : ''}`}
             disabled={loading}
           >
-            {loading ? 'Verificando...' : 'Iniciar Sesión'}
+            {loading ? (
+              <>
+                <span className="spinner"></span>
+                <span>Verificando...</span>
+              </>
+            ) : (
+              'Iniciar Sesión'
+            )}
           </button>
         </form>
 
@@ -120,7 +201,7 @@ const Login = () => {
           <div className="register-link">
             <button 
               type="button" 
-              className="login-button"
+              className="login-button secondary-button"
               onClick={() => navigate("/register")}
             >
               Registrarse
