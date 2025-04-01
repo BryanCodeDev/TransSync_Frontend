@@ -1,4 +1,4 @@
-import { useState } from "react"; 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock, FaBus } from "react-icons/fa";
 import "../styles/login.css";
@@ -16,17 +16,23 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      if (email === "admin@transsync.com" && password === "admin123") {
+      const response = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
         localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("userName", "Admin");
+        localStorage.setItem("userName", data.name);
         navigate("/dashboard");
       } else {
-        setError("Credenciales incorrectas. Por favor, intente nuevamente.");
+        setError(data.message);
       }
     } catch (err) {
-      setError("Error al conectar con el servidor. Por favor, intente nuevamente.");
+      setError("Error al conectar con el servidor. Intente nuevamente.");
     } finally {
       setLoading(false);
     }

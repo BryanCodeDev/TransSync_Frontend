@@ -17,17 +17,26 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // Simulación de un delay de API
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const response = await fetch("http://localhost:5000/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-      // Aquí se enviarán los datos al backend cuando esté listo
-      console.log("Usuario registrado:", { name, email, password });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Error al registrar usuario");
+      }
 
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("userName", name);
       navigate("/dashboard");
+
     } catch (err) {
-      setError("Error al registrar usuario. Intente nuevamente.");
+      setError(err.message || "Error al registrar usuario. Intente nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -98,7 +107,16 @@ const Register = () => {
         </form>
 
         <div className="register-footer">
-          <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a></p>
+          <p>¿Ya tienes cuenta?</p>
+          <div className="login-link">
+            <button 
+              type="button" 
+              className="register-button"
+              onClick={() => navigate("/login")}
+            >
+              Iniciar sesión
+            </button>
+          </div>
         </div>
       </div>
     </div>
