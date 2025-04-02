@@ -108,6 +108,7 @@ const Register = () => {
     setLoading(true);
 
     try {
+      // Enviar solo los campos que el backend espera (name, email, password)
       const response = await fetch("http://localhost:5000/auth/register", {
         method: "POST",
         headers: {
@@ -118,25 +119,18 @@ const Register = () => {
           email, 
           password 
         }),
-        credentials: "include", // Para manejar cookies si las usas
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (response.ok) {
+        // Mostrar mensaje de éxito con alert y redirigir al login
+        // Esto es compatible con tu backend original
+        alert("Registro exitoso, ahora inicia sesión.");
+        navigate("/login");
+      } else {
         throw new Error(data.message || "Error al registrar usuario");
       }
-
-      // Guardar información de autenticación
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userName", name);
-      localStorage.setItem("userToken", data.token); // Si tu API devuelve un token
-      
-      // Mostrar mensaje de éxito (opcional)
-      alert("¡Registro exitoso! Bienvenido a TransSync.");
-      
-      // Redirigir al dashboard
-      navigate("/dashboard");
     } catch (err) {
       console.error("Error de registro:", err);
       

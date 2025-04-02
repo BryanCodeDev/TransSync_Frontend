@@ -63,7 +63,7 @@ const Login = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include", // Para manejar cookies si las usas
+        // Mantener compatibilidad con el backend original, omitiendo credentials si no lo maneja
       });
 
       const data = await response.json();
@@ -78,10 +78,14 @@ const Login = () => {
           localStorage.setItem("rememberMe", "false");
         }
         
-        // Guardar información de autenticación
+        // Guardar información de autenticación como en la versión original
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userName", data.name);
-        localStorage.setItem("userToken", data.token); // Si tu API devuelve un token
+        
+        // Guardar token solo si existe en la respuesta
+        if (data.token) {
+          localStorage.setItem("userToken", data.token);
+        }
         
         // Redirigir al dashboard
         navigate("/dashboard");
@@ -98,7 +102,8 @@ const Login = () => {
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
-    navigate("/forgot-password"); // Asumiendo que tendrás esta ruta en el futuro
+    alert("Funcionalidad de recuperación de contraseña en desarrollo.");
+    // Mantener la alerta original en lugar de navegar a una ruta que podría no existir
   };
 
   return (
