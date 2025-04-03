@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUser, FaLock, FaBus, FaExclamationTriangle } from "react-icons/fa";
+import { FaUser, FaLock, FaBus, FaExclamationTriangle, FaEye, FaEyeSlash } from "react-icons/fa";
 import "../styles/login.css";
 
 const Login = () => {
@@ -10,6 +10,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formTouched, setFormTouched] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   // Verificar si hay credenciales guardadas al cargar el componente
@@ -63,7 +64,6 @@ const Login = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        // Mantener compatibilidad con el backend original, omitiendo credentials si no lo maneja
       });
 
       const data = await response.json();
@@ -78,9 +78,10 @@ const Login = () => {
           localStorage.setItem("rememberMe", "false");
         }
         
-        // Guardar información de autenticación como en la versión original
+        // Guardar información de autenticación
         localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("userName", data.name);
+        localStorage.setItem("userName", data.user?.name || "");
+        localStorage.setItem("userRole", data.user?.role || "");
         
         // Guardar token solo si existe en la respuesta
         if (data.token) {
@@ -103,7 +104,11 @@ const Login = () => {
   const handleForgotPassword = (e) => {
     e.preventDefault();
     alert("Funcionalidad de recuperación de contraseña en desarrollo.");
-    // Mantener la alerta original en lugar de navegar a una ruta que podría no existir
+  };
+
+  // Función para alternar visibilidad de contraseña
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -152,7 +157,7 @@ const Login = () => {
               <FaLock className="input-icon" />
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Ingrese su contraseña"
                 value={password}
                 onChange={handleInputChange(setPassword)}
@@ -160,6 +165,14 @@ const Login = () => {
                 required
                 autoComplete="current-password"
               />
+              <button 
+                type="button" 
+                className="password-toggle" 
+                onClick={togglePasswordVisibility}
+                tabIndex="-1"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
             </div>
             {formTouched && !isPasswordValid(password) && password && (
               <p className="field-error">La contraseña debe tener al menos 6 caracteres</p>

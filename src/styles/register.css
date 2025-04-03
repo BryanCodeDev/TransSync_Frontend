@@ -3,12 +3,12 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
     padding: 1rem;
     position: relative;
     background-image: url('/src/assets/transport-background.jpg');
     background-size: cover;
     background-position: center;
+    background-attachment: fixed; /* Mantiene la imagen de fondo estática */
 }
 
 .background-overlay {
@@ -26,11 +26,11 @@
     z-index: 2;
     background-color: white;
     width: 100%;
-    max-width: 450px;
+    max-width: 900px; /* Aumentado para pantallas grandes */
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     overflow: hidden;
-    padding: 2rem;
+    padding: 2.5rem;
     animation: fadeIn 0.5s ease;
     transition: all 0.3s ease;
 }
@@ -108,8 +108,22 @@
     width: 100%;
 }
 
+/* Row layout for desktop */
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -0.75rem;
+    margin-bottom: 0.5rem;
+}
+
 .form-group {
-    margin-bottom: 1.25rem;
+    flex: 1 1 calc(50% - 1.5rem); /* Two columns layout by default */
+    margin: 0 0.75rem 1rem;
+    position: relative;
+}
+
+.form-group.full-width {
+    flex: 1 1 100%;
 }
 
 .form-group label {
@@ -153,6 +167,47 @@
     box-shadow: 0 0 0 3px rgba(0, 150, 255, 0.15);
 }
 
+/* Select styling improvement */
+.select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #a0aec0;
+    pointer-events: none;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 1rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: white;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #0096ff;
+    box-shadow: 0 0 0 3px rgba(0, 150, 255, 0.15);
+}
+
 .input-error {
     border-color: #e53e3e !important;
     background-color: #fff5f5;
@@ -167,6 +222,33 @@
     font-size: 0.8rem;
     margin-top: 0.5rem;
     margin-bottom: 0;
+}
+
+/* Password toggle button styling */
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.password-toggle:hover {
+    color: #0096ff;
+    background-color: rgba(0, 150, 255, 0.05);
+}
+
+.password-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 150, 255, 0.3);
 }
 
 .password-requirements {
@@ -263,10 +345,109 @@
     font-size: 0.85rem;
 }
 
-/* Responsive styles - Enhanced for better coverage across devices */
+/* Responsive styles - ajustados para mejor soporte móvil */
+/* Pantallas extra grandes (Computadores de escritorio, 1200px y superiores) */
+@media (min-width: 1200px) {
+    .register-card {
+        max-width: 1000px; /* Mayor ancho para pantallas grandes */
+        padding: 3rem;
+    }
+    
+    .register-logo {
+        width: 85px;
+        height: 85px;
+    }
+    
+    .logo-icon {
+        font-size: 2.5rem;
+    }
+    
+    .register-header h1 {
+        font-size: 2.2rem;
+    }
+}
 
-/* Extra small devices (phones, 320px and up) */
-@media (max-width: 320px) {
+/* Pantallas grandes (Computadores portátiles, 992px a 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .register-card {
+        max-width: 900px;
+        padding: 2.5rem;
+    }
+}
+
+/* Pantallas medianas (Tablets horizontales, 768px a 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .register-card {
+        max-width: 90%;
+        padding: 2rem;
+    }
+}
+
+/* Pantallas pequeñas (Tablets verticales, 576px a 767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+    .register-card {
+        max-width: 95%;
+        padding: 1.75rem;
+    }
+    
+    .form-group {
+        flex: 1 1 100%; /* Columna única en tablets */
+    }
+    
+    .register-header h1 {
+        font-size: 1.7rem;
+    }
+}
+
+/* Pantallas muy pequeñas (Móviles, menos de 576px) */
+@media (max-width: 575px) {
+    .register-container {
+        padding: 0.5rem;
+    }
+    
+    .register-card {
+        max-width: 100%;
+        padding: 1.5rem;
+        border-radius: 8px;
+    }
+    
+    .form-group {
+        flex: 1 1 100%; /* Columna única en móviles */
+        margin: 0 0 1rem;
+    }
+    
+    .form-row {
+        margin: 0;
+    }
+    
+    .register-logo {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .logo-icon {
+        font-size: 1.75rem;
+    }
+    
+    .register-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .register-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .register-form input, .form-select {
+        padding: 0.7rem 1rem 0.7rem 2.5rem;
+    }
+    
+    .password-requirements {
+        padding: 0.75rem;
+    }
+}
+
+/* Ajustes específicos para pantallas muy pequeñas */
+@media (max-width: 375px) {
     .register-card {
         padding: 1.25rem;
     }
@@ -284,107 +465,26 @@
         font-size: 1.3rem;
     }
     
-    .register-subtitle {
-        font-size: 0.75rem;
-    }
-    
-    .register-form input {
+    .register-form input, .form-select {
         font-size: 0.9rem;
         padding: 0.6rem 1rem 0.6rem 2.5rem;
     }
-    
-    .form-group label {
-        font-size: 0.8rem;
-    }
-    
-    .password-requirements {
-        font-size: 0.75rem;
-        padding: 0.75rem;
-    }
-    
-    .register-button, .secondary-button {
-        font-size: 0.9rem;
-        padding: 0.6rem;
-    }
 }
 
-/* Small devices (phones, 321px to 576px) */
-@media (min-width: 321px) and (max-width: 576px) {
+/* Ajustes para dispositivos con altura limitada */
+@media (max-height: 700px) {
+    .register-container {
+        align-items: flex-start;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+    
     .register-card {
-        padding: 1.5rem;
-        max-width: 90%;
-    }
-    
-    .register-logo {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .register-header h1 {
-        font-size: 1.5rem;
-    }
-    
-    .password-requirements {
-        padding: 0.85rem;
+        margin: 1rem 0;
     }
 }
 
-/* Medium devices (tablets, 577px to 768px) */
-@media (min-width: 577px) and (max-width: 768px) {
-    .register-card {
-        max-width: 85%;
-        padding: 1.75rem;
-    }
-    
-    .register-header h1 {
-        font-size: 1.6rem;
-    }
-}
-
-/* Large devices (desktops, 769px to 992px) */
-@media (min-width: 769px) and (max-width: 992px) {
-    .register-card {
-        max-width: 75%;
-    }
-}
-
-/* Extra large devices (large desktops, 993px to 1200px) */
-@media (min-width: 993px) and (max-width: 1200px) {
-    .register-card {
-        max-width: 500px;
-    }
-}
-
-/* Extra extra large devices (extra large desktops, 1201px and up) */
-@media (min-width: 1201px) {
-    .register-card {
-        max-width: 550px;
-        padding: 2.5rem;
-    }
-    
-    .register-logo {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .logo-icon {
-        font-size: 2.25rem;
-    }
-    
-    .register-header h1 {
-        font-size: 2rem;
-    }
-    
-    .register-subtitle {
-        font-size: 1rem;
-    }
-    
-    .register-form input {
-        padding: 0.85rem 1rem 0.85rem 2.5rem;
-    }
-}
-
-/* Touch optimization for mobile devices */
+/* Optimización para dispositivos táctiles */
 @media (hover: none) {
     .register-button:hover {
         transform: none;
@@ -398,129 +498,17 @@
     }
 }
 
-/* Portrait orientation devices */
-@media (orientation: portrait) and (max-width: 768px) {
-    .register-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-    
-    .register-card {
-        margin: 1rem 0;
-    }
-}
-
-/* Height-based media queries for shorter screens */
-@media (max-height: 700px) {
-    .register-container {
-        min-height: auto;
-        padding: 1rem 1rem 3rem;
-    }
-    
-    .register-card {
-        margin: 1rem 0;
-    }
-    
-    .register-header {
-        margin-bottom: 1.5rem;
-    }
-    
-    .form-group {
-        margin-bottom: 0.75rem;
-    }
-    
-    .register-footer {
-        margin-top: 1.5rem;
-    }
-    
-    .password-requirements {
-        margin-bottom: 1rem;
-    }
-    
-    .password-requirements ul {
-        margin-top: 0.25rem;
-    }
-}
-
-/* For very tall screens to maintain proportions */
-@media (min-height: 1000px) {
-    .register-card {
-        max-width: 600px;
-        padding: 3rem;
-    }
-    
-    .register-logo {
-        width: 90px;
-        height: 90px;
-    }
-    
-    .register-header h1 {
-        font-size: 2.2rem;
-    }
-    
-    .register-subtitle {
-        font-size: 1.1rem;
-    }
-}
-
-/* Dark mode support (opcional) */
+/* Soporte para modo oscuro (opcional) */
 @media (prefers-color-scheme: dark) {
     body.dark-theme .register-card {
         background-color: #1a202c;
         color: #e2e8f0;
     }
     
-    body.dark-theme .register-header h1 {
-        color: #f7fafc;
-    }
-    
-    body.dark-theme .register-subtitle {
-        color: #cbd5e0;
-    }
-    
-    body.dark-theme .form-group label {
-        color: #e2e8f0;
-    }
-    
-    body.dark-theme .register-form input {
+    body.dark-theme .register-form input,
+    body.dark-theme .form-select {
         background-color: #2d3748;
         border-color: #4a5568;
         color: #f7fafc;
-    }
-    
-    body.dark-theme .register-form input::placeholder {
-        color: #a0aec0;
-    }
-    
-    body.dark-theme .register-footer {
-        color: #a0aec0;
-    }
-    
-    body.dark-theme .secondary-button {
-        background: #2d3748;
-        color: #63b3ed;
-        border-color: #63b3ed;
-    }
-    
-    body.dark-theme .password-requirements {
-        background-color: #2d3748;
-        border-left-color: #4a5568;
-    }
-}
-
-/* Print media for any print requirements */
-@media print {
-    .register-container {
-        background: none;
-        padding: 0;
-    }
-    
-    .register-card {
-        box-shadow: none;
-        max-width: 100%;
-    }
-    
-    .background-overlay {
-        display: none;
     }
 }

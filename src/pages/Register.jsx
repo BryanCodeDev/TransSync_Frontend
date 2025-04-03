@@ -1,24 +1,33 @@
 import { useState } from "react"; 
 import { useNavigate } from "react-router-dom";
-import { FaUser, FaLock, FaEnvelope, FaBus, FaExclamationTriangle } from "react-icons/fa";
+import { FaUser, FaLock, FaEnvelope, FaBus, FaExclamationTriangle, FaIdCard, FaPhone, FaCar, FaEye, FaEyeSlash } from "react-icons/fa";
 import "../styles/register.css";
 
 const Register = () => {
   const [formData, setFormData] = useState({
     name: "",
+    last_name: "",
+    document: "",
     email: "",
+    phone: "",
+    vehicle_plate: "",
+    role: "usuario", // Valor por defecto
     password: "",
     confirmPassword: ""
   });
+  
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formTouched, setFormTouched] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
   const navigate = useNavigate();
 
-  const { name, email, password, confirmPassword } = formData;
+  const { name, last_name, document, email, phone, vehicle_plate, role, password, confirmPassword } = formData;
 
-  // Validaciones
+  // Validaciones mejoradas
   const validateField = (name, value) => {
     let error = "";
     
@@ -26,6 +35,24 @@ const Register = () => {
       case "name":
         if (value.trim().length < 3) {
           error = "El nombre debe tener al menos 3 caracteres";
+        } else if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(value)) {
+          error = "El nombre solo debe contener letras";
+        }
+        break;
+      
+      case "last_name":
+        if (value.trim().length < 3) {
+          error = "El apellido debe tener al menos 3 caracteres";
+        } else if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(value)) {
+          error = "El apellido solo debe contener letras";
+        }
+        break;
+      
+      case "document":
+        if (value.trim().length < 5) {
+          error = "El documento debe tener al menos 5 caracteres";
+        } else if (!/^\d+$/.test(value)) {
+          error = "El documento solo debe contener números";
         }
         break;
       
@@ -33,6 +60,23 @@ const Register = () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) {
           error = "Ingrese un correo electrónico válido";
+        }
+        break;
+      
+      case "phone":
+        if (!/^\d{7,15}$/.test(value)) {
+          error = "El teléfono debe contener solo números, entre 7 y 15 dígitos";
+        }
+        break;
+      
+      case "vehicle_plate":
+        // Solo validar si es conductor
+        if (formData.role === "conductor") {
+          if (value.trim().length < 5) {
+            error = "La placa del vehículo debe tener al menos 5 caracteres";
+          } else if (!/^[A-Za-z0-9\-\s]+$/.test(value)) {
+            error = "Formato de placa inválido (letras, números, guiones y espacios)";
+          }
         }
         break;
       
@@ -84,6 +128,16 @@ const Register = () => {
     
     // Validar todos los campos
     Object.keys(formData).forEach(field => {
+      // No validar placa de vehículo si no es conductor
+      if (field === "vehicle_plate" && formData.role !== "conductor") {
+        return;
+      }
+      
+      // No validar campos vacíos opcionales
+      if (field === "vehicle_plate" && formData.role !== "conductor" && !formData[field]) {
+        return;
+      }
+      
       const fieldError = validateField(field, formData[field]);
       if (fieldError) {
         errors[field] = fieldError;
@@ -108,7 +162,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // Enviar solo los campos que el backend espera (name, email, password)
+      // Enviar los campos que el backend espera
       const response = await fetch("http://localhost:5000/auth/register", {
         method: "POST",
         headers: {
@@ -116,7 +170,12 @@ const Register = () => {
         },
         body: JSON.stringify({ 
           name, 
-          email, 
+          last_name, 
+          document,
+          email,
+          phone,
+          vehicle_plate: role === "conductor" ? vehicle_plate : "",
+          role,
           password 
         }),
       });
@@ -125,7 +184,6 @@ const Register = () => {
 
       if (response.ok) {
         // Mostrar mensaje de éxito con alert y redirigir al login
-        // Esto es compatible con tu backend original
         alert("Registro exitoso, ahora inicia sesión.");
         navigate("/login");
       } else {
@@ -135,13 +193,22 @@ const Register = () => {
       console.error("Error de registro:", err);
       
       // Manejo de errores específicos
-      if (err.message.includes("ya existe")) {
+      if (err.message.includes("ya existe") || err.message.includes("ya está registrado")) {
         setError("Este correo electrónico ya está registrado. Intente iniciar sesión.");
       } else {
         setError(err.message || "Error al registrar usuario. Intente nuevamente.");
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para alternar visibilidad de contraseña
+  const togglePasswordVisibility = (field) => {
+    if (field === 'password') {
+      setShowPassword(!showPassword);
+    } else {
+      setShowConfirmPassword(!showConfirmPassword);
     }
   };
 
@@ -165,88 +232,219 @@ const Register = () => {
         )}
 
         <form onSubmit={handleRegister} className="register-form">
-          <div className="form-group">
-            <label htmlFor="name">Nombre completo</label>
-            <div className="input-wrapper">
-              <FaUser className="input-icon" />
-              <input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Ingrese su nombre"
-                value={name}
-                onChange={handleChange}
-                className={formTouched && formErrors.name ? "input-error" : ""}
-                required
-                autoComplete="name"
-              />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="role">Tipo de cuenta</label>
+              <div className="select-wrapper">
+                <select
+                  id="role"
+                  name="role"
+                  value={role}
+                  onChange={handleChange}
+                  className="form-select"
+                  required
+                >
+                  <option value="usuario">Usuario</option>
+                  <option value="conductor">Conductor</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
             </div>
-            {formTouched && formErrors.name && (
-              <p className="field-error">{formErrors.name}</p>
-            )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Correo electrónico</label>
-            <div className="input-wrapper">
-              <FaEnvelope className="input-icon" />
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Ingrese su correo"
-                value={email}
-                onChange={handleChange}
-                className={formTouched && formErrors.email ? "input-error" : ""}
-                required
-                autoComplete="email"
-              />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="name">Nombre</label>
+              <div className="input-wrapper">
+                <FaUser className="input-icon" />
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="Ingrese su nombre"
+                  value={name}
+                  onChange={handleChange}
+                  className={formTouched && formErrors.name ? "input-error" : ""}
+                  required
+                  autoComplete="given-name"
+                />
+              </div>
+              {formTouched && formErrors.name && (
+                <p className="field-error">{formErrors.name}</p>
+              )}
             </div>
-            {formTouched && formErrors.email && (
-              <p className="field-error">{formErrors.email}</p>
-            )}
+
+            <div className="form-group">
+              <label htmlFor="last_name">Apellido</label>
+              <div className="input-wrapper">
+                <FaUser className="input-icon" />
+                <input
+                  id="last_name"
+                  name="last_name"
+                  type="text"
+                  placeholder="Ingrese su apellido"
+                  value={last_name}
+                  onChange={handleChange}
+                  className={formTouched && formErrors.last_name ? "input-error" : ""}
+                  required
+                  autoComplete="family-name"
+                />
+              </div>
+              {formTouched && formErrors.last_name && (
+                <p className="field-error">{formErrors.last_name}</p>
+              )}
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
-            <div className="input-wrapper">
-              <FaLock className="input-icon" />
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Cree una contraseña"
-                value={password}
-                onChange={handleChange}
-                className={formTouched && formErrors.password ? "input-error" : ""}
-                required
-                autoComplete="new-password"
-              />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="document">Documento de identidad</label>
+              <div className="input-wrapper">
+                <FaIdCard className="input-icon" />
+                <input
+                  id="document"
+                  name="document"
+                  type="text"
+                  placeholder="Ingrese su documento"
+                  value={document}
+                  onChange={handleChange}
+                  className={formTouched && formErrors.document ? "input-error" : ""}
+                  required
+                />
+              </div>
+              {formTouched && formErrors.document && (
+                <p className="field-error">{formErrors.document}</p>
+              )}
             </div>
-            {formTouched && formErrors.password && (
-              <p className="field-error">{formErrors.password}</p>
-            )}
+
+            <div className="form-group">
+              <label htmlFor="phone">Teléfono</label>
+              <div className="input-wrapper">
+                <FaPhone className="input-icon" />
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="Ingrese su teléfono"
+                  value={phone}
+                  onChange={handleChange}
+                  className={formTouched && formErrors.phone ? "input-error" : ""}
+                  required
+                />
+              </div>
+              {formTouched && formErrors.phone && (
+                <p className="field-error">{formErrors.phone}</p>
+              )}
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirmar contraseña</label>
-            <div className="input-wrapper">
-              <FaLock className="input-icon" />
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="Confirme su contraseña"
-                value={confirmPassword}
-                onChange={handleChange}
-                className={formTouched && formErrors.confirmPassword ? "input-error" : ""}
-                required
-                autoComplete="new-password"
-              />
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label htmlFor="email">Correo electrónico</label>
+              <div className="input-wrapper">
+                <FaEnvelope className="input-icon" />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Ingrese su correo"
+                  value={email}
+                  onChange={handleChange}
+                  className={formTouched && formErrors.email ? "input-error" : ""}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+              {formTouched && formErrors.email && (
+                <p className="field-error">{formErrors.email}</p>
+              )}
             </div>
-            {formTouched && formErrors.confirmPassword && (
-              <p className="field-error">{formErrors.confirmPassword}</p>
-            )}
+          </div>
+
+          {role === "conductor" && (
+            <div className="form-row">
+              <div className="form-group full-width">
+                <label htmlFor="vehicle_plate">Placa del vehículo</label>
+                <div className="input-wrapper">
+                  <FaCar className="input-icon" />
+                  <input
+                    id="vehicle_plate"
+                    name="vehicle_plate"
+                    type="text"
+                    placeholder="Ingrese la placa del vehículo"
+                    value={vehicle_plate}
+                    onChange={handleChange}
+                    className={formTouched && formErrors.vehicle_plate ? "input-error" : ""}
+                    required={role === "conductor"}
+                  />
+                </div>
+                {formTouched && formErrors.vehicle_plate && (
+                  <p className="field-error">{formErrors.vehicle_plate}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="password">Contraseña</label>
+              <div className="input-wrapper">
+                <FaLock className="input-icon" />
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Cree una contraseña"
+                  value={password}
+                  onChange={handleChange}
+                  className={formTouched && formErrors.password ? "input-error" : ""}
+                  required
+                  autoComplete="new-password"
+                />
+                <button 
+                  type="button" 
+                  className="password-toggle" 
+                  onClick={() => togglePasswordVisibility('password')}
+                  tabIndex="-1"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              {formTouched && formErrors.password && (
+                <p className="field-error">{formErrors.password}</p>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirmar contraseña</label>
+              <div className="input-wrapper">
+                <FaLock className="input-icon" />
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirme su contraseña"
+                  value={confirmPassword}
+                  onChange={handleChange}
+                  className={formTouched && formErrors.confirmPassword ? "input-error" : ""}
+                  required
+                  autoComplete="new-password"
+                />
+                <button 
+                  type="button" 
+                  className="password-toggle" 
+                  onClick={() => togglePasswordVisibility('confirmPassword')}
+                  tabIndex="-1"
+                  aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              {formTouched && formErrors.confirmPassword && (
+                <p className="field-error">{formErrors.confirmPassword}</p>
+              )}
+            </div>
           </div>
 
           <div className="password-requirements">

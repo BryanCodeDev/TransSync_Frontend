@@ -9,6 +9,7 @@
   background-image: url('/src/assets/transport-background.jpg');
   background-size: cover;
   background-position: center;
+  background-attachment: fixed; /* Makes background image static */
 }
 
 .background-overlay {
@@ -26,7 +27,7 @@
   z-index: 2;
   background-color: white;
   width: 100%;
-  max-width: 450px;
+  max-width: 500px; /* Increased for larger screens */
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
@@ -167,6 +168,33 @@
   font-size: 0.8rem;
   margin-top: 0.5rem;
   margin-bottom: 0;
+}
+
+/* Password toggle button styling */
+.password-toggle {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: #0096ff;
+  background-color: rgba(0, 150, 255, 0.05);
+}
+
+.password-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 150, 255, 0.3);
 }
 
 .remember-forgot {
@@ -320,10 +348,109 @@
 
 /* Responsive styles - Enhanced for better coverage across devices */
 
-/* Extra small devices (phones, 320px and up) */
+/* Extra extra large devices (extra large desktops, 1201px and up) */
+@media (min-width: 1201px) {
+  .login-card {
+    max-width: 550px;
+    padding: 2.5rem;
+  }
+  
+  .login-logo {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .logo-icon {
+    font-size: 2.25rem;
+  }
+  
+  .login-header h1 {
+    font-size: 2rem;
+  }
+  
+  .login-subtitle {
+    font-size: 1rem;
+  }
+  
+  .login-form input {
+    padding: 0.85rem 1rem 0.85rem 2.5rem;
+  }
+}
+
+/* Extra large devices (large desktops, 993px to 1200px) */
+@media (min-width: 993px) and (max-width: 1200px) {
+  .login-card {
+    max-width: 500px;
+    padding: 2.25rem;
+  }
+}
+
+/* Large devices (desktops, 769px to 992px) */
+@media (min-width: 769px) and (max-width: 992px) {
+  .login-card {
+    max-width: 480px;
+    padding: 2rem;
+  }
+}
+
+/* Medium devices (tablets, 577px to 768px) */
+@media (min-width: 577px) and (max-width: 768px) {
+  .login-card {
+    max-width: 90%;
+    padding: 1.75rem;
+  }
+  
+  .login-header h1 {
+    font-size: 1.6rem;
+  }
+  
+  .remember-forgot {
+    flex-direction: row;
+  }
+}
+
+/* Small devices (phones, 321px to 576px) */
+@media (min-width: 321px) and (max-width: 576px) {
+  .login-container {
+    padding: 0.75rem;
+  }
+  
+  .login-card {
+    padding: 1.5rem;
+    max-width: 100%;
+    border-radius: 10px;
+  }
+  
+  .login-logo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .login-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .login-form input {
+    font-size: 0.95rem;
+    padding: 0.7rem 1rem 0.7rem 2.5rem;
+  }
+  
+  .remember-forgot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}
+
+/* Extra small devices (phones, 320px and down) */
 @media (max-width: 320px) {
+  .login-container {
+    padding: 0.5rem;
+  }
+  
   .login-card {
     padding: 1.25rem;
+    border-radius: 8px;
   }
   
   .login-logo {
@@ -364,105 +491,10 @@
   }
 }
 
-/* Small devices (phones, 321px to 576px) */
-@media (min-width: 321px) and (max-width: 576px) {
-  .login-card {
-    padding: 1.5rem;
-    max-width: 90%;
-  }
-  
-  .login-logo {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .login-header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .remember-forgot {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-}
-
-/* Medium devices (tablets, 577px to 768px) */
-@media (min-width: 577px) and (max-width: 768px) {
-  .login-card {
-    max-width: 85%;
-    padding: 1.75rem;
-  }
-  
-  .login-header h1 {
-    font-size: 1.6rem;
-  }
-}
-
-/* Large devices (desktops, 769px to 992px) */
-@media (min-width: 769px) and (max-width: 992px) {
-  .login-card {
-    max-width: 75%;
-  }
-}
-
-/* Extra large devices (large desktops, 993px to 1200px) */
-@media (min-width: 993px) and (max-width: 1200px) {
-  .login-card {
-    max-width: 500px;
-  }
-}
-
-/* Extra extra large devices (extra large desktops, 1201px and up) */
-@media (min-width: 1201px) {
-  .login-card {
-    max-width: 550px;
-    padding: 2.5rem;
-  }
-  
-  .login-logo {
-    width: 80px;
-    height: 80px;
-  }
-  
-  .logo-icon {
-    font-size: 2.25rem;
-  }
-  
-  .login-header h1 {
-    font-size: 2rem;
-  }
-  
-  .login-subtitle {
-    font-size: 1rem;
-  }
-  
-  .login-form input {
-    padding: 0.85rem 1rem 0.85rem 2.5rem;
-  }
-}
-
-/* Touch optimization for mobile devices */
-@media (hover: none) {
-  .login-button:hover {
-    transform: none;
-    box-shadow: none;
-  }
-  
-  .secondary-button:hover {
-    background: white;
-    color: #0096ff;
-    border-color: #0096ff;
-  }
-  
-  .forgot-link:hover {
-    text-decoration: none;
-  }
-}
-
 /* Height-based media queries for shorter screens */
 @media (max-height: 600px) {
   .login-container {
+    align-items: flex-start;
     min-height: auto;
     padding: 1rem 1rem 3rem;
   }
@@ -484,7 +516,29 @@
   }
 }
 
-/* Dark mode support (opcional) */
+/* Touch optimization for mobile devices */
+@media (hover: none) {
+  .login-button:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .secondary-button:hover {
+    background: white;
+    color: #0096ff;
+    border-color: #0096ff;
+  }
+  
+  .forgot-link:hover {
+    text-decoration: none;
+  }
+  
+  .login-logo:hover {
+    transform: none;
+  }
+}
+
+/* Dark mode support (optional) */
 @media (prefers-color-scheme: dark) {
   body.dark-theme .login-card {
     background-color: #1a202c;
