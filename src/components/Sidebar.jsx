@@ -28,7 +28,7 @@ const Sidebar = () => {
   };
 
   const menuItems = [
-    { path: "/", icon: <FaHome />, label: "Inicio" },
+    { path: "/home", icon: <FaHome />, label: "Inicio" },
     { path: "/dashboard", icon: <FaChartLine />, label: "Dashboard" },
     { path: "/drivers", icon: <FaUserTie />, label: "Conductores" },
     { path: "/rutas", icon: <FaRoute />, label: "Rutas" },
