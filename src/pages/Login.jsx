@@ -88,8 +88,8 @@ const Login = () => {
           localStorage.setItem("userToken", data.token);
         }
         
-        // Redirigir al dashboard
-        navigate("/dashboard");
+        // Redirigir a home en lugar de dashboard
+        navigate("/home");
       } else {
         setError(data.message || "Error de autenticación. Verifique sus credenciales.");
       }

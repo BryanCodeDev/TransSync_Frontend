@@ -26,7 +26,7 @@ const AppRoutes = () => {
                 <Sidebar />
                 <div style={{ marginLeft: "260px", padding: "20px" }}>
                   <Routes>
-                    <Route path="/" element={<><SEO title="Inicio | TransSync" description="Plataforma de gestión de transporte y conductores." /><Home /></>} />
+                    <Route path="/home" element={<><SEO title="Inicio | TransSync" description="Plataforma de gestión de transporte y conductores." /><Home /></>} />
                     <Route path="/dashboard" element={<><SEO title="Dashboard | TransSync" description="Gestiona y monitorea el sistema de transporte con TransSync." /><Dashboard /></>} />
                     <Route path="/drivers" element={<><SEO title="Conductores | TransSync" description="Administra y gestiona la información de los conductores." /><Drivers /></>} />
                     <Route path="/Rutas" element={<><SEO title="Rutas | TransSync" description="Consulta y gestiona las rutas de transporte." /><Rutas /></>} />
