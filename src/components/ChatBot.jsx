@@ -32,6 +32,42 @@ const ChatBot = ({
     scrollToBottom();
   }, [messages]);
 
+  // Add the CSS for typing animation to the document head
+  useEffect(() => {
+    const styleId = 'chatbot-typing-animation';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @keyframes typing {
+          0%, 80%, 100% { transform: scale(0); }
+          40% { transform: scale(1); }
+        }
+        
+        .typing-dot {
+          animation: typing 1.4s infinite ease-in-out both;
+        }
+        
+        .typing-dot:nth-child(1) {
+          animation-delay: -0.32s;
+        }
+        
+        .typing-dot:nth-child(2) {
+          animation-delay: -0.16s;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Cleanup function to remove the style when component unmounts
+    return () => {
+      const existingStyle = document.getElementById(styleId);
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -152,146 +188,125 @@ const ChatBot = ({
   const currentTheme = themeClasses[theme];
 
   return (
-    <>
-      <style jsx>{`
-        @keyframes typing {
-          0%, 80%, 100% { transform: scale(0); }
-          40% { transform: scale(1); }
-        }
-        
-        .typing-dot {
-          animation: typing 1.4s infinite ease-in-out both;
-        }
-        
-        .typing-dot:nth-child(1) {
-          animation-delay: -0.32s;
-        }
-        
-        .typing-dot:nth-child(2) {
-          animation-delay: -0.16s;
-        }
-      `}</style>
-      
-      <div className={`fixed z-[1000] ${positionClasses[position]} max-sm:${position.includes('right') ? 'right-4' : 'left-4'} max-sm:${position.includes('bottom') ? 'bottom-4' : 'top-4'}`}>
-        {!isOpen ? (
-          <button 
-            className={`
-              bg-blue-500 text-white border-none rounded-full 
-              w-15 h-15 flex items-center justify-center cursor-pointer 
-              shadow-[0_4px_12px_rgba(59,130,246,0.3)] 
-              transition-all duration-300 ease-in-out
-              hover:scale-105 hover:shadow-[0_6px_16px_rgba(59,130,246,0.4)]
-              max-sm:w-12 max-sm:h-12
-            `}
-            onClick={toggleChat}
-            aria-label="Abrir chat de asistencia"
-          >
-            <span className="text-2xl">💬</span>
-          </button>
-        ) : (
-          <div className={`
-            w-[340px] h-[480px] rounded-xl overflow-hidden 
-            flex flex-col shadow-[0_8px_24px_rgba(0,0,0,0.15)] 
-            border border-black border-opacity-10
-            max-sm:w-[calc(100vw-2rem)] max-sm:h-[70vh] max-sm:max-h-[500px]
-            ${currentTheme.window}
-          `}>
-            {/* Header del chat */}
-            <div className={`p-4 flex justify-between items-center ${currentTheme.header}`}>
-              <div className="font-semibold text-base">{title}</div>
-              <button 
-                className="bg-none border-none text-white text-2xl leading-none cursor-pointer p-0 m-0"
-                onClick={toggleChat}
-              >
-                ×
-              </button>
-            </div>
-            
-            {/* Contenedor de mensajes */}
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-              {messages.map((msg) => (
-                <div 
-                  key={msg.id} 
-                  className={`flex items-end mb-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}
-                >
-                  {msg.sender === 'bot' && agentAvatar && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200 mr-2">
-                      <img src={agentAvatar} alt="Bot" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  
-                  <div className={`
-                    px-4 py-3 rounded-[18px] max-w-[75%] break-words relative
-                    ${msg.sender === 'bot' 
-                      ? `${currentTheme.botBubble} rounded-bl-[6px]` 
-                      : `${currentTheme.userBubble} rounded-br-[6px] mr-2`
-                    }
-                  `}>
-                    <div className="leading-relaxed text-[0.925rem]">{msg.text}</div>
-                    <div className={`
-                      text-[0.7rem] opacity-70 text-right mt-1
-                      ${msg.sender === 'user' ? 'text-white text-opacity-90' : ''}
-                    `}>
-                      {formatTimestamp(msg.timestamp)}
-                    </div>
-                  </div>
-                  
-                  {msg.sender === 'user' && userAvatar && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
-                      <img src={userAvatar} alt="Usuario" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {isTyping && (
-                <div className="flex items-end mb-3">
-                  {agentAvatar && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200 mr-2">
-                      <img src={agentAvatar} alt="Bot" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <div className={`px-4 py-3 rounded-[18px] rounded-bl-[6px] ${currentTheme.botBubble}`}>
-                    <div className="flex gap-1 px-3 py-1.5">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full inline-block typing-dot"></span>
-                      <span className="w-2 h-2 bg-gray-400 rounded-full inline-block typing-dot"></span>
-                      <span className="w-2 h-2 bg-gray-400 rounded-full inline-block typing-dot"></span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-            
-            {/* Area de input */}
-            <div className={`p-4 flex gap-2 border-t ${currentTheme.inputArea}`}>
-              <input
-                type="text"
-                className={`
-                  flex-1 px-4 py-3 border rounded-lg text-[0.925rem] outline-none 
-                  transition-all duration-200 ease-in-out
-                  focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]
-                  ${currentTheme.input}
-                `}
-                placeholder="Escribe tu mensaje aquí..."
-                value={inputText}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-              />
-              <Button 
-                variant="primary"
-                size="small"
-                onClick={handleSendMessage}
-                className="px-4 py-3 min-w-[60px]"
-              >
-                Enviar
-              </Button>
-            </div>
+    <div className={`fixed z-[1000] ${positionClasses[position]} max-sm:${position.includes('right') ? 'right-4' : 'left-4'} max-sm:${position.includes('bottom') ? 'bottom-4' : 'top-4'}`}>
+      {!isOpen ? (
+        <button 
+          className={`
+            bg-blue-500 text-white border-none rounded-full 
+            w-15 h-15 flex items-center justify-center cursor-pointer 
+            shadow-[0_4px_12px_rgba(59,130,246,0.3)] 
+            transition-all duration-300 ease-in-out
+            hover:scale-105 hover:shadow-[0_6px_16px_rgba(59,130,246,0.4)]
+            max-sm:w-12 max-sm:h-12
+          `}
+          onClick={toggleChat}
+          aria-label="Abrir chat de asistencia"
+        >
+          <span className="text-2xl">💬</span>
+        </button>
+      ) : (
+        <div className={`
+          w-[340px] h-[480px] rounded-xl overflow-hidden 
+          flex flex-col shadow-[0_8px_24px_rgba(0,0,0,0.15)] 
+          border border-black border-opacity-10
+          max-sm:w-[calc(100vw-2rem)] max-sm:h-[70vh] max-sm:max-h-[500px]
+          ${currentTheme.window}
+        `}>
+          {/* Header del chat */}
+          <div className={`p-4 flex justify-between items-center ${currentTheme.header}`}>
+            <div className="font-semibold text-base">{title}</div>
+            <button 
+              className="bg-none border-none text-white text-2xl leading-none cursor-pointer p-0 m-0"
+              onClick={toggleChat}
+            >
+              ×
+            </button>
           </div>
-        )}
-      </div>
-    </>
+          
+          {/* Contenedor de mensajes */}
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+            {messages.map((msg) => (
+              <div 
+                key={msg.id} 
+                className={`flex items-end mb-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}
+              >
+                {msg.sender === 'bot' && agentAvatar && (
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200 mr-2">
+                    <img src={agentAvatar} alt="Bot" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                
+                <div className={`
+                  px-4 py-3 rounded-[18px] max-w-[75%] break-words relative
+                  ${msg.sender === 'bot' 
+                    ? `${currentTheme.botBubble} rounded-bl-[6px]` 
+                    : `${currentTheme.userBubble} rounded-br-[6px] mr-2`
+                  }
+                `}>
+                  <div className="leading-relaxed text-[0.925rem]">{msg.text}</div>
+                  <div className={`
+                    text-[0.7rem] opacity-70 text-right mt-1
+                    ${msg.sender === 'user' ? 'text-white text-opacity-90' : ''}
+                  `}>
+                    {formatTimestamp(msg.timestamp)}
+                  </div>
+                </div>
+                
+                {msg.sender === 'user' && userAvatar && (
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
+                    <img src={userAvatar} alt="Usuario" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {isTyping && (
+              <div className="flex items-end mb-3">
+                {agentAvatar && (
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200 mr-2">
+                    <img src={agentAvatar} alt="Bot" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className={`px-4 py-3 rounded-[18px] rounded-bl-[6px] ${currentTheme.botBubble}`}>
+                  <div className="flex gap-1 px-3 py-1.5">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full inline-block typing-dot"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full inline-block typing-dot"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full inline-block typing-dot"></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+          
+          {/* Area de input */}
+          <div className={`p-4 flex gap-2 border-t ${currentTheme.inputArea}`}>
+            <input
+              type="text"
+              className={`
+                flex-1 px-4 py-3 border rounded-lg text-[0.925rem] outline-none 
+                transition-all duration-200 ease-in-out
+                focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]
+                ${currentTheme.input}
+              `}
+              placeholder="Escribe tu mensaje aquí..."
+              value={inputText}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+            />
+            <Button 
+              variant="primary"
+              size="small"
+              onClick={handleSendMessage}
+              className="px-4 py-3 min-w-[60px]"
+            >
+              Enviar
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
