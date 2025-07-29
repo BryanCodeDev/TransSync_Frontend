@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { useState, useEffect, lazy, Suspense } from "react";
 import Sidebar from "../components/Sidebar";
 import ChatBot from "../components/ChatBot";
+
 // Componente SEO optimizado para evitar warnings
 const SEO = ({ title, description }) => {
   useEffect(() => {
@@ -49,46 +50,60 @@ const LoadingFallback = () => (
 );
 
 const AppRoutes = () => {
-  // Estado simple del sidebar
-  const [sidebarOpen, setSidebarOpen] = useState(true); // Iniciar abierto en desktop
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Iniciar cerrado por defecto
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detectar dispositivo móvil
+  // Detectar dispositivo móvil y configurar sidebar inicial
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
+      const wasMobile = isMobile;
+      
       setIsMobile(mobile);
       
-      // Si es móvil, cerrar sidebar
-      if (mobile && sidebarOpen) {
-        setSidebarOpen(false);
+      // Solo cambiar el estado del sidebar si realmente cambió el tipo de dispositivo
+      if (wasMobile !== mobile) {
+        if (!mobile && !sidebarOpen) {
+          // Cambió de móvil a desktop, abrir sidebar
+          setSidebarOpen(true);
+        } else if (mobile && sidebarOpen) {
+          // Cambió de desktop a móvil, cerrar sidebar
+          setSidebarOpen(false);
+        }
       }
     };
     
-    checkMobile();
+    // Configuración inicial
+    const mobile = window.innerWidth <= 768;
+    setIsMobile(mobile);
+    setSidebarOpen(!mobile); // Abierto en desktop, cerrado en móvil
+    
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, [sidebarOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Función para alternar el sidebar
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
   };
 
-  // Función para cerrar sidebar desde overlay
+  // Función para cerrar sidebar desde overlay (solo móvil)
   const handleOverlayClick = () => {
-    setSidebarOpen(false);
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
   };
 
   // Calcular clases del contenido principal
   const getContentClasses = () => {
     if (isMobile) {
-      return "min-h-screen transition-all duration-300 ease-in-out w-full";
+      return "min-h-screen w-full transition-all duration-300 ease-in-out";
     }
     
     // En desktop, ajustar según el estado del sidebar
     const paddingLeft = sidebarOpen ? 'pl-[280px]' : 'pl-[70px]';
-    return `min-h-screen transition-all duration-300 ease-in-out w-full ${paddingLeft}`;
+    return `min-h-screen w-full transition-all duration-300 ease-in-out ${paddingLeft}`;
   };
 
   return (
@@ -122,7 +137,7 @@ const AppRoutes = () => {
           {/* Rutas protegidas */}
           <Route path="/*" element={
             <ProtectedRoute>
-              <div className="relative min-h-screen">
+              <div className="relative min-h-screen bg-gray-50">
                 {/* Sidebar */}
                 <Sidebar 
                   isOpen={sidebarOpen} 
@@ -133,7 +148,8 @@ const AppRoutes = () => {
                 
                 {/* Contenido principal */}
                 <main className={getContentClasses()}>
-                  <Routes>
+                  <div className="min-h-screen">
+                    <Routes>
                       <Route path="/home" element={
                         <>
                           <SEO 
@@ -217,6 +233,7 @@ const AppRoutes = () => {
                       {/* Ruta 404 */}
                       <Route path="*" element={<Navigate to="/home" replace />} />
                     </Routes>
+                  </div>
                 </main>
                 
                 {/* ChatBot */}

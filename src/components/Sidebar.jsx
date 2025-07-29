@@ -8,48 +8,47 @@ import {
 } from "react-icons/fa";
 
 const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp }) => {
-  const [isMobile, setIsMobile] = useState(isMobileProp || false);
+  const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Detectar si es dispositivo móvil (usar prop si está disponible)
+  // Detectar si es dispositivo móvil
   useEffect(() => {
-    if (isMobileProp !== undefined) {
-      setIsMobile(isMobileProp);
-      return;
-    }
-    
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
     };
     
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    // Si se pasa la prop, usar esa; sino detectar automáticamente
+    if (isMobileProp !== undefined) {
+      setIsMobile(isMobileProp);
+    } else {
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }
   }, [isMobileProp]);
 
-  // Cerrar sidebar en móvil al cambiar de ruta (solo al navegar, no al abrir)
-  const [lastPath, setLastPath] = useState(location.pathname);
+  // Cerrar sidebar en móvil al cambiar de ruta
+  const [previousPath, setPreviousPath] = useState(location.pathname);
   
   useEffect(() => {
-    if (location.pathname !== lastPath && isMobile && isOpen) {
-      setLastPath(location.pathname);
+    if (location.pathname !== previousPath && isMobile && isOpen) {
+      setPreviousPath(location.pathname);
       const timer = setTimeout(() => {
         toggleSidebar();
       }, 150);
       return () => clearTimeout(timer);
     }
-    setLastPath(location.pathname);
-  }, [location.pathname, lastPath, isMobile, isOpen, toggleSidebar]);
+    setPreviousPath(location.pathname);
+  }, [location.pathname, previousPath, isMobile, isOpen, toggleSidebar]);
 
   // Prevenir scroll del body cuando el menú móvil está abierto
   useEffect(() => {
     if (isMobile && isOpen) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
       document.body.style.overflow = 'hidden';
-      
       return () => {
-        document.body.style.overflow = originalStyle;
+        document.body.style.overflow = 'unset';
       };
     }
   }, [isMobile, isOpen]);
@@ -62,12 +61,29 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   };
 
   const handleOverlayClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (onOverlayClick) {
       onOverlayClick();
     } else {
       toggleSidebar();
+    }
+  };
+
+  const handleMenuButtonClick = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    toggleSidebar();
+  };
+
+  const handleLinkClick = (e) => {
+    // No prevenir la navegación, solo cerrar en móvil
+    if (isMobile && isOpen) {
+      // No usar setTimeout aquí, dejar que el useEffect maneje el cierre
     }
   };
 
@@ -84,98 +100,65 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
 
   return (
     <>
-      {/* Botón de menú móvil */}
-      <button 
-        className={`
-          fixed top-4 left-4 z-[1100] 
-          bg-gradient-to-r from-[#1a237e] to-[#3949ab]
-          text-white border-none rounded-lg 
-          w-12 h-12 flex justify-center items-center cursor-pointer 
-          shadow-lg hover:shadow-xl
-          transition-all duration-300 ease-in-out
-          hover:scale-105 active:scale-95
-          md:hidden backdrop-blur-sm
-          ${isOpen && isMobile ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800' : ''}
-        `}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          toggleSidebar();
-        }}
-        aria-label="Toggle mobile menu"
-        style={{ 
-          display: isMobile ? 'flex' : 'none',
-          zIndex: 1100
-        }}
-      >
-        <div className="relative w-5 h-5">
-          <FaBars 
-            className={`absolute inset-0 transition-all duration-300 transform ${
-              isOpen && isMobile ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'
-            }`} 
-          />
-          <FaTimes 
-            className={`absolute inset-0 transition-all duration-300 transform ${
-              isOpen && isMobile ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'
-            }`} 
-          />
-        </div>
-      </button>
+      {/* Botón de menú móvil - Solo visible en móvil */}
+      {isMobile && (
+        <button 
+          className={`
+            fixed top-4 left-4 z-[1100] 
+            bg-gradient-to-r from-[#1a237e] to-[#3949ab]
+            text-white border-none rounded-lg 
+            w-12 h-12 flex justify-center items-center cursor-pointer 
+            shadow-lg hover:shadow-xl
+            transition-all duration-300 ease-in-out
+            hover:scale-105 active:scale-95
+            backdrop-blur-sm
+            ${isOpen ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800' : ''}
+          `}
+          onClick={handleMenuButtonClick}
+          aria-label="Toggle mobile menu"
+        >
+          <div className="relative w-5 h-5">
+            <FaBars 
+              className={`absolute inset-0 transition-all duration-300 transform ${
+                isOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'
+              }`} 
+            />
+            <FaTimes 
+              className={`absolute inset-0 transition-all duration-300 transform ${
+                isOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'
+              }`} 
+            />
+          </div>
+        </button>
+      )}
 
       {/* Overlay para cerrar el menú en móvil */}
       {isOpen && isMobile && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-[998] backdrop-blur-sm"
           onClick={handleOverlayClick}
-          style={{ 
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: '100vw',
-            height: '100vh',
-            zIndex: 998,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-          }}
+          role="button"
+          tabIndex={-1}
+          aria-label="Cerrar menú"
         />
       )}
 
       {/* Sidebar */}
-      <div 
+      <aside 
         className={`
           fixed left-0 top-0 h-screen z-[999]
           bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab]
           shadow-2xl text-white
           flex flex-col
-          transition-transform duration-300 ease-in-out
+          transition-all duration-300 ease-in-out
           before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/5 before:to-transparent before:pointer-events-none
+          ${isMobile 
+            ? `w-[280px] ${isOpen ? 'translate-x-0' : '-translate-x-full'}` 
+            : `${isOpen ? 'w-[280px]' : 'w-[70px]'} translate-x-0`
+          }
         `}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          height: '100vh',
-          zIndex: 999,
-          width: isMobile ? '280px' : (isOpen ? '280px' : '70px'),
-          transform: isMobile 
-            ? (isOpen ? 'translateX(0px)' : 'translateX(-280px)')
-            : 'translateX(0px)',
-          WebkitTransform: isMobile 
-            ? (isOpen ? 'translateX(0px)' : 'translateX(-280px)')
-            : 'translateX(0px)',
-          transition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out',
-          WebkitTransition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out'
-        }}
       >
-        {/* Debug info - Remover en producción */}
-        {process.env.NODE_ENV === 'development' && false && (
-          <div className="fixed top-20 right-4 bg-black/80 text-white p-2 rounded text-xs z-[1200] md:hidden">
-            <div>Mobile: {isMobile ? 'Yes' : 'No'}</div>
-            <div>Open: {isOpen ? 'Yes' : 'No'}</div>
-            <div>Width: {window.innerWidth}px</div>
-          </div>
-        )}
+        {/* Header del sidebar */}
         <div className="relative p-4 border-b border-white/20 min-h-[70px] flex items-center justify-between backdrop-blur-sm">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative">
@@ -184,14 +167,13 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                 alt="Logo TransSync" 
                 className="h-10 w-10 object-contain filter drop-shadow-lg" 
                 onError={(e) => {
-                  // Fallback si no hay logo
                   e.target.style.display = 'none';
                 }}
               />
               <div className="absolute -inset-1 bg-white/20 rounded-full blur opacity-50" />
             </div>
-            {(isOpen || isMobile) && (
-              <div className="flex flex-col">
+            {(isOpen || !isMobile) && (
+              <div className={`flex flex-col transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
                 <span className="text-xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent whitespace-nowrap">
                   TransSync
                 </span>
@@ -202,15 +184,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
             )}
           </div>
           
+          {/* Botón toggle solo para desktop */}
           {!isMobile && (
             <button 
-              className={`
-                bg-white/10 hover:bg-white/20 border-none text-white cursor-pointer 
-                w-8 h-8 rounded-full flex items-center justify-center 
-                transition-all duration-300 ease-in-out
-                hover:scale-110 active:scale-95
-                backdrop-blur-sm shadow-lg
-              `}
+              className="bg-white/10 hover:bg-white/20 border-none text-white cursor-pointer w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110 active:scale-95 backdrop-blur-sm shadow-lg"
               onClick={toggleSidebar}
               aria-label="Toggle sidebar"
             >
@@ -231,8 +208,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-sm" />
             </div>
-            {(isOpen || isMobile) && (
-              <div className="flex-1 min-w-0">
+            {(isOpen || !isMobile) && (
+              <div className={`flex-1 min-w-0 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
                 <h4 className="text-sm font-semibold text-white truncate">Administrador</h4>
                 <p className="text-xs text-blue-200 opacity-80 truncate">Sistema TransSync</p>
                 <div className="flex items-center gap-1 mt-1">
@@ -245,8 +222,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         </div>
 
         {/* Menú de navegación */}
-        <nav className="flex-1 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-          <div className="px-2 space-y-1">
+        <nav className="flex-1 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent" role="navigation">
+          <div className="px-2 space-y-1" role="menu">
             {menuItems.map(({ path, icon, label }) => {
               const isActive = location.pathname === path;
               return (
@@ -264,12 +241,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                       }
                       ${(isOpen || isMobile) ? 'p-3 justify-start' : 'p-3 justify-center'}
                     `}
-                    onClick={() => {
-                      // En móvil, cerrar el menú después de navegar
-                      if (isMobile) {
-                        setTimeout(() => toggleSidebar(), 150);
-                      }
-                    }}
+                    onClick={handleLinkClick}
+                    role="menuitem"
                   >
                     <div className={`
                       flex items-center justify-center text-lg
@@ -279,9 +252,11 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                       {icon}
                     </div>
                     {(isOpen || isMobile) && (
-                      <span className="text-sm font-medium truncate">{label}</span>
+                      <span className={`text-sm font-medium truncate transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+                        {label}
+                      </span>
                     )}
-                    {isActive && (
+                    {isActive && (isOpen || isMobile) && (
                       <div className="absolute right-2 w-2 h-2 bg-blue-300 rounded-full animate-pulse" />
                     )}
                   </Link>
@@ -320,11 +295,15 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
             `}>
               <FaSignOutAlt />
             </div>
-            {(isOpen || isMobile) && <span>Cerrar Sesión</span>}
+            {(isOpen || isMobile) && (
+              <span className={`transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+                Cerrar Sesión
+              </span>
+            )}
           </button>
           
           {(isOpen || isMobile) && (
-            <div className="mt-4 text-center">
+            <div className={`mt-4 text-center transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
               <p className="text-xs text-blue-200 opacity-75 mb-1">
                 &copy; {new Date().getFullYear()} TransSync
               </p>
@@ -334,7 +313,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
             </div>
           )}
         </div>
-      </div>
+      </aside>
     </>
   );
 };

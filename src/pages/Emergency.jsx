@@ -33,6 +33,29 @@ const Emergency = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto font-['Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif]">
+      {/* Agregar estilos CSS en línea para la animación */}
+      <style>
+        {`
+          @keyframes emergencyPulse {
+            0% {
+              transform: scale(1);
+              box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
+            }
+            50% {
+              transform: scale(1.05);
+              box-shadow: 0 8px 20px rgba(220, 38, 38, 0.5);
+            }
+            100% {
+              transform: scale(1);
+              box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
+            }
+          }
+          .emergency-pulse {
+            animation: emergencyPulse 2s infinite;
+          }
+        `}
+      </style>
+
       {/* Header */}
       <div className="text-center mb-10 p-8 bg-gradient-to-br from-red-100 to-red-50 rounded-2xl shadow-lg shadow-red-600/10 relative">
         <AlertTriangle className="text-red-600 mb-4 mx-auto drop-shadow-lg" size={32} />
@@ -49,16 +72,13 @@ const Emergency = () => {
         {/* Main Alert Card */}
         <div className="bg-gradient-to-br from-red-200 to-red-100 rounded-2xl p-8 shadow-lg flex flex-col items-center text-center">
           <Bell className="text-red-600 mb-4 drop-shadow-md" size={24} />
-          <h2 className="text-xl font-semibold text-slate-800 mb-0 mb-4">Alerta de Emergencia</h2>
-          <p className="text-slate-600 text-sm leading-6 mb-0 mb-6">
+          <h2 className="text-xl font-semibold text-slate-800 mb-4">Alerta de Emergencia</h2>
+          <p className="text-slate-600 text-sm leading-6 mb-6">
             Presiona el botón para reportar un incidente o situación de emergencia en tiempo real
           </p>
           <button 
-            className="bg-red-600 text-white border-none py-3.5 px-6 rounded-full font-semibold text-base cursor-pointer transition-all duration-300 flex items-center gap-2.5 shadow-lg shadow-red-600/30 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-600/40 active:translate-y-0 active:shadow-lg active:shadow-red-600/30 animate-pulse"
+            className="emergency-pulse bg-red-600 text-white border-none py-3.5 px-6 rounded-full font-semibold text-base cursor-pointer transition-all duration-300 flex items-center gap-2.5 shadow-lg shadow-red-600/30 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-600/40 active:translate-y-0 active:shadow-lg active:shadow-red-600/30"
             onClick={openModal}
-            style={{
-              animation: 'pulse 2s infinite'
-            }}
           >
             <AlertCircle size={20} />
             <span>Reportar Emergencia</span>
@@ -68,7 +88,7 @@ const Emergency = () => {
         {/* Contacts Card */}
         <div className="bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center">
           <Phone className="text-red-600 mb-4 drop-shadow-md" size={24} />
-          <h2 className="text-xl font-semibold text-slate-800 mb-0 mb-4">Contactos de Emergencia</h2>
+          <h2 className="text-xl font-semibold text-slate-800 mb-4">Contactos de Emergencia</h2>
           <ul className="list-none p-0 m-0 w-full text-left">
             {emergencyContacts.map((contact, index) => (
               <li key={index} className="flex items-center justify-between py-3.5 border-b border-slate-200 last:border-b-0">
@@ -102,38 +122,38 @@ const Emergency = () => {
 
             {/* Modal Content */}
             <div className="p-6">
-              {/* Emergency Types */}
-              <div className="mb-8">
-                <h3 className="text-lg font-medium text-slate-800 mb-4">Tipo de emergencia</h3>
-                <div className="grid grid-cols-1 gap-3">
-                  {emergencyTypes.map((type) => (
-                    <label 
-                      key={type.id} 
-                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        emergencyType === type.id 
-                          ? 'border-red-500 bg-red-50' 
-                          : 'border-slate-200 hover:border-red-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="emergencyType"
-                        value={type.id}
-                        checked={emergencyType === type.id}
-                        onChange={(e) => setEmergencyType(e.target.value)}
-                        required
-                        className="sr-only"
-                      />
-                      <span className="text-red-600">{type.icon}</span>
-                      <span className="font-medium text-slate-700">{type.label}</span>
-                    </label>
-                  ))}
+              <form onSubmit={handleSubmit}>
+                {/* Emergency Types */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-medium text-slate-800 mb-4">Tipo de emergencia</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {emergencyTypes.map((type) => (
+                      <label 
+                        key={type.id} 
+                        className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                          emergencyType === type.id 
+                            ? 'border-red-500 bg-red-50' 
+                            : 'border-slate-200 hover:border-red-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="emergencyType"
+                          value={type.id}
+                          checked={emergencyType === type.id}
+                          onChange={(e) => setEmergencyType(e.target.value)}
+                          required
+                          className="sr-only"
+                        />
+                        <span className="text-red-600">{type.icon}</span>
+                        <span className="font-medium text-slate-700">{type.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              
-              {/* Description */}
-              <div className="mb-8">
-                <div>
+                
+                {/* Description */}
+                <div className="mb-8">
                   <h3 className="text-lg font-medium text-slate-800 mb-3">Descripción del incidente</h3>
                   <textarea
                     value={description}
@@ -142,49 +162,32 @@ const Emergency = () => {
                     required
                     rows="4"
                     className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-red-500 focus:outline-none transition-colors resize-none"
-                  ></textarea>
+                  />
                 </div>
-              </div>
 
-              {/* Actions */}
-              <div className="flex gap-3 justify-end">
-                <button 
-                  type="button" 
-                  className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
-                  onClick={closeModal}
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="button" 
-                  className="px-6 py-3 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors flex items-center gap-2"
-                  onClick={handleSubmit}
-                >
-                  <SendHorizontal size={16} />
-                  <span>Enviar Alerta</span>
-                </button>
-              </div>
+                {/* Actions */}
+                <div className="flex gap-3 justify-end">
+                  <button 
+                    type="button" 
+                    className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+                    onClick={closeModal}
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="px-6 py-3 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors flex items-center gap-2"
+                    disabled={!emergencyType || !description.trim()}
+                  >
+                    <SendHorizontal size={16} />
+                    <span>Enviar Alerta</span>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes pulse {
-          0% {
-            transform: scale(1);
-            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
-          }
-          50% {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.5);
-          }
-          100% {
-            transform: scale(1);
-            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
-          }
-        }
-      `}</style>
     </div>
   );
 };
