@@ -7,13 +7,18 @@ import {
   FaUserShield, FaBars, FaTimes
 } from "react-icons/fa";
 
-const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick }) => {
-  const [isMobile, setIsMobile] = useState(false);
+const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp }) => {
+  const [isMobile, setIsMobile] = useState(isMobileProp || false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Detectar si es dispositivo móvil
+  // Detectar si es dispositivo móvil (usar prop si está disponible)
   useEffect(() => {
+    if (isMobileProp !== undefined) {
+      setIsMobile(isMobileProp);
+      return;
+    }
+    
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
@@ -21,22 +26,48 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick }) => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [isMobileProp]);
 
-  // Cerrar sidebar en móvil al cambiar de ruta
+  // Cerrar sidebar en móvil al cambiar de ruta (solo al navegar, no al abrir)
+  const [lastPath, setLastPath] = useState(location.pathname);
+  
   useEffect(() => {
-    if (isMobile && isOpen) {
+    if (location.pathname !== lastPath && isMobile && isOpen) {
+      setLastPath(location.pathname);
       const timer = setTimeout(() => {
         toggleSidebar();
       }, 150);
       return () => clearTimeout(timer);
     }
-  }, [location.pathname, isMobile, isOpen, toggleSidebar]);
+    setLastPath(location.pathname);
+  }, [location.pathname, lastPath, isMobile, isOpen, toggleSidebar]);
+
+  // Prevenir scroll del body cuando el menú móvil está abierto
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isMobile, isOpen]);
 
   const handleLogout = () => {
     if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
       localStorage.removeItem("isAuthenticated");
       navigate("/login");
+    }
+  };
+
+  const handleOverlayClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onOverlayClick) {
+      onOverlayClick();
+    } else {
+      toggleSidebar();
     }
   };
 
@@ -64,40 +95,87 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick }) => {
           transition-all duration-300 ease-in-out
           hover:scale-105 active:scale-95
           md:hidden backdrop-blur-sm
-          ${isOpen && isMobile ? 'bg-red-600 hover:bg-red-700' : ''}
+          ${isOpen && isMobile ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800' : ''}
         `}
-        onClick={toggleSidebar}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleSidebar();
+        }}
         aria-label="Toggle mobile menu"
+        style={{ 
+          display: isMobile ? 'flex' : 'none',
+          zIndex: 1100
+        }}
       >
         <div className="relative w-5 h-5">
-          <FaBars className={`absolute inset-0 transition-all duration-300 ${isOpen && isMobile ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'}`} />
-          <FaTimes className={`absolute inset-0 transition-all duration-300 ${isOpen && isMobile ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'}`} />
+          <FaBars 
+            className={`absolute inset-0 transition-all duration-300 transform ${
+              isOpen && isMobile ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'
+            }`} 
+          />
+          <FaTimes 
+            className={`absolute inset-0 transition-all duration-300 transform ${
+              isOpen && isMobile ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'
+            }`} 
+          />
         </div>
       </button>
 
       {/* Overlay para cerrar el menú en móvil */}
       {isOpen && isMobile && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-60 z-[998] backdrop-blur-sm transition-opacity duration-300"
-          onClick={onOverlayClick}
+          className="fixed inset-0 bg-black bg-opacity-50 z-[998] backdrop-blur-sm"
+          onClick={handleOverlayClick}
+          style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 998,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+          }}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`
-        fixed left-0 top-0 h-full z-[999]
-        bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab]
-        transition-all duration-300 ease-in-out
-        shadow-2xl text-white
-        flex flex-col
-        ${isMobile 
-          ? `w-[300px] ${isOpen ? 'translate-x-0' : '-translate-x-full'}`
-          : `${isOpen ? 'w-[280px]' : 'w-[70px]'} translate-x-0`
-        }
-        before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/5 before:to-transparent before:pointer-events-none
-      `}>
-        
-        {/* Encabezado del sidebar */}
+      <div 
+        className={`
+          fixed left-0 top-0 h-screen z-[999]
+          bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab]
+          shadow-2xl text-white
+          flex flex-col
+          transition-transform duration-300 ease-in-out
+          before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/5 before:to-transparent before:pointer-events-none
+        `}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: '100vh',
+          zIndex: 999,
+          width: isMobile ? '280px' : (isOpen ? '280px' : '70px'),
+          transform: isMobile 
+            ? (isOpen ? 'translateX(0px)' : 'translateX(-280px)')
+            : 'translateX(0px)',
+          WebkitTransform: isMobile 
+            ? (isOpen ? 'translateX(0px)' : 'translateX(-280px)')
+            : 'translateX(0px)',
+          transition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out',
+          WebkitTransition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out'
+        }}
+      >
+        {/* Debug info - Remover en producción */}
+        {process.env.NODE_ENV === 'development' && false && (
+          <div className="fixed top-20 right-4 bg-black/80 text-white p-2 rounded text-xs z-[1200] md:hidden">
+            <div>Mobile: {isMobile ? 'Yes' : 'No'}</div>
+            <div>Open: {isOpen ? 'Yes' : 'No'}</div>
+            <div>Width: {window.innerWidth}px</div>
+          </div>
+        )}
         <div className="relative p-4 border-b border-white/20 min-h-[70px] flex items-center justify-between backdrop-blur-sm">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative">
@@ -105,6 +183,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick }) => {
                 src={`${process.env.PUBLIC_URL}/logo.svg`} 
                 alt="Logo TransSync" 
                 className="h-10 w-10 object-contain filter drop-shadow-lg" 
+                onError={(e) => {
+                  // Fallback si no hay logo
+                  e.target.style.display = 'none';
+                }}
               />
               <div className="absolute -inset-1 bg-white/20 rounded-full blur opacity-50" />
             </div>
@@ -182,6 +264,12 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick }) => {
                       }
                       ${(isOpen || isMobile) ? 'p-3 justify-start' : 'p-3 justify-center'}
                     `}
+                    onClick={() => {
+                      // En móvil, cerrar el menú después de navegar
+                      if (isMobile) {
+                        setTimeout(() => toggleSidebar(), 150);
+                      }
+                    }}
                   >
                     <div className={`
                       flex items-center justify-center text-lg
@@ -198,7 +286,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick }) => {
                     )}
                   </Link>
                   
-                  {/* Tooltip para sidebar colapsado */}
+                  {/* Tooltip para sidebar colapsado (solo desktop) */}
                   {!isOpen && !isMobile && (
                     <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50 shadow-xl">
                       {label}

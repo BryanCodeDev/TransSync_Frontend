@@ -1,8 +1,25 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect, lazy, Suspense, useCallback } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import Sidebar from "../components/Sidebar";
 import ChatBot from "../components/ChatBot";
-import SEO from "../components/SEO";
+// Componente SEO optimizado para evitar warnings
+const SEO = ({ title, description }) => {
+  useEffect(() => {
+    if (title) document.title = title;
+    
+    if (description) {
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.setAttribute('content', description);
+    }
+  }, [title, description]);
+  
+  return null;
+};
 
 // Lazy loading para mejorar el rendimiento
 const Home = lazy(() => import("../pages/Home"));
@@ -17,7 +34,7 @@ const Login = lazy(() => import("../pages/Login"));
 const Register = lazy(() => import("../pages/Register"));
 const ProtectedRoute = lazy(() => import("./ProtectedRoute"));
 
-// Componente de carga mejorado
+// Componente de carga
 const LoadingFallback = () => (
   <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center z-50">
     <div className="text-center">
@@ -32,103 +49,47 @@ const LoadingFallback = () => (
 );
 
 const AppRoutes = () => {
-  // Estados principales
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Estado simple del sidebar
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Iniciar abierto en desktop
   const [isMobile, setIsMobile] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Detectar dispositivo móvil y configurar estado inicial
+  // Detectar dispositivo móvil
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
       
-      if (!isInitialized) {
-        // Configuración inicial basada en el dispositivo
-        if (mobile) {
-          setSidebarOpen(false);
-        } else {
-          // En desktop, recuperar estado del localStorage
-          const savedState = localStorage.getItem("sidebarOpen");
-          setSidebarOpen(savedState ? JSON.parse(savedState) : true);
-        }
-        setIsInitialized(true);
-      } else if (mobile && sidebarOpen) {
-        // Si cambiamos a móvil y el sidebar está abierto, cerrarlo
+      // Si es móvil, cerrar sidebar
+      if (mobile && sidebarOpen) {
         setSidebarOpen(false);
       }
     };
-
+    
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, [sidebarOpen, isInitialized]);
-
-  // Guardar estado del sidebar en localStorage solo para desktop
-  useEffect(() => {
-    if (isInitialized && !isMobile) {
-      localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
-    }
-  }, [sidebarOpen, isMobile, isInitialized]);
+  }, [sidebarOpen]);
 
   // Función para alternar el sidebar
-  const toggleSidebar = useCallback(() => {
+  const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
-  }, []);
-
-  // Función para cerrar sidebar desde overlay
-  const handleOverlayClick = useCallback(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [isMobile]);
-
-  // Prevenir scroll del body cuando el sidebar móvil está abierto
-  useEffect(() => {
-    if (isMobile && sidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMobile, sidebarOpen]);
-
-  // Calcular clases CSS del contenido principal
-  const getContentClasses = () => {
-    const baseClasses = "min-h-screen transition-all duration-300 ease-in-out bg-gradient-to-br from-gray-50 to-blue-50";
-    
-    if (isMobile) {
-      return `${baseClasses} ml-0 p-4`;
-    }
-    
-    const marginLeft = sidebarOpen ? 'ml-[280px]' : 'ml-[70px]';
-    return `${baseClasses} ${marginLeft} p-6`;
   };
 
-  // Manejar teclas de acceso rápido
-  useEffect(() => {
-    const handleKeyPress = (event) => {
-      // Alt + S para alternar sidebar
-      if (event.altKey && event.key === 's') {
-        event.preventDefault();
-        toggleSidebar();
-      }
-      // Escape para cerrar sidebar en móvil
-      if (event.key === 'Escape' && isMobile && sidebarOpen) {
-        setSidebarOpen(false);
-      }
-    };
+  // Función para cerrar sidebar desde overlay
+  const handleOverlayClick = () => {
+    setSidebarOpen(false);
+  };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [toggleSidebar, isMobile, sidebarOpen]);
-
-  if (!isInitialized) {
-    return <LoadingFallback />;
-  }
+  // Calcular clases del contenido principal
+  const getContentClasses = () => {
+    if (isMobile) {
+      return "min-h-screen transition-all duration-300 ease-in-out w-full";
+    }
+    
+    // En desktop, ajustar según el estado del sidebar
+    const paddingLeft = sidebarOpen ? 'pl-[280px]' : 'pl-[70px]';
+    return `min-h-screen transition-all duration-300 ease-in-out w-full ${paddingLeft}`;
+  };
 
   return (
     <Router>
@@ -167,12 +128,12 @@ const AppRoutes = () => {
                   isOpen={sidebarOpen} 
                   toggleSidebar={toggleSidebar}
                   onOverlayClick={handleOverlayClick}
+                  isMobile={isMobile}
                 />
                 
                 {/* Contenido principal */}
                 <main className={getContentClasses()}>
-                  <div className="max-w-7xl mx-auto">
-                    <Routes>
+                  <Routes>
                       <Route path="/home" element={
                         <>
                           <SEO 
@@ -256,16 +217,12 @@ const AppRoutes = () => {
                       {/* Ruta 404 */}
                       <Route path="*" element={<Navigate to="/home" replace />} />
                     </Routes>
-                  </div>
                 </main>
                 
-                {/* ChatBot - Solo visible en rutas protegidas */}
+                {/* ChatBot */}
                 <ChatBot 
                   position="bottom-right" 
                   theme="professional"
-                  className={`transition-all duration-300 ${
-                    isMobile && sidebarOpen ? 'opacity-50 pointer-events-none' : 'opacity-100'
-                  }`}
                 />
               </div>
             </ProtectedRoute>

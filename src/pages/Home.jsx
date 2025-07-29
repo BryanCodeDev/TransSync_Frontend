@@ -26,14 +26,14 @@ const Home = () => {
 
   return (
     <div className="font-['Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif] text-gray-800 leading-relaxed">
-      {/* Header con fondo de gradiente */}
+      {/* Header con fondo de gradiente - Ocupa todo el ancho */}
       <header className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-20 px-6 relative overflow-hidden">
         
-        <div className="max-w-6xl mx-auto relative z-10 text-center">
+        <div className="w-full max-w-6xl mx-auto relative z-10 text-center">
           <h1 className="text-6xl font-extrabold mb-4 tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
             TransSync
           </h1>
-          <p className="text-xl max-w-3xl mx-auto mb-8 text-white/90">
+          <p className="text-xl w-full max-w-3xl mx-auto mb-8 text-white/90">
             La plataforma integral para la gestión y optimización del transporte público moderno
           </p>
           
@@ -60,9 +60,9 @@ const Home = () => {
 
       {/* Sección de características */}
       <section className="bg-gray-50 py-20 px-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4 text-gray-800">Soluciones de clase mundial</h2>
-          <p className="text-lg text-center text-gray-600 max-w-3xl mx-auto mb-12">
+          <p className="text-lg text-center text-gray-600 w-full max-w-3xl mx-auto mb-12">
             Herramientas potentes para transformar la movilidad urbana
           </p>
           
@@ -150,19 +150,19 @@ const Home = () => {
 
       {/* Sección de cómo funciona */}
       <section className="bg-white py-20 px-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4 text-gray-800">Cómo funciona TransSync</h2>
-          <p className="text-lg text-center text-gray-600 max-w-3xl mx-auto mb-12">
+          <p className="text-lg text-center text-gray-600 w-full max-w-3xl mx-auto mb-12">
             Una solución integral para cada aspecto de la gestión del transporte público
           </p>
           
-          <div className="max-w-4xl mx-auto">
+          <div className="w-full max-w-4xl mx-auto">
             <div className="flex mb-8 relative">
               <div className="absolute top-12 left-6 w-0.5 h-full bg-gray-200 -z-10"></div>
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xl mr-6 flex-shrink-0 relative z-10">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xl flex-shrink-0 relative z-10">
                 1
               </div>
-              <div className="pt-2">
+              <div className="pt-2 pl-6">
                 <h3 className="text-xl font-semibold mb-2">Integración de datos</h3>
                 <p className="text-gray-600">
                   Conectamos todas las fuentes de información de su operación en una única plataforma centralizada.
@@ -172,10 +172,10 @@ const Home = () => {
             
             <div className="flex mb-8 relative">
               <div className="absolute top-12 left-6 w-0.5 h-full bg-gray-200 -z-10"></div>
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xl mr-6 flex-shrink-0 relative z-10">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xl flex-shrink-0 relative z-10">
                 2
               </div>
-              <div className="pt-2">
+              <div className="pt-2 pl-6">
                 <h3 className="text-xl font-semibold mb-2">Análisis y optimización</h3>
                 <p className="text-gray-600">
                   Nuestros algoritmos procesan los datos para identificar áreas de mejora y optimizar operaciones.
@@ -185,10 +185,10 @@ const Home = () => {
             
             <div className="flex mb-8 relative">
               <div className="absolute top-12 left-6 w-0.5 h-full bg-gray-200 -z-10"></div>
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xl mr-6 flex-shrink-0 relative z-10">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xl flex-shrink-0 relative z-10">
                 3
               </div>
-              <div className="pt-2">
+              <div className="pt-2 pl-6">
                 <h3 className="text-xl font-semibold mb-2">Implementación de cambios</h3>
                 <p className="text-gray-600">
                   Aplicación de ajustes a rutas, horarios y asignación de recursos en tiempo real.
@@ -197,10 +197,10 @@ const Home = () => {
             </div>
             
             <div className="flex mb-0 relative">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xl mr-6 flex-shrink-0 relative z-10">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xl flex-shrink-0 relative z-10">
                 4
               </div>
-              <div className="pt-2">
+              <div className="pt-2 pl-6">
                 <h3 className="text-xl font-semibold mb-2">Monitoreo continuo</h3>
                 <p className="text-gray-600">
                   Seguimiento permanente del rendimiento para garantizar mejoras constantes en el servicio.
@@ -213,7 +213,7 @@ const Home = () => {
 
       {/* Sección de testimonios */}
       <section className="bg-gray-50 py-20 px-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">Lo que dicen nuestros clientes</h2>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -224,10 +224,10 @@ const Home = () => {
                 </div>
                 <p className="text-base mb-6 relative z-10">{testimonio.texto}</p>
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center mr-3 text-white">
+                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white flex-shrink-0">
                     <User size={24} />
                   </div>
-                  <div>
+                  <div className="pl-3">
                     <h4 className="font-semibold text-base mb-0.5">{testimonio.autor}</h4>
                     <p className="text-gray-600 text-sm">{testimonio.cargo}</p>
                   </div>
@@ -238,10 +238,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Sección CTA */}
+      {/* Sección CTA - Ocupa todo el ancho */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center max-w-4xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto">
+          <div className="text-center w-full max-w-4xl mx-auto">
             <h2 className="text-4xl font-bold mb-4">Transforme su gestión de transporte hoy</h2>
             <p className="text-lg mb-8 text-white/90">
               Únase a más de 50 ciudades que ya están revolucionando su transporte público con TransSync

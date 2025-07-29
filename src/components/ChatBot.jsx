@@ -1,18 +1,54 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Button from './Button';
+
+// Componente Button mejorado
+const Button = ({ 
+  children, 
+  onClick, 
+  variant = "primary", 
+  size = "medium", 
+  className = "",
+  disabled = false,
+  ...props 
+}) => {
+  const baseClasses = "font-semibold rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+  
+  const variants = {
+    primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm hover:shadow-md",
+    secondary: "bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-500 shadow-sm hover:shadow-md",
+    outline: "bg-transparent border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white focus:ring-blue-500"
+  };
+  
+  const sizes = {
+    small: "px-3 py-2 text-sm",
+    medium: "px-4 py-2.5 text-base",
+    large: "px-6 py-3 text-lg"
+  };
+  
+  return (
+    <button
+      className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
+      onClick={onClick}
+      disabled={disabled}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
 
 const ChatBot = ({ 
   title = "Asistente TransSync",
   initialMessage = "¡Hola! Soy el asistente virtual de TransSync. ¿En qué puedo ayudarte hoy?",
   position = "bottom-right",
-  theme = "light",
-  agentAvatar = "/src/assets/logo.svg",
-  userAvatar = null
+  theme = "professional",
+  agentAvatar = "🤖",
+  userAvatar = "👤"
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef(null);
   
   useEffect(() => {
@@ -32,16 +68,68 @@ const ChatBot = ({
     scrollToBottom();
   }, [messages]);
 
-  // Add the CSS for typing animation to the document head
+  // Animaciones CSS mejoradas
   useEffect(() => {
-    const styleId = 'chatbot-typing-animation';
+    const styleId = 'chatbot-animations';
     if (!document.getElementById(styleId)) {
       const style = document.createElement('style');
       style.id = styleId;
       style.textContent = `
         @keyframes typing {
-          0%, 80%, 100% { transform: scale(0); }
-          40% { transform: scale(1); }
+          0%, 80%, 100% { 
+            transform: scale(0.8);
+            opacity: 0.5;
+          }
+          40% { 
+            transform: scale(1.2);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes slideInUp {
+          from {
+            transform: translateY(100%) scale(0.8);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes slideOutDown {
+          from {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
+          to {
+            transform: translateY(100%) scale(0.8);
+            opacity: 0;
+          }
+        }
+        
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-10px);
+          }
+          60% {
+            transform: translateY(-5px);
+          }
+        }
+        
+        @keyframes pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+          }
         }
         
         .typing-dot {
@@ -55,11 +143,61 @@ const ChatBot = ({
         .typing-dot:nth-child(2) {
           animation-delay: -0.16s;
         }
+        
+        .chat-window-enter {
+          animation: slideInUp 0.3s ease-out forwards;
+        }
+        
+        .chat-window-exit {
+          animation: slideOutDown 0.3s ease-in forwards;
+        }
+        
+        .chat-button-bounce {
+          animation: bounce 2s infinite;
+        }
+        
+        .chat-button-pulse {
+          animation: pulse 2s infinite;
+        }
+        
+        .message-fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Scrollbar personalizada */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(156, 163, 175, 0.5);
+          border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(156, 163, 175, 0.8);
+        }
+        
+        /* Gradiente de texto */
+        .gradient-text {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
       `;
       document.head.appendChild(style);
     }
 
-    // Cleanup function to remove the style when component unmounts
     return () => {
       const existingStyle = document.getElementById(styleId);
       if (existingStyle) {
@@ -76,6 +214,10 @@ const ChatBot = ({
     setIsOpen(!isOpen);
   };
 
+  const toggleMinimize = () => {
+    setIsMinimized(!isMinimized);
+  };
+
   const handleInputChange = (e) => {
     setInputText(e.target.value);
   };
@@ -87,7 +229,6 @@ const ChatBot = ({
   const handleSendMessage = () => {
     if (inputText.trim() === '') return;
     
-    // Add user message
     const userMessage = {
       id: Date.now(),
       text: inputText,
@@ -99,24 +240,27 @@ const ChatBot = ({
     setInputText('');
     setIsTyping(true);
     
-    // Simulate bot response (replace with actual API call)
     setTimeout(() => {
       handleBotResponse(inputText);
       setIsTyping(false);
-    }, 1000);
+    }, Math.random() * 1000 + 800);
   };
 
   const handleBotResponse = (userInput) => {
-    // This should be replaced with actual API call or predefined responses
     const responses = {
-      default: "Lo siento, no tengo información sobre eso. Por favor contacta al soporte técnico para más ayuda.",
-      greeting: ["¡Hola!", "¡Buen día!", "¡Saludos!"],
-      help: "Puedo ayudarte con consultas sobre rutas, vehículos, conductores y horarios del transporte público.",
-      routes: "Puedes consultar todas las rutas disponibles en la sección 'Rutas' del menú principal.",
-      schedules: "Los horarios actualizados se encuentran en la sección 'Horarios'. También puedes filtrar por ruta o por zona.",
-      drivers: "La información de conductores está disponible para administradores en la sección 'Conductores'.",
-      vehicles: "Para consultar el estado de los vehículos, ve a la sección 'Vehículos'.",
-      register: "Para registrarse como nuevo usuario, debes contactar al administrador del sistema."
+      default: "Lo siento, no tengo información específica sobre eso. Te recomiendo contactar a nuestro equipo de soporte técnico para recibir asistencia personalizada.",
+      greeting: [
+        "¡Hola! Es un placer ayudarte hoy. 😊", 
+        "¡Buen día! ¿En qué puedo asistirte?", 
+        "¡Saludos! Estoy aquí para resolver tus consultas."
+      ],
+      help: "Puedo ayudarte con información sobre:\n• Consulta de rutas y paradas\n• Estado de vehículos y conductores\n• Horarios y programación\n• Reportes de incidencias\n• Procedimientos administrativos",
+      routes: "📍 **Gestión de Rutas:**\nAccede al menú 'Rutas' para consultar todas las rutas disponibles, ver mapas interactivos y obtener información sobre paradas y tiempos estimados.",
+      schedules: "⏰ **Horarios Actualizados:**\nEn la sección 'Horarios' encontrarás programaciones en tiempo real, filtros por ruta o zona, y notificaciones de cambios de horario.",
+      drivers: "👨‍💼 **Gestión de Conductores:**\nLa información detallada de conductores está disponible para administradores en la sección correspondiente, incluyendo licencias y evaluaciones.",
+      vehicles: "🚌 **Estado de Vehículos:**\nConsulta el estado en tiempo real de toda la flota, mantenimientos programados y reportes de rendimiento en la sección 'Vehículos'.",
+      register: "📝 **Registro de Usuario:**\nPara crear una cuenta nueva, debes contactar al administrador del sistema quien te proporcionará las credenciales de acceso.",
+      thanks: ["¡De nada! ¿Hay algo más en lo que pueda ayudarte?", "¡Un placer ayudarte! ¿Necesitas información adicional?", "¡Perfecto! Estoy aquí si tienes más consultas."]
     };
     
     let botResponse = "";
@@ -125,18 +269,21 @@ const ChatBot = ({
     if (input.includes("hola") || input.includes("buenos") || input.includes("saludos")) {
       const randomIndex = Math.floor(Math.random() * responses.greeting.length);
       botResponse = responses.greeting[randomIndex];
-    } else if (input.includes("ayuda") || input.includes("puedes hacer")) {
+    } else if (input.includes("ayuda") || input.includes("puedes hacer") || input.includes("qué haces")) {
       botResponse = responses.help;
-    } else if (input.includes("ruta")) {
+    } else if (input.includes("ruta") || input.includes("recorrido")) {
       botResponse = responses.routes;
-    } else if (input.includes("horario")) {
+    } else if (input.includes("horario") || input.includes("tiempo")) {
       botResponse = responses.schedules;
-    } else if (input.includes("conductor")) {
+    } else if (input.includes("conductor") || input.includes("chofer")) {
       botResponse = responses.drivers;
-    } else if (input.includes("vehículo") || input.includes("vehiculo") || input.includes("bus")) {
+    } else if (input.includes("vehículo") || input.includes("vehiculo") || input.includes("bus") || input.includes("autobús")) {
       botResponse = responses.vehicles;
-    } else if (input.includes("registr")) {
+    } else if (input.includes("registr") || input.includes("cuenta") || input.includes("usuario")) {
       botResponse = responses.register;
+    } else if (input.includes("gracias") || input.includes("thanks")) {
+      const randomIndex = Math.floor(Math.random() * responses.thanks.length);
+      botResponse = responses.thanks[randomIndex];
     } else {
       botResponse = responses.default;
     }
@@ -152,158 +299,278 @@ const ChatBot = ({
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSendMessage();
     }
   };
 
-  // Position classes
-  const positionClasses = {
-    'bottom-right': 'bottom-8 right-8',
-    'bottom-left': 'bottom-8 left-8',
-    'top-right': 'top-8 right-8',
-    'top-left': 'top-8 left-8'
+  // Clases de posición responsivas
+  const getPositionClasses = () => {
+    const positions = {
+      'bottom-right': {
+        desktop: 'bottom-6 right-6',
+        mobile: 'bottom-4 right-4'
+      },
+      'bottom-left': {
+        desktop: 'bottom-6 left-6',
+        mobile: 'bottom-4 left-4'
+      },
+      'top-right': {
+        desktop: 'top-6 right-6',
+        mobile: 'top-4 right-4'
+      },
+      'top-left': {
+        desktop: 'top-6 left-6',
+        mobile: 'top-4 left-4'
+      }
+    };
+    
+    const pos = positions[position] || positions['bottom-right'];
+    return `${pos.desktop} max-md:${pos.mobile}`;
   };
 
-  // Theme classes
+  // Temas mejorados con más variedad
   const themeClasses = {
     light: {
-      window: 'bg-white text-gray-900',
-      header: 'bg-blue-500 text-white',
-      botBubble: 'bg-gray-100 text-gray-900',
-      userBubble: 'bg-blue-500 text-white',
-      input: 'bg-white border-gray-300 text-gray-900',
-      inputArea: 'border-gray-200'
+      window: 'bg-white text-gray-800 border border-gray-200',
+      header: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white',
+      botBubble: 'bg-gray-50 text-gray-800 border border-gray-100 shadow-sm',
+      userBubble: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm',
+      input: 'bg-white border-gray-200 text-gray-800 focus:border-blue-500',
+      inputArea: 'border-gray-100 bg-gray-50',
+      timestamp: 'text-gray-500'
     },
     dark: {
-      window: 'bg-gray-800 text-gray-100',
-      header: 'bg-gray-900 text-white',
-      botBubble: 'bg-gray-700 text-gray-100',
-      userBubble: 'bg-blue-500 text-white',
-      input: 'bg-gray-700 border-gray-600 text-gray-100',
-      inputArea: 'border-gray-700'
+      window: 'bg-gray-900 text-gray-100 border border-gray-700',
+      header: 'bg-gradient-to-r from-gray-800 to-gray-900 text-white',
+      botBubble: 'bg-gray-800 text-gray-100 border border-gray-700 shadow-sm',
+      userBubble: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-sm',
+      input: 'bg-gray-800 border-gray-600 text-gray-100 focus:border-blue-500',
+      inputArea: 'border-gray-700 bg-gray-800',
+      timestamp: 'text-gray-400'
+    },
+    professional: {
+      window: 'bg-white text-slate-800 border border-slate-200 shadow-2xl',
+      header: 'bg-gradient-to-r from-slate-700 to-slate-800 text-white',
+      botBubble: 'bg-slate-50 text-slate-800 border border-slate-100 shadow-sm',
+      userBubble: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm',
+      input: 'bg-white border-slate-200 text-slate-800 focus:border-slate-500',
+      inputArea: 'border-slate-100 bg-slate-50',
+      timestamp: 'text-slate-500'
     }
   };
 
-  const currentTheme = themeClasses[theme];
+  const currentTheme = themeClasses[theme] || themeClasses.professional;
+
+  // Determinar tamaño de ventana responsivo
+  const getWindowSize = () => {
+    return {
+      // Móvil pequeño
+      mobile: 'w-[calc(100vw-1rem)] h-[calc(100vh-2rem)] max-h-[600px] max-w-[400px]',
+      // Tablet
+      tablet: 'w-[380px] h-[520px]',
+      // Desktop
+      desktop: 'w-[400px] h-[600px]',
+      // Clases responsivas combinadas
+      responsive: 'w-[400px] h-[600px] max-sm:w-[calc(100vw-1rem)] max-sm:h-[calc(100vh-2rem)] max-sm:max-h-[600px] max-sm:max-w-[400px] max-md:w-[380px] max-md:h-[520px]'
+    };
+  };
 
   return (
-    <div className={`fixed z-[1000] ${positionClasses[position]} max-sm:${position.includes('right') ? 'right-4' : 'left-4'} max-sm:${position.includes('bottom') ? 'bottom-4' : 'top-4'}`}>
+    <div className={`fixed z-[9999] ${getPositionClasses()}`}>
       {!isOpen ? (
         <button 
           className={`
-            bg-blue-500 text-white border-none rounded-full 
-            w-15 h-15 flex items-center justify-center cursor-pointer 
-            shadow-[0_4px_12px_rgba(59,130,246,0.3)] 
-            transition-all duration-300 ease-in-out
-            hover:scale-105 hover:shadow-[0_6px_16px_rgba(59,130,246,0.4)]
-            max-sm:w-12 max-sm:h-12
+            relative group
+            bg-gradient-to-r from-blue-500 to-blue-600 
+            text-white border-none rounded-full 
+            w-16 h-16 flex items-center justify-center cursor-pointer 
+            shadow-lg hover:shadow-xl
+            transition-all duration-300 ease-out
+            hover:scale-110 hover:from-blue-600 hover:to-blue-700
+            focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50
+            max-sm:w-14 max-sm:h-14
+            chat-button-pulse
           `}
           onClick={toggleChat}
           aria-label="Abrir chat de asistencia"
         >
-          <span className="text-2xl">💬</span>
+          <span className="text-2xl max-sm:text-xl filter drop-shadow-sm">💬</span>
+          
+          {/* Indicador de notificación */}
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs font-bold">1</span>
+          </div>
+          
+          {/* Tooltip */}
+          <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+            Asistente Virtual
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+          </div>
         </button>
       ) : (
         <div className={`
-          w-[340px] h-[480px] rounded-xl overflow-hidden 
-          flex flex-col shadow-[0_8px_24px_rgba(0,0,0,0.15)] 
-          border border-black border-opacity-10
-          max-sm:w-[calc(100vw-2rem)] max-sm:h-[70vh] max-sm:max-h-[500px]
+          ${getWindowSize().responsive}
+          rounded-2xl overflow-hidden 
+          flex flex-col 
+          backdrop-blur-sm
+          chat-window-enter
           ${currentTheme.window}
         `}>
-          {/* Header del chat */}
-          <div className={`p-4 flex justify-between items-center ${currentTheme.header}`}>
-            <div className="font-semibold text-base">{title}</div>
-            <button 
-              className="bg-none border-none text-white text-2xl leading-none cursor-pointer p-0 m-0"
-              onClick={toggleChat}
-            >
-              ×
-            </button>
-          </div>
-          
-          {/* Contenedor de mensajes */}
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-            {messages.map((msg) => (
-              <div 
-                key={msg.id} 
-                className={`flex items-end mb-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}
+          {/* Header mejorado */}
+          <div className={`p-4 flex justify-between items-center ${currentTheme.header} shadow-sm`}>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <span className="text-sm">🤖</span>
+              </div>
+              <div>
+                <div className="font-semibold text-base leading-tight">{title}</div>
+                <div className="text-xs opacity-90">
+                  {isTyping ? 'Escribiendo...' : 'En línea'}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button 
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition-colors duration-200"
+                onClick={toggleMinimize}
+                aria-label={isMinimized ? "Expandir" : "Minimizar"}
               >
-                {msg.sender === 'bot' && agentAvatar && (
-                  <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200 mr-2">
-                    <img src={agentAvatar} alt="Bot" className="w-full h-full object-cover" />
-                  </div>
-                )}
-                
-                <div className={`
-                  px-4 py-3 rounded-[18px] max-w-[75%] break-words relative
-                  ${msg.sender === 'bot' 
-                    ? `${currentTheme.botBubble} rounded-bl-[6px]` 
-                    : `${currentTheme.userBubble} rounded-br-[6px] mr-2`
-                  }
-                `}>
-                  <div className="leading-relaxed text-[0.925rem]">{msg.text}</div>
-                  <div className={`
-                    text-[0.7rem] opacity-70 text-right mt-1
-                    ${msg.sender === 'user' ? 'text-white text-opacity-90' : ''}
-                  `}>
-                    {formatTimestamp(msg.timestamp)}
-                  </div>
-                </div>
-                
-                {msg.sender === 'user' && userAvatar && (
-                  <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
-                    <img src={userAvatar} alt="Usuario" className="w-full h-full object-cover" />
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {isTyping && (
-              <div className="flex items-end mb-3">
-                {agentAvatar && (
-                  <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-200 mr-2">
-                    <img src={agentAvatar} alt="Bot" className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <div className={`px-4 py-3 rounded-[18px] rounded-bl-[6px] ${currentTheme.botBubble}`}>
-                  <div className="flex gap-1 px-3 py-1.5">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full inline-block typing-dot"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full inline-block typing-dot"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full inline-block typing-dot"></span>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
+                <span className="text-sm">
+                  {isMinimized ? '🔼' : '🔽'}
+                </span>
+              </button>
+              <button 
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition-colors duration-200"
+                onClick={toggleChat}
+                aria-label="Cerrar chat"
+              >
+                <span className="text-sm">✕</span>
+              </button>
+            </div>
           </div>
           
-          {/* Area de input */}
-          <div className={`p-4 flex gap-2 border-t ${currentTheme.inputArea}`}>
-            <input
-              type="text"
-              className={`
-                flex-1 px-4 py-3 border rounded-lg text-[0.925rem] outline-none 
-                transition-all duration-200 ease-in-out
-                focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]
-                ${currentTheme.input}
-              `}
-              placeholder="Escribe tu mensaje aquí..."
-              value={inputText}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-            />
-            <Button 
-              variant="primary"
-              size="small"
-              onClick={handleSendMessage}
-              className="px-4 py-3 min-w-[60px]"
-            >
-              Enviar
-            </Button>
-          </div>
+          {!isMinimized && (
+            <>
+              {/* Contenedor de mensajes con scroll personalizado */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                {messages.map((msg, index) => (
+                  <div 
+                    key={msg.id} 
+                    className={`flex items-end space-x-2 message-fade-in ${
+                      msg.sender === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    {msg.sender === 'bot' && (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
+                        {typeof agentAvatar === 'string' && agentAvatar.startsWith('http') ? (
+                          <img src={agentAvatar} alt="Bot" className="w-full h-full object-cover rounded-full" />
+                        ) : (
+                          <span>{agentAvatar}</span>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className={`
+                      px-4 py-3 rounded-2xl max-w-[80%] break-words relative
+                      ${msg.sender === 'bot' 
+                        ? `${currentTheme.botBubble} rounded-bl-md` 
+                        : `${currentTheme.userBubble} rounded-br-md`
+                      }
+                    `}>
+                      <div className="leading-relaxed text-sm whitespace-pre-line">
+                        {msg.text}
+                      </div>
+                      <div className={`
+                        text-xs opacity-75 text-right mt-2
+                        ${currentTheme.timestamp}
+                      `}>
+                        {formatTimestamp(msg.timestamp)}
+                      </div>
+                    </div>
+                    
+                    {msg.sender === 'user' && (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
+                        {typeof userAvatar === 'string' && userAvatar.startsWith('http') ? (
+                          <img src={userAvatar} alt="Usuario" className="w-full h-full object-cover rounded-full" />
+                        ) : (
+                          <span>{userAvatar}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {isTyping && (
+                  <div className="flex items-end space-x-2 message-fade-in">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm shadow-sm">
+                      <span>{agentAvatar}</span>
+                    </div>
+                    <div className={`px-4 py-3 rounded-2xl rounded-bl-md ${currentTheme.botBubble}`}>
+                      <div className="flex items-center space-x-1">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full inline-block typing-dot"></span>
+                        <span className="w-2 h-2 bg-blue-500 rounded-full inline-block typing-dot"></span>
+                        <span className="w-2 h-2 bg-blue-500 rounded-full inline-block typing-dot"></span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div ref={messagesEndRef} />
+              </div>
+              
+              {/* Área de input mejorada */}
+              <div className={`p-4 border-t ${currentTheme.inputArea}`}>
+                <div className="flex items-end space-x-3">
+                  <div className="flex-1 relative">
+                    <textarea
+                      className={`
+                        w-full px-4 py-3 border rounded-xl text-sm outline-none resize-none
+                        transition-all duration-200 ease-in-out
+                        focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+                        placeholder-gray-400
+                        ${currentTheme.input}
+                      `}
+                      placeholder="Escribe tu mensaje aquí... (Enter para enviar)"
+                      value={inputText}
+                      onChange={handleInputChange}
+                      onKeyPress={handleKeyPress}
+                      rows={inputText.split('\n').length || 1}
+                      style={{ maxHeight: '120px' }}
+                    />
+                  </div>
+                  <Button 
+                    variant="primary"
+                    size="medium"
+                    onClick={handleSendMessage}
+                    disabled={!inputText.trim() || isTyping}
+                    className="px-4 py-3 rounded-xl font-semibold shadow-sm hover:shadow-md transition-all duration-200"
+                  >
+                    <span className="max-sm:hidden">Enviar</span>
+                    <span className="sm:hidden">📤</span>
+                  </Button>
+                </div>
+                
+                {/* Sugerencias rápidas */}
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {['Rutas', 'Horarios', 'Vehículos', 'Ayuda'].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => {
+                        setInputText(suggestion);
+                        setTimeout(handleSendMessage, 100);
+                      }}
+                      className="px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors duration-200 border border-blue-200"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
