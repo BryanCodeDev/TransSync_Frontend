@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
-import "../styles/dashboard.css";
 import { 
   Bus, 
   Users, 
   LayoutGrid, 
   Clock, 
-  TrendingUp,
   AlertTriangle,
   Droplet,
   Calendar
 } from "lucide-react";
-import { Bar, Line, Doughnut } from "react-chartjs-2";
+import { Line, Doughnut } from "react-chartjs-2";
 import { 
   Chart as ChartJS, 
   CategoryScale, 
@@ -40,7 +38,7 @@ ChartJS.register(
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState({
+  const [data] = useState({
     buses: 0,
     drivers: 0,
     routes: 0,
@@ -49,12 +47,7 @@ const Dashboard = () => {
     fuel: 0
   });
   const [selectedPeriod, setSelectedPeriod] = useState('semana');
-  const [alerts, setAlerts] = useState([]);
-  const [chartData, setChartData] = useState({
-    tripData: {},
-    passengerData: {},
-    fuelConsumptionData: {}
-  });
+  const [alerts] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -189,105 +182,127 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="dashboard-loading">
-        <div className="spinner"></div>
-        <p>Cargando información del sistema...</p>
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-5"></div>
+        <p className="text-gray-600">Cargando información del sistema...</p>
       </div>
     );
   }
 
+  const stats = [
+    { icon: <Bus />, label: "Buses en servicio", value: data.buses, colorClass: "border-blue-500", iconBg: "bg-blue-50", iconColor: "text-blue-500" },
+    { icon: <Users />, label: "Conductores", value: data.drivers, colorClass: "border-green-500", iconBg: "bg-green-50", iconColor: "text-green-500" },
+    { icon: <LayoutGrid />, label: "Rutas activas", value: data.routes, colorClass: "border-purple-500", iconBg: "bg-purple-50", iconColor: "text-purple-500" },
+    { icon: <Clock />, label: "Horarios", value: data.schedules, colorClass: "border-orange-500", iconBg: "bg-orange-50", iconColor: "text-orange-500" },
+    { icon: <AlertTriangle />, label: "Alertas activas", value: data.alerts, colorClass: "border-red-500", iconBg: "bg-red-50", iconColor: "text-red-500" },
+    { icon: <Droplet />, label: "Combustible (%)", value: data.fuel, colorClass: "border-teal-500", iconBg: "bg-teal-50", iconColor: "text-teal-500" }
+  ];
+
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1>Panel de Control <span>TransSync</span></h1>
-        <div className="date-display">
+    <div className="p-5 max-w-full overflow-x-hidden">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8 flex-col md:flex-row md:items-center gap-3">
+        <h1 className="text-3xl font-bold text-blue-900 m-0">
+          Panel de Control <span className="text-yellow-500">TransSync</span>
+        </h1>
+        <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 px-4 py-2 rounded-md shadow-sm">
           <Calendar size={18} />
           <span>{new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
       </div>
 
-      <div className="stats-grid">
-        {[
-          { icon: <Bus />, label: "Buses en servicio", value: data.buses, color: "blue" },
-          { icon: <Users />, label: "Conductores", value: data.drivers, color: "green" },
-          { icon: <LayoutGrid />, label: "Rutas activas", value: data.routes, color: "purple" },
-          { icon: <Clock />, label: "Horarios", value: data.schedules, color: "orange" },
-          { icon: <AlertTriangle />, label: "Alertas activas", value: data.alerts, color: "red" },
-          { icon: <Droplet />, label: "Combustible (%)", value: data.fuel, color: "teal" }
-        ].map((stat, index) => (
-          <div key={index} className={`stat-card stat-${stat.color}`}>
-            <div className="stat-icon">{stat.icon}</div>
-            <div className="stat-info">
-              <h3>{stat.value}</h3>
-              <p>{stat.label}</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
+        {stats.map((stat, index) => (
+          <div 
+            key={index} 
+            className={`flex items-center p-5 rounded-xl shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white border-l-4 ${stat.colorClass}`}
+          >
+            <div className={`flex items-center justify-center w-12 h-12 ${stat.iconBg} rounded-xl mr-4 ${stat.iconColor}`}>
+              {stat.icon}
+            </div>
+            <div>
+              <h3 className="text-3xl font-bold text-slate-800 m-0 mb-1">{stat.value}</h3>
+              <p className="text-sm text-slate-500 m-0">{stat.label}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="charts-container">
-        <div className="chart-row">
-          <div className="chart-box trips-chart">
-            <div className="chart-header">
-              <h3>Frecuencia de Viajes</h3>
-              <div className="period-selector">
+      {/* Charts Container */}
+      <div className="flex flex-col gap-5">
+        {/* First Chart Row */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          {/* Trips Chart */}
+          <div className="xl:col-span-2 bg-white rounded-xl shadow-sm p-5 flex flex-col">
+            <div className="flex justify-between items-center mb-3 flex-col md:flex-row gap-3">
+              <h3 className="text-lg font-semibold text-slate-700 m-0">Frecuencia de Viajes</h3>
+              <div className="flex gap-0.5 bg-slate-100 rounded-md p-0.5">
                 <button 
-                  className={selectedPeriod === 'semana' ? 'active' : ''} 
+                  className={`px-3 py-1.5 text-sm rounded transition-all ${selectedPeriod === 'semana' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                   onClick={() => setSelectedPeriod('semana')}
                 >
                   Semana
                 </button>
                 <button 
-                  className={selectedPeriod === 'mes' ? 'active' : ''} 
+                  className={`px-3 py-1.5 text-sm rounded transition-all ${selectedPeriod === 'mes' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                   onClick={() => setSelectedPeriod('mes')}
                 >
                   Mes
                 </button>
                 <button 
-                  className={selectedPeriod === 'año' ? 'active' : ''} 
+                  className={`px-3 py-1.5 text-sm rounded transition-all ${selectedPeriod === 'año' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                   onClick={() => setSelectedPeriod('año')}
                 >
                   Año
                 </button>
               </div>
             </div>
-            <div className="chart-container">
+            <div className="flex-grow h-80 relative">
               <Line data={tripData[selectedPeriod]} options={chartOptions} />
             </div>
           </div>
 
-          <div className="chart-box passenger-chart">
-            <h3>Distribución de Pasajeros</h3>
-            <div className="chart-container">
+          {/* Passenger Chart */}
+          <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col">
+            <h3 className="text-lg font-semibold text-slate-700 m-0 mb-4">Distribución de Pasajeros</h3>
+            <div className="flex-grow h-80 relative">
               <Doughnut data={passengerData} options={doughnutOptions} />
             </div>
           </div>
         </div>
 
-        <div className="chart-row">
-          <div className="chart-box fuel-chart">
-            <h3>Consumo de Combustible</h3>
-            <div className="chart-container">
+        {/* Second Chart Row */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          {/* Fuel Chart */}
+          <div className="xl:col-span-2 bg-white rounded-xl shadow-sm p-5 flex flex-col">
+            <h3 className="text-lg font-semibold text-slate-700 m-0 mb-4">Consumo de Combustible</h3>
+            <div className="flex-grow h-80 relative">
               <Line data={fuelConsumptionData} options={chartOptions} />
             </div>
           </div>
 
-          <div className="chart-box alerts-list">
-            <h3>Alertas Recientes</h3>
+          {/* Alerts List */}
+          <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col overflow-y-auto">
+            <h3 className="text-lg font-semibold text-slate-700 m-0 mb-4">Alertas Recientes</h3>
             {alerts && alerts.length > 0 ? (
-              <ul className="alerts">
+              <ul className="list-none p-0 m-0 flex flex-col gap-3">
                 {alerts.map((alert, index) => (
-                  <li key={index} className={`alert-item ${alert.severity}`}>
+                  <li key={index} className={`flex items-start gap-3 p-3 rounded-md bg-slate-50 ${
+                    alert.severity === 'critical' ? 'border-l-4 border-red-500 text-red-500' :
+                    alert.severity === 'warning' ? 'border-l-4 border-orange-500 text-orange-500' :
+                    'border-l-4 border-blue-500 text-blue-500'
+                  }`}>
                     <AlertTriangle size={16} />
-                    <div className="alert-content">
-                      <p className="alert-title">{alert.title}</p>
-                      <p className="alert-time">{alert.time}</p>
+                    <div className="flex-1">
+                      <p className="m-0 mb-0.5 text-sm font-medium text-slate-800">{alert.title}</p>
+                      <p className="m-0 text-xs text-slate-500">{alert.time}</p>
                     </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="no-reports">No hay alertas recientes</p>
+              <p className="text-slate-500 text-center py-12 italic">No hay alertas recientes</p>
             )}
           </div>
         </div>

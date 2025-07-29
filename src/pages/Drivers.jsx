@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Search, Plus, Eye, Edit, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
-import "../styles/drivers.css";
 
 const Drivers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,120 +43,164 @@ const Drivers = () => {
     }
   };
 
-  const getStatusClass = (status) => {
+  const getStatusConfig = (status) => {
     switch(status) {
-      case "En ruta": return "status-en-ruta";
-      case "Disponible": return "status-disponible";
-      case "Fuera de servicio": return "status-fuera-de-servicio";
-      default: return "";
+      case "En ruta": 
+        return {
+          badgeClass: "bg-green-50 text-green-700 border border-green-200",
+          indicatorClass: "bg-green-600 shadow-green-200"
+        };
+      case "Disponible": 
+        return {
+          badgeClass: "bg-blue-50 text-blue-700 border border-blue-200",
+          indicatorClass: "bg-blue-600 shadow-blue-200"
+        };
+      case "Fuera de servicio": 
+        return {
+          badgeClass: "bg-red-50 text-red-700 border border-red-200",
+          indicatorClass: "bg-red-600 shadow-red-200"
+        };
+      default: 
+        return {
+          badgeClass: "bg-gray-50 text-gray-700 border border-gray-200",
+          indicatorClass: "bg-gray-600 shadow-gray-200"
+        };
     }
   };
 
   return (
-    <div className="drivers-container">
-      <div className="drivers-header">
-        <h2 className="drivers-title">Conductores</h2>
-        <p className="drivers-subtitle">Panel de gestión de conductores de transporte público</p>
+    <div className="bg-gray-50 rounded-xl p-6 shadow-lg max-w-7xl mx-auto my-6 font-sans">
+      {/* Header */}
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold text-slate-800 m-0 pb-1.5 border-b-4 border-blue-600 inline-block">
+          Conductores
+        </h2>
+        <p className="text-slate-500 text-base mt-2 mb-6 font-normal">
+          Panel de gestión de conductores de transporte público
+        </p>
         
-        <div className="drivers-actions">
-          <div className="search-container">
+        <div className="flex justify-between items-center mt-5 gap-4 flex-col lg:flex-row">
+          {/* Search */}
+          <div className="relative w-full lg:w-96 flex-shrink">
             <input 
               type="text" 
               placeholder="Buscar por nombre, estado, vehículo o ruta..." 
-              className="search-input"
+              className="w-full pl-4 pr-10 py-3 rounded-lg border border-slate-300 text-sm transition-all bg-white text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Search className="search-icon" size={18} />
+            <Search className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-slate-500" size={18} />
           </div>
-          <button className="add-driver-btn">
+          
+          {/* Add Button */}
+          <button className="bg-blue-600 text-white border-none px-5 py-3 rounded-lg font-semibold cursor-pointer transition-all flex items-center gap-2 shadow-blue-300 shadow-md whitespace-nowrap hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow-blue-400 hover:shadow-lg active:translate-y-0 active:shadow-blue-300 active:shadow-sm">
             <Plus size={16} />
             <span>Agregar conductor</span>
           </button>
         </div>
       </div>
 
-      <div className="drivers-table-container">
-        <table className="drivers-table">
+      {/* Table */}
+      <div className="overflow-x-auto bg-white rounded-xl shadow-md">
+        <table className="w-full border-separate border-spacing-0 text-sm">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Estado</th>
-              <th>Vehículo</th>
-              <th>Ruta</th>
-              <th>Última actividad</th>
-              <th>Acciones</th>
+              <th className="bg-slate-800 text-white font-semibold p-4 text-left whitespace-nowrap sticky top-0 first:rounded-tl-xl">ID</th>
+              <th className="bg-slate-800 text-white font-semibold p-4 text-left whitespace-nowrap sticky top-0">Nombre</th>
+              <th className="bg-slate-800 text-white font-semibold p-4 text-left whitespace-nowrap sticky top-0">Estado</th>
+              <th className="bg-slate-800 text-white font-semibold p-4 text-left whitespace-nowrap sticky top-0">Vehículo</th>
+              <th className="bg-slate-800 text-white font-semibold p-4 text-left whitespace-nowrap sticky top-0">Ruta</th>
+              <th className="bg-slate-800 text-white font-semibold p-4 text-left whitespace-nowrap sticky top-0">Última actividad</th>
+              <th className="bg-slate-800 text-white font-semibold p-4 text-left whitespace-nowrap sticky top-0 last:rounded-tr-xl">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {currentDrivers.length > 0 ? (
-              currentDrivers.map((driver) => (
-                <tr key={driver.id}>
-                  <td>{driver.id}</td>
-                  <td className="driver-name">{driver.name}</td>
-                  <td>
-                    <span className={`status-badge ${getStatusClass(driver.status)}`}>
-                      <span className="status-indicator"></span>
-                      {driver.status}
-                    </span>
-                  </td>
-                  <td>{driver.vehicle}</td>
-                  <td>{driver.route}</td>
-                  <td>{driver.lastActive}</td>
-                  <td className="actions-cell">
-                    <button className="action-btn view-btn" title="Ver detalles">
-                      <Eye size={16} />
-                    </button>
-                    <button className="action-btn edit-btn" title="Editar">
-                      <Edit size={16} />
-                    </button>
-                    <button className="action-btn message-btn" title="Enviar mensaje">
-                      <MessageSquare size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))
+              currentDrivers.map((driver, index) => {
+                const statusConfig = getStatusConfig(driver.status);
+                return (
+                  <tr key={driver.id} className={`${index % 2 === 1 ? 'bg-gray-50' : 'bg-white'} hover:bg-slate-100 transition-colors`}>
+                    <td className="p-4 border-t border-slate-200">{driver.id}</td>
+                    <td className="p-4 border-t border-slate-200 font-semibold text-slate-800">{driver.name}</td>
+                    <td className="p-4 border-t border-slate-200">
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium gap-1.5 ${statusConfig.badgeClass}`}>
+                        <span className={`w-2 h-2 rounded-full ${statusConfig.indicatorClass} shadow-sm`}></span>
+                        {driver.status}
+                      </span>
+                    </td>
+                    <td className="p-4 border-t border-slate-200">{driver.vehicle}</td>
+                    <td className="p-4 border-t border-slate-200">{driver.route}</td>
+                    <td className="p-4 border-t border-slate-200">{driver.lastActive}</td>
+                    <td className="p-4 border-t border-slate-200 whitespace-nowrap">
+                      <button className="bg-white border border-slate-200 w-8 h-8 rounded-md cursor-pointer mr-1.5 transition-all inline-flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:-translate-y-0.5 hover:text-blue-600 hover:border-blue-600" title="Ver detalles">
+                        <Eye size={16} />
+                      </button>
+                      <button className="bg-white border border-slate-200 w-8 h-8 rounded-md cursor-pointer mr-1.5 transition-all inline-flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:-translate-y-0.5 hover:text-orange-500 hover:border-orange-500" title="Editar">
+                        <Edit size={16} />
+                      </button>
+                      <button className="bg-white border border-slate-200 w-8 h-8 rounded-md cursor-pointer transition-all inline-flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:-translate-y-0.5 hover:text-green-600 hover:border-green-600" title="Enviar mensaje">
+                        <MessageSquare size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
-                <td colSpan="7" className="no-results">No se encontraron conductores</td>
+                <td colSpan="7" className="p-12 text-center text-slate-500 italic border-t border-slate-200">
+                  No se encontraron conductores
+                </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
 
-      <div className="drivers-footer">
-        <div className="drivers-stats">
-          <div className="stat-item">
-            <span className="stat-label">Total conductores:</span>
-            <span className="stat-value">{drivers.length}</span>
+      {/* Footer */}
+      <div className="flex justify-between items-center mt-6 pt-5 border-t border-slate-200 flex-col lg:flex-row gap-5">
+        {/* Stats */}
+        <div className="flex gap-6 flex-wrap justify-center lg:justify-start">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">Total conductores:</span>
+            <span className="font-semibold text-slate-800">{drivers.length}</span>
           </div>
-          <div className="stat-item">
-            <span className="stat-label">En ruta:</span>
-            <span className="stat-value">{drivers.filter(d => d.status === "En ruta").length}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">En ruta:</span>
+            <span className="font-semibold text-slate-800">{drivers.filter(d => d.status === "En ruta").length}</span>
           </div>
-          <div className="stat-item">
-            <span className="stat-label">Disponibles:</span>
-            <span className="stat-value">{drivers.filter(d => d.status === "Disponible").length}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">Disponibles:</span>
+            <span className="font-semibold text-slate-800">{drivers.filter(d => d.status === "Disponible").length}</span>
           </div>
-          <div className="stat-item">
-            <span className="stat-label">Fuera de servicio:</span>
-            <span className="stat-value">{drivers.filter(d => d.status === "Fuera de servicio").length}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">Fuera de servicio:</span>
+            <span className="font-semibold text-slate-800">{drivers.filter(d => d.status === "Fuera de servicio").length}</span>
           </div>
         </div>
-        <div className="pagination">
+        
+        {/* Pagination */}
+        <div className="flex items-center gap-3">
           <button 
-            className={`pagination-btn ${currentPage === 1 ? 'disabled' : ''}`}
+            className={`bg-white border border-slate-300 px-4 py-2 rounded-md cursor-pointer transition-all flex items-center gap-1.5 text-slate-800 font-medium ${
+              currentPage === 1 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:bg-slate-100 hover:border-slate-400'
+            }`}
             onClick={goToPreviousPage}
             disabled={currentPage === 1}
           >
             <ChevronLeft size={16} />
             <span>Anterior</span>
           </button>
-          <span className="page-indicator">Página {currentPage} de {totalPages || 1}</span>
+          <span className="text-sm text-slate-500 font-medium">
+            Página {currentPage} de {totalPages || 1}
+          </span>
           <button 
-            className={`pagination-btn ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}`}
+            className={`bg-white border border-slate-300 px-4 py-2 rounded-md cursor-pointer transition-all flex items-center gap-1.5 text-slate-800 font-medium ${
+              currentPage === totalPages || totalPages === 0 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:bg-slate-100 hover:border-slate-400'
+            }`}
             onClick={goToNextPage}
             disabled={currentPage === totalPages || totalPages === 0}
           >

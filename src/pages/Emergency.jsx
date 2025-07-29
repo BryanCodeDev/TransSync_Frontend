@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { AlertTriangle, Bell, Phone, AlertCircle, SendHorizontal } from "lucide-react";
-import "../styles/emergency.css";
 
 const Emergency = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,62 +32,88 @@ const Emergency = () => {
   };
 
   return (
-    <div className="emergency-container">
-      <div className="emergency-header">
-        <AlertTriangle className="emergency-icon" size={32} />
-        <h1>Centro de Emergencias</h1>
-        <p className="emergency-subtitle">
+    <div className="p-6 max-w-6xl mx-auto font-['Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif]">
+      {/* Header */}
+      <div className="text-center mb-10 p-8 bg-gradient-to-br from-red-100 to-red-50 rounded-2xl shadow-lg shadow-red-600/10 relative">
+        <AlertTriangle className="text-red-600 mb-4 mx-auto drop-shadow-lg" size={32} />
+        <h1 className="text-3xl font-bold text-red-700 mb-0 pb-2" style={{textShadow: '1px 1px 0 rgba(255, 255, 255, 0.5)'}}>
+          Centro de Emergencias
+        </h1>
+        <p className="text-base text-red-900 max-w-2xl mx-auto mt-3 leading-6">
           Sistema de respuesta rápida para situaciones de emergencia en el transporte público
         </p>
       </div>
 
-      <div className="emergency-cards">
-        <div className="emergency-card main-alert">
-          <Bell className="card-icon" />
-          <h2>Alerta de Emergencia</h2>
-          <p>Presiona el botón para reportar un incidente o situación de emergencia en tiempo real</p>
+      {/* Cards Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        {/* Main Alert Card */}
+        <div className="bg-gradient-to-br from-red-200 to-red-100 rounded-2xl p-8 shadow-lg flex flex-col items-center text-center">
+          <Bell className="text-red-600 mb-4 drop-shadow-md" size={24} />
+          <h2 className="text-xl font-semibold text-slate-800 mb-0 mb-4">Alerta de Emergencia</h2>
+          <p className="text-slate-600 text-sm leading-6 mb-0 mb-6">
+            Presiona el botón para reportar un incidente o situación de emergencia en tiempo real
+          </p>
           <button 
-            className="emergency-button pulse" 
+            className="bg-red-600 text-white border-none py-3.5 px-6 rounded-full font-semibold text-base cursor-pointer transition-all duration-300 flex items-center gap-2.5 shadow-lg shadow-red-600/30 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-600/40 active:translate-y-0 active:shadow-lg active:shadow-red-600/30 animate-pulse"
             onClick={openModal}
+            style={{
+              animation: 'pulse 2s infinite'
+            }}
           >
             <AlertCircle size={20} />
             <span>Reportar Emergencia</span>
           </button>
         </div>
 
-        <div className="emergency-card">
-          <Phone className="card-icon" />
-          <h2>Contactos de Emergencia</h2>
-          <ul className="contacts-list">
+        {/* Contacts Card */}
+        <div className="bg-white rounded-2xl p-8 shadow-lg flex flex-col items-center text-center">
+          <Phone className="text-red-600 mb-4 drop-shadow-md" size={24} />
+          <h2 className="text-xl font-semibold text-slate-800 mb-0 mb-4">Contactos de Emergencia</h2>
+          <ul className="list-none p-0 m-0 w-full text-left">
             {emergencyContacts.map((contact, index) => (
-              <li key={index} className={contact.available ? "available" : "unavailable"}>
-                <div>
-                  <span className="contact-name">{contact.name}</span>
-                  <span className="contact-number">{contact.number}</span>
+              <li key={index} className="flex items-center justify-between py-3.5 border-b border-slate-200 last:border-b-0">
+                <div className="flex flex-col">
+                  <span className="font-medium text-slate-800">{contact.name}</span>
+                  <span className="text-slate-600 text-sm">{contact.number}</span>
                 </div>
-                <span className="status-indicator"></span>
+                <span className={`w-3 h-3 rounded-full ${contact.available ? 'bg-green-500' : 'bg-red-500'}`}></span>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-      {/* Ventana modal para reportar emergencia */}
+      {/* Modal */}
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2><AlertTriangle size={20} /> Reportar Emergencia</h2>
-              <button className="close-button" onClick={closeModal}>×</button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-screen overflow-y-auto shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-200">
+              <h2 className="flex items-center gap-2 text-xl font-semibold text-slate-800">
+                <AlertTriangle size={20} /> Reportar Emergencia
+              </h2>
+              <button 
+                className="text-slate-400 hover:text-slate-600 text-2xl font-light w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
+                onClick={closeModal}
+              >
+                ×
+              </button>
             </div>
-            <form onSubmit={handleSubmit} className="emergency-form">
-              <div className="form-section">
-                <h3>Tipo de emergencia</h3>
-                <div className="emergency-types">
+
+            {/* Modal Content */}
+            <div className="p-6">
+              {/* Emergency Types */}
+              <div className="mb-8">
+                <h3 className="text-lg font-medium text-slate-800 mb-4">Tipo de emergencia</h3>
+                <div className="grid grid-cols-1 gap-3">
                   {emergencyTypes.map((type) => (
                     <label 
                       key={type.id} 
-                      className={`type-option ${emergencyType === type.id ? 'selected' : ''}`}
+                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        emergencyType === type.id 
+                          ? 'border-red-500 bg-red-50' 
+                          : 'border-slate-200 hover:border-red-300'
+                      }`}
                     >
                       <input
                         type="radio"
@@ -97,41 +122,69 @@ const Emergency = () => {
                         checked={emergencyType === type.id}
                         onChange={(e) => setEmergencyType(e.target.value)}
                         required
+                        className="sr-only"
                       />
-                      <span className="icon-wrapper">{type.icon}</span>
-                      <span>{type.label}</span>
+                      <span className="text-red-600">{type.icon}</span>
+                      <span className="font-medium text-slate-700">{type.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
               
-              <div className="form-section">
-                <label htmlFor="description">
-                  <h3>Descripción del incidente</h3>
+              {/* Description */}
+              <div className="mb-8">
+                <div>
+                  <h3 className="text-lg font-medium text-slate-800 mb-3">Descripción del incidente</h3>
                   <textarea
-                    id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Proporciona detalles sobre la situación..."
                     required
                     rows="4"
+                    className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-red-500 focus:outline-none transition-colors resize-none"
                   ></textarea>
-                </label>
+                </div>
               </div>
 
-              <div className="form-actions">
-                <button type="button" className="cancel-button" onClick={closeModal}>
+              {/* Actions */}
+              <div className="flex gap-3 justify-end">
+                <button 
+                  type="button" 
+                  className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+                  onClick={closeModal}
+                >
                   Cancelar
                 </button>
-                <button type="submit" className="submit-button">
+                <button 
+                  type="button" 
+                  className="px-6 py-3 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors flex items-center gap-2"
+                  onClick={handleSubmit}
+                >
                   <SendHorizontal size={16} />
                   <span>Enviar Alerta</span>
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes pulse {
+          0% {
+            transform: scale(1);
+            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
+          }
+          50% {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.5);
+          }
+          100% {
+            transform: scale(1);
+            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
+          }
+        }
+      `}</style>
     </div>
   );
 };

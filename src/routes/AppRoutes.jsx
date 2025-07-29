@@ -1,9 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import ChatBot from "../components/ChatBot";
 import SEO from "../components/SEO";
-import { FiMenu } from "react-icons/fi"; // Necesitarás instalar react-icons
 
 // Lazy loading para mejorar el rendimiento
 const Home = lazy(() => import("../pages/Home"));
@@ -18,182 +17,259 @@ const Login = lazy(() => import("../pages/Login"));
 const Register = lazy(() => import("../pages/Register"));
 const ProtectedRoute = lazy(() => import("./ProtectedRoute"));
 
-// Componente de carga mientras se cargan los componentes lazy
+// Componente de carga mejorado
 const LoadingFallback = () => (
-  <div className="loading-container">
-    <div className="loading-spinner"></div>
-    <p>Cargando...</p>
+  <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center z-50">
+    <div className="text-center">
+      <div className="relative">
+        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+        <div className="absolute inset-2 border-2 border-blue-100 border-b-blue-400 rounded-full animate-spin animation-delay-150"></div>
+      </div>
+      <p className="mt-6 text-gray-700 font-medium text-lg">Cargando TransSync...</p>
+      <p className="mt-2 text-gray-500 text-sm">Preparando tu experiencia</p>
+    </div>
   </div>
 );
 
 const AppRoutes = () => {
-  // Estado para el sidebar
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    return window.innerWidth > 768 ? 
-      (JSON.parse(localStorage.getItem("sidebarOpen")) ?? true) : 
-      false;
-  });
+  // Estados principales
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Estado para saber si estamos en modo móvil
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-  // Estado para mostrar/ocultar el chatbot
-  const [chatbotEnabled, setChatbotEnabled] = useState(true);
-
-  // Sincronizar el estado del sidebar con localStorage
+  // Detectar dispositivo móvil y configurar estado inicial
   useEffect(() => {
-    localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
-    
-    const handleStorageChange = () => {
-      const isOpen = JSON.parse(localStorage.getItem("sidebarOpen")) ?? true;
-      setSidebarOpen(isOpen);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [sidebarOpen]);
-
-  // Función para alternar el sidebar
-  const toggleSidebar = () => {
-    setSidebarOpen(prev => !prev);
-  };
-
-  // Calcular el margen dinámicamente según el estado del sidebar
-  const getContentStyle = () => {
-    if (isMobile) {
-      return {
-        marginLeft: 0,
-        transition: "margin-left 0.3s ease-in-out",
-        padding: "20px",
-        minHeight: "100vh",
-      };
-    }
-    return {
-      marginLeft: sidebarOpen ? "280px" : "70px",
-      transition: "margin-left 0.3s ease-in-out",
-      padding: "20px",
-      minHeight: "100vh",
-    };
-  };
-
-  // Actualizar estilos al cambiar el tamaño de la ventana
-  useEffect(() => {
-    const handleResize = () => {
+    const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
-      if (mobile && sidebarOpen) {
+      
+      if (!isInitialized) {
+        // Configuración inicial basada en el dispositivo
+        if (mobile) {
+          setSidebarOpen(false);
+        } else {
+          // En desktop, recuperar estado del localStorage
+          const savedState = localStorage.getItem("sidebarOpen");
+          setSidebarOpen(savedState ? JSON.parse(savedState) : true);
+        }
+        setIsInitialized(true);
+      } else if (mobile && sidebarOpen) {
+        // Si cambiamos a móvil y el sidebar está abierto, cerrarlo
         setSidebarOpen(false);
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [sidebarOpen]);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [sidebarOpen, isInitialized]);
 
-  // Para detectar clics fuera del sidebar en móviles y cerrarlo
+  // Guardar estado del sidebar en localStorage solo para desktop
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isMobile && sidebarOpen && !event.target.closest('.sidebar')) {
+    if (isInitialized && !isMobile) {
+      localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
+    }
+  }, [sidebarOpen, isMobile, isInitialized]);
+
+  // Función para alternar el sidebar
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(prev => !prev);
+  }, []);
+
+  // Función para cerrar sidebar desde overlay
+  const handleOverlayClick = useCallback(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [isMobile]);
+
+  // Prevenir scroll del body cuando el sidebar móvil está abierto
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobile, sidebarOpen]);
+
+  // Calcular clases CSS del contenido principal
+  const getContentClasses = () => {
+    const baseClasses = "min-h-screen transition-all duration-300 ease-in-out bg-gradient-to-br from-gray-50 to-blue-50";
+    
+    if (isMobile) {
+      return `${baseClasses} ml-0 p-4`;
+    }
+    
+    const marginLeft = sidebarOpen ? 'ml-[280px]' : 'ml-[70px]';
+    return `${baseClasses} ${marginLeft} p-6`;
+  };
+
+  // Manejar teclas de acceso rápido
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      // Alt + S para alternar sidebar
+      if (event.altKey && event.key === 's') {
+        event.preventDefault();
+        toggleSidebar();
+      }
+      // Escape para cerrar sidebar en móvil
+      if (event.key === 'Escape' && isMobile && sidebarOpen) {
         setSidebarOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMobile, sidebarOpen]);
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [toggleSidebar, isMobile, sidebarOpen]);
+
+  if (!isInitialized) {
+    return <LoadingFallback />;
+  }
 
   return (
     <Router>
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
+          {/* Rutas públicas */}
           <Route path="/login" element={
             <>
-              <SEO title="Iniciar Sesión | TransSync" description="Accede a tu cuenta en TransSync." />
+              <SEO 
+                title="Iniciar Sesión | TransSync" 
+                description="Accede a tu cuenta en TransSync - Sistema profesional de gestión de transporte." 
+              />
               <Login />
             </>
           } />
+          
           <Route path="/register" element={
             <>
-              <SEO title="Registro | TransSync" description="Crea una cuenta en TransSync y accede a nuestros servicios de transporte." />
+              <SEO 
+                title="Registro | TransSync" 
+                description="Crea una cuenta en TransSync y accede a nuestros servicios profesionales de gestión de transporte." 
+              />
               <Register />
             </>
           } />
+
+          {/* Redirección de la raíz */}
           <Route path="/" element={<Navigate to="/home" replace />} />
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute>
-                <>
-                  <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-                  {isMobile && (
-                    <button 
-                      className="mobile-menu-toggle"
-                      onClick={toggleSidebar}
-                      aria-label="Abrir menú"
-                    >
-                      <FiMenu size={24} />
-                    </button>
-                  )}
-                  <main style={getContentStyle()} className="main-content">
+          
+          {/* Rutas protegidas */}
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <div className="relative min-h-screen">
+                {/* Sidebar */}
+                <Sidebar 
+                  isOpen={sidebarOpen} 
+                  toggleSidebar={toggleSidebar}
+                  onOverlayClick={handleOverlayClick}
+                />
+                
+                {/* Contenido principal */}
+                <main className={getContentClasses()}>
+                  <div className="max-w-7xl mx-auto">
                     <Routes>
                       <Route path="/home" element={
                         <>
-                          <SEO title="Inicio | TransSync" description="Plataforma de gestión de transporte y conductores." />
+                          <SEO 
+                            title="Inicio | TransSync" 
+                            description="Panel principal de TransSync - Sistema profesional de gestión de transporte y conductores." 
+                          />
                           <Home />
                         </>
                       } />
+                      
                       <Route path="/dashboard" element={
                         <>
-                          <SEO title="Dashboard | TransSync" description="Gestiona y monitorea el sistema de transporte con TransSync." />
+                          <SEO 
+                            title="Dashboard | TransSync" 
+                            description="Dashboard ejecutivo - Monitorea y gestiona todo tu sistema de transporte desde una vista centralizada." 
+                          />
                           <Dashboard />
                         </>
                       } />
+                      
                       <Route path="/drivers" element={
                         <>
-                          <SEO title="Conductores | TransSync" description="Administra y gestiona la información de los conductores." />
+                          <SEO 
+                            title="Gestión de Conductores | TransSync" 
+                            description="Administra la información completa de conductores, licencias, capacitaciones y rendimiento." 
+                          />
                           <Drivers />
                         </>
                       } />
+                      
                       <Route path="/rutas" element={
                         <>
-                          <SEO title="Rutas | TransSync" description="Consulta y gestiona las rutas de transporte." />
+                          <SEO 
+                            title="Gestión de Rutas | TransSync" 
+                            description="Consulta, planifica y optimiza las rutas de transporte para máxima eficiencia." 
+                          />
                           <Rutas />
                         </>
                       } />
+                      
                       <Route path="/vehiculos" element={
                         <>
-                          <SEO title="Vehículos | TransSync" description="Administra la flota de vehículos." />
+                          <SEO 
+                            title="Gestión de Vehículos | TransSync" 
+                            description="Administra tu flota vehicular - mantenimiento, documentación y seguimiento en tiempo real." 
+                          />
                           <Vehiculos />
                         </>
                       } />
+                      
                       <Route path="/horarios" element={
                         <>
-                          <SEO title="Horarios | TransSync" description="Gestiona los horarios de las rutas." />
+                          <SEO 
+                            title="Gestión de Horarios | TransSync" 
+                            description="Programa y gestiona horarios de rutas, turnos de conductores y servicios especiales." 
+                          />
                           <Horarios />
                         </>
                       } />
+                      
                       <Route path="/informes" element={
                         <>
-                          <SEO title="Informes | TransSync" description="Genera y consulta informes." />
+                          <SEO 
+                            title="Informes y Reportes | TransSync" 
+                            description="Genera informes detallados, estadísticas y análisis de rendimiento del sistema de transporte." 
+                          />
                           <Informes />
                         </>
                       } />
+                      
                       <Route path="/emergency" element={
                         <>
-                          <SEO title="Emergencias | TransSync" description="Gestiona situaciones de emergencia en el sistema de transporte." />
+                          <SEO 
+                            title="Centro de Emergencias | TransSync" 
+                            description="Centro de comando para gestión de emergencias, alertas y respuesta rápida en el sistema de transporte." 
+                          />
                           <Emergency />
                         </>
                       } />
+                      
+                      {/* Ruta 404 */}
                       <Route path="*" element={<Navigate to="/home" replace />} />
                     </Routes>
-                  </main>
-                  
-                  {/* ChatBot siempre visible en todas las rutas protegidas */}
-                  {chatbotEnabled && <ChatBot position="bottom-right" theme="light" />}
-                </>
-              </ProtectedRoute>
-            }
-          />
+                  </div>
+                </main>
+                
+                {/* ChatBot - Solo visible en rutas protegidas */}
+                <ChatBot 
+                  position="bottom-right" 
+                  theme="professional"
+                  className={`transition-all duration-300 ${
+                    isMobile && sidebarOpen ? 'opacity-50 pointer-events-none' : 'opacity-100'
+                  }`}
+                />
+              </div>
+            </ProtectedRoute>
+          } />
         </Routes>
       </Suspense>
     </Router>

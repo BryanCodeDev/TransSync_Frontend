@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUser, FaLock, FaBus, FaExclamationTriangle, FaEye, FaEyeSlash } from "react-icons/fa";
-import "../styles/login.css";
+import { 
+  FaUser, 
+  FaLock, 
+  FaExclamationTriangle, 
+  FaEye, 
+  FaEyeSlash, 
+  FaCheckCircle,
+  FaShieldAlt,
+  FaUsers,
+  FaCogs
+} from "react-icons/fa";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -112,118 +121,184 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="background-overlay"></div>
-      <div className="login-card">
-        <div className="login-header">
-          <div className="login-logo">
-            <FaBus className="logo-icon" />
-          </div>
-          <h1>TransSync</h1>
-          <p className="login-subtitle">Sistema de Gestión de Transporte Público</p>
-        </div>
-
-        {error && (
-          <div className="error-message">
-            <FaExclamationTriangle className="error-icon" />
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="login-form">
-          <div className="form-group">
-            <label htmlFor="email">Correo electrónico</label>
-            <div className="input-wrapper">
-              <FaUser className="input-icon" />
-              <input
-                id="email"
-                type="email"
-                placeholder="Ingrese su correo"
-                value={email}
-                onChange={handleInputChange(setEmail)}
-                className={formTouched && !isEmailValid(email) && email ? "input-error" : ""}
-                required
-                autoComplete="email"
-              />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 lg:p-8">
+      {/* Main container */}
+      <div className="w-full max-w-7xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="flex flex-col xl:flex-row min-h-[80vh]">
+          {/* Left side - Brand section */}
+          <div className="xl:w-2/5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 lg:p-12 xl:p-16 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent"></div>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-l from-white/5 to-transparent rounded-full -translate-y-32 translate-x-32"></div>
+            <div className="relative z-10">
+              <h1 className="text-4xl xl:text-5xl font-bold text-white mb-6">
+                TransSync
+              </h1>
+              <p className="text-blue-100 text-xl mb-10 leading-relaxed">
+                Sistema de gestión empresarial para el transporte moderno
+              </p>
+              <div className="space-y-6">
+                <div className="flex items-center text-blue-100 text-lg">
+                  <FaShieldAlt className="mr-4 text-blue-300 text-xl" />
+                  <span>Acceso seguro y confiable</span>
+                </div>
+                <div className="flex items-center text-blue-100 text-lg">
+                  <FaUsers className="mr-4 text-blue-300 text-xl" />
+                  <span>Gestión de usuarios integrada</span>
+                </div>
+                <div className="flex items-center text-blue-100 text-lg">
+                  <FaCogs className="mr-4 text-blue-300 text-xl" />
+                  <span>Panel de control avanzado</span>
+                </div>
+              </div>
             </div>
-            {formTouched && !isEmailValid(email) && email && (
-              <p className="field-error">Por favor ingrese un correo válido</p>
-            )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
-            <div className="input-wrapper">
-              <FaLock className="input-icon" />
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Ingrese su contraseña"
-                value={password}
-                onChange={handleInputChange(setPassword)}
-                className={formTouched && !isPasswordValid(password) && password ? "input-error" : ""}
-                required
-                autoComplete="current-password"
-              />
-              <button 
-                type="button" 
-                className="password-toggle" 
-                onClick={togglePasswordVisibility}
-                tabIndex="-1"
+          {/* Right side - Form section */}
+          <div className="xl:w-3/5 p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
+            {/* Header */}
+            <div className="text-center mb-10">
+              <h2 className="text-3xl xl:text-4xl font-bold text-slate-800 mb-3">Iniciar Sesión</h2>
+              <p className="text-slate-600 text-lg">Acceda a su cuenta empresarial</p>
+            </div>
+
+            {/* Error message */}
+            {error && (
+              <div className="flex items-center bg-red-50 text-red-700 p-4 rounded-xl mb-8 border border-red-200">
+                <FaExclamationTriangle className="mr-3 flex-shrink-0 text-red-500 text-lg" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleLogin} className="space-y-8">
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-3">
+                  Correo electrónico
+                </label>
+                <div className="relative">
+                  <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-lg" />
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="Ingrese su correo"
+                    value={email}
+                    onChange={handleInputChange(setEmail)}
+                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg ${
+                      formTouched && !isEmailValid(email) && email 
+                        ? 'border-red-500 focus:ring-2 focus:ring-red-500' 
+                        : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                    }`}
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+                {formTouched && !isEmailValid(email) && email && (
+                  <p className="text-red-600 text-sm mt-2 flex items-center">
+                    <FaExclamationTriangle className="mr-2 text-red-500" />
+                    Por favor ingrese un correo válido
+                  </p>
+                )}
+              </div>
+
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-3">
+                  Contraseña
+                </label>
+                <div className="relative">
+                  <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-lg" />
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Ingrese su contraseña"
+                    value={password}
+                    onChange={handleInputChange(setPassword)}
+                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg ${
+                      formTouched && !isPasswordValid(password) && password 
+                        ? 'border-red-500 focus:ring-2 focus:ring-red-500' 
+                        : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                    }`}
+                    required
+                    autoComplete="current-password"
+                  />
+                  <button 
+                    type="button" 
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200"
+                    onClick={togglePasswordVisibility}
+                    tabIndex="-1"
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+                {formTouched && !isPasswordValid(password) && password && (
+                  <p className="text-red-600 text-sm mt-2 flex items-center">
+                    <FaExclamationTriangle className="mr-2 text-red-500" />
+                    La contraseña debe tener al menos 6 caracteres
+                  </p>
+                )}
+              </div>
+
+              {/* Remember me and Forgot password */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm">
+                <label className="flex items-center cursor-pointer text-slate-700">
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      checked={rememberMe}
+                      onChange={() => setRememberMe(!rememberMe)}
+                      className="sr-only"
+                    />
+                    <div className={`w-5 h-5 rounded border-2 transition-all duration-200 ${
+                      rememberMe 
+                        ? 'bg-blue-600 border-blue-600' 
+                        : 'bg-white border-slate-300 hover:border-slate-400'
+                    }`}>
+                      {rememberMe && (
+                        <FaCheckCircle className="w-full h-full text-white" />
+                      )}
+                    </div>
+                  </div>
+                  <span className="ml-3 font-medium">Recordarme</span>
+                </label>
+                <button 
+                  type="button" 
+                  className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200 hover:underline"
+                  onClick={handleForgotPassword}
+                >
+                  ¿Olvidó su contraseña?
+                </button>
+              </div>
+
+              {/* Submit button */}
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
+                disabled={loading}
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                    Verificando...
+                  </div>
+                ) : (
+                  'Iniciar Sesión'
+                )}
               </button>
-            </div>
-            {formTouched && !isPasswordValid(password) && password && (
-              <p className="field-error">La contraseña debe tener al menos 6 caracteres</p>
-            )}
-          </div>
 
-          <div className="remember-forgot">
-            <label className="remember-container">
-              <input 
-                type="checkbox" 
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
-              />
-              <span className="checkmark"></span>
-              Recordarme
-            </label>
-            <button 
-              type="button" 
-              className="forgot-link" 
-              onClick={handleForgotPassword}
-            >
-              ¿Olvidó su contraseña?
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            className={`login-button ${loading ? 'loading' : ''}`}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <span className="spinner"></span>
-                <span>Verificando...</span>
-              </>
-            ) : (
-              'Iniciar Sesión'
-            )}
-          </button>
-        </form>
-
-        <div className="login-footer">
-          <p>¿No tienes una cuenta?</p>
-          <div className="register-link">
-            <button 
-              type="button" 
-              className="login-button secondary-button"
-              onClick={() => navigate("/register")}
-            >
-              Registrarse
-            </button>
+              {/* Register link */}
+              <div className="text-center pt-6 border-t border-slate-200">
+                <p className="text-slate-600 text-base mb-4">¿No tienes una cuenta?</p>
+                <button 
+                  type="button" 
+                  className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base"
+                  onClick={() => navigate("/register")}
+                >
+                  Crear cuenta nueva
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
