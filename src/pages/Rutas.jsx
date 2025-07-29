@@ -1,899 +1,737 @@
-// pages/Rutas.jsx - Versión corregida y mejorada
 import React, { useState, useEffect } from 'react';
-import { mapService, healthCheck } from '../services/apiService';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-const Rutas = () => {
-  // Estados principales
-  const [activeTab, setActiveTab] = useState('search');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [currentLocation, setCurrentLocation] = useState(null);
-  const [apiStatus, setApiStatus] = useState(null);
+// Iconos personalizados para diferentes tipos de marcadores
+const createCustomIcon = (color, icon) => {
+  return L.divIcon({
+    html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px;">${icon}</div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15]
+  });
+};
 
-  // Estados para búsqueda
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+const stopIcon = createCustomIcon('#EF4444', '🚏');
 
-  // Estados para ruta
-  const [routeOrigin, setRouteOrigin] = useState('');
-  const [routeDestination, setRouteDestination] = useState('');
-  const [routeProfile, setRouteProfile] = useState('driving');
-  const [routeResult, setRouteResult] = useState(null);
+// Simulación de datos de buses en tiempo real
+const generateMockBuses = () => {
+  return [
+    {
+      id: 'bus-001',
+      route: 'Ruta 1: Centro - Norte',
+      driver: 'Juan Pérez',
+      lat: 4.7110, // Bogotá
+      lng: -74.0721,
+      speed: 25,
+      passengers: 23,
+      capacity: 40,
+      status: 'en_ruta',
+      lastUpdate: new Date(),
+      direction: 45
+    },
+    {
+      id: 'bus-002', 
+      route: 'Ruta 2: Sur - Occidente',
+      driver: 'María González',
+      lat: 4.6097,
+      lng: -74.0817,
+      speed: 18,
+      passengers: 31,
+      capacity: 40,
+      status: 'en_ruta',
+      lastUpdate: new Date(),
+      direction: 120
+    },
+    {
+      id: 'bus-003',
+      route: 'Ruta 3: Oriente - Centro',
+      driver: 'Carlos Rodríguez',
+      lat: 4.6486,
+      lng: -74.0639,
+      speed: 0,
+      passengers: 8,
+      capacity: 35,
+      status: 'parada',
+      lastUpdate: new Date(),
+      direction: 0
+    }
+  ];
+};
 
-  // Estados para lugares cercanos
-  const [nearbyType, setNearbyType] = useState('restaurant');
-  const [nearbyRadius, setNearbyRadius] = useState(1000);
-  const [nearbyPlaces, setNearbyPlaces] = useState([]);
-  const [placeTypes, setPlaceTypes] = useState([]);
+// Simulación de paradas de bus
+const mockBusStops = [
+  { id: 'stop-001', name: 'Terminal Norte', lat: 4.7850, lng: -74.0450, routes: ['Ruta 1', 'Ruta 3'] },
+  { id: 'stop-002', name: 'Plaza Bolívar', lat: 4.5981, lng: -74.0758, routes: ['Ruta 1', 'Ruta 2'] },
+  { id: 'stop-003', name: 'Centro Comercial', lat: 4.6601, lng: -74.0547, routes: ['Ruta 2', 'Ruta 3'] },
+  { id: 'stop-004', name: 'Universidad Nacional', lat: 4.6365, lng: -74.0847, routes: ['Ruta 1'] },
+  { id: 'stop-005', name: 'Hospital San Juan', lat: 4.6280, lng: -74.0631, routes: ['Ruta 2'] }
+];
 
-  // Tipos de lugares por defecto (fallback)
-  const defaultPlaceTypes = [
-    { value: 'restaurant', label: 'Restaurantes', icon: '🍽️' },
-    { value: 'bank', label: 'Bancos', icon: '🏦' },
-    { value: 'hospital', label: 'Hospitales', icon: '🏥' },
-    { value: 'school', label: 'Escuelas', icon: '🏫' },
-    { value: 'pharmacy', label: 'Farmacias', icon: '💊' },
-    { value: 'fuel', label: 'Gasolineras', icon: '⛽' },
-    { value: 'police', label: 'Policía', icon: '👮' },
-    { value: 'fire_station', label: 'Bomberos', icon: '🚒' },
-    { value: 'post_office', label: 'Correos', icon: '📮' },
-    { value: 'library', label: 'Bibliotecas', icon: '📚' },
-    { value: 'atm', label: 'Cajeros', icon: '🏧' },
-    { value: 'cafe', label: 'Cafeterías', icon: '☕' },
-    { value: 'supermarket', label: 'Supermercados', icon: '🛒' }
+// Simulación de rutas predefinidas
+const mockRoutes = [
+  {
+    id: 'route-001',
+    name: 'Ruta 1: Centro - Norte',
+    color: '#10B981',
+    coordinates: [
+      [4.5981, -74.0758], // Plaza Bolívar
+      [4.6280, -74.0631], // Punto intermedio
+      [4.6601, -74.0547], // Centro Comercial
+      [4.7110, -74.0721], // Punto actual bus
+      [4.7850, -74.0450]  // Terminal Norte
+    ],
+    distance: '15.2 km',
+    estimatedTime: '45 min',
+    active: true
+  },
+  {
+    id: 'route-002', 
+    name: 'Ruta 2: Sur - Occidente',
+    color: '#3B82F6',
+    coordinates: [
+      [4.5700, -74.0900], // Sur
+      [4.5981, -74.0758], // Plaza Bolívar
+      [4.6097, -74.0817], // Punto actual bus
+      [4.6280, -74.0631], // Hospital
+      [4.6500, -74.1200]  // Occidente
+    ],
+    distance: '18.7 km',
+    estimatedTime: '55 min',
+    active: true
+  },
+  {
+    id: 'route-003',
+    name: 'Ruta 3: Oriente - Centro',
+    color: '#8B5CF6',
+    coordinates: [
+      [4.6800, -74.0300], // Oriente
+      [4.6486, -74.0639], // Punto actual bus
+      [4.6365, -74.0847], // Universidad
+      [4.6001, -74.0700], // Centro
+    ],
+    distance: '12.5 km',
+    estimatedTime: '35 min',
+    active: false
+  }
+];
+
+// Componente para actualizar posición de buses
+const BusUpdater = ({ buses, setBuses }) => {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBuses(prevBuses => 
+        prevBuses.map(bus => {
+          if (bus.status === 'en_ruta' && bus.speed > 0) {
+            // Simular movimiento del bus
+            const deltaLat = (Math.random() - 0.5) * 0.001;
+            const deltaLng = (Math.random() - 0.5) * 0.001;
+            
+            return {
+              ...bus,
+              lat: bus.lat + deltaLat,
+              lng: bus.lng + deltaLng,
+              lastUpdate: new Date(),
+              speed: Math.max(0, bus.speed + (Math.random() - 0.5) * 5),
+              passengers: Math.max(0, Math.min(bus.capacity, bus.passengers + Math.floor((Math.random() - 0.5) * 3)))
+            };
+          }
+          return bus;
+        })
+      );
+    }, 3000); // Actualizar cada 3 segundos
+
+    return () => clearInterval(interval);
+  }, [setBuses]);
+
+  return null;
+};
+
+// Componente para manejar clics en el mapa
+const MapClickHandler = ({ onMapClick }) => {
+  useMapEvents({
+    click: (e) => {
+      onMapClick(e.latlng);
+    }
+  });
+  return null;
+};
+
+// Componente para controlar el mapa
+const MapControl = ({ center, zoom }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (center) {
+      map.setView(center, zoom || map.getZoom(), { animate: true });
+    }
+  }, [center, zoom, map]);
+  
+  return null;
+};
+
+const InteractiveMap = () => {
+  const [buses, setBuses] = useState(generateMockBuses());
+  const [selectedBus, setSelectedBus] = useState(null);
+  const [showRoutes, setShowRoutes] = useState(true);
+  const [showStops, setShowStops] = useState(true);
+  const [showBuses, setShowBuses] = useState(true);
+  const [mapCenter, setMapCenter] = useState([4.6482, -74.0648]); // Centro de Bogotá
+  const [mapZoom, setMapZoom] = useState(11);
+  const [selectedRoute, setSelectedRoute] = useState(null);
+  const [isTracking, setIsTracking] = useState(false);
+  const [newMarkers, setNewMarkers] = useState([]);
+  const [isAddingStop, setIsAddingStop] = useState(false);
+
+  // Colombia bounds para restringir el mapa
+  const colombiaBounds = [
+    [-4.2276, -81.8317], // Southwest
+    [15.5138, -66.8694]  // Northeast
   ];
 
-  // Verificar estado del API al cargar
-  useEffect(() => {
-    checkApiHealth();
-    loadPlaceTypes();
-    getCurrentLocation();
-  }, []);
+  const handleBusClick = (bus) => {
+    setSelectedBus(bus);
+    setMapCenter([bus.lat, bus.lng]);
+    setMapZoom(15);
+  };
 
-  // Verificar salud del API
-  const checkApiHealth = async () => {
-    try {
-      const health = await healthCheck();
-      setApiStatus(health);
-      console.log('✅ API Status:', health);
-    } catch (error) {
-      console.error('❌ API Health Check Failed:', error);
-      setApiStatus({ 
-        status: 'ERROR', 
-        connectivity: false, 
-        message: 'API no disponible' 
-      });
+  const handleRouteSelect = (route) => {
+    setSelectedRoute(route);
+    if (route && route.coordinates.length > 0) {
+      // Calcular bounds de la ruta
+      const lats = route.coordinates.map(coord => coord[0]);
+      const lngs = route.coordinates.map(coord => coord[1]);
+      const bounds = [
+        [Math.min(...lats), Math.min(...lngs)],
+        [Math.max(...lats), Math.max(...lngs)]
+      ];
+      // Usar fitBounds en lugar de setView para mostrar toda la ruta
+      setMapCenter([(bounds[0][0] + bounds[1][0]) / 2, (bounds[0][1] + bounds[1][1]) / 2]);
+      setMapZoom(12);
     }
   };
 
-  // Cargar tipos de lugares desde el API
-  const loadPlaceTypes = async () => {
-    try {
-      const response = await mapService.getPlaceTypes();
-      if (response.success && response.data) {
-        setPlaceTypes(response.data);
-      } else {
-        setPlaceTypes(defaultPlaceTypes);
-      }
-    } catch (error) {
-      console.warn('⚠️ No se pudieron cargar tipos de lugares del API, usando valores por defecto');
-      setPlaceTypes(defaultPlaceTypes);
-    }
-  };
-
-  // Obtener ubicación actual
-  const getCurrentLocation = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('🗺️ Obteniendo ubicación actual...');
-      const location = await mapService.getCurrentLocation({
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 300000 // 5 minutos
-      });
-      
-      console.log('📍 Ubicación obtenida:', location);
-      setCurrentLocation(location);
-      
-      // Intentar obtener dirección de la ubicación actual
-      try {
-        console.log('🔍 Obteniendo dirección para:', location.lat, location.lon);
-        const address = await mapService.reverseGeocode(location.lat, location.lon);
-        
-        console.log('🏠 Dirección obtenida:', address);
-        if (address.success && address.data) {
-          setCurrentLocation(prev => ({
-            ...prev,
-            address: address.data.address || 'Dirección no disponible'
-          }));
-        }
-      } catch (addressError) {
-        console.warn('⚠️ No se pudo obtener la dirección:', addressError.message);
-        setCurrentLocation(prev => ({
-          ...prev,
-          address: `Coordenadas: ${location.lat.toFixed(6)}, ${location.lon.toFixed(6)}`
-        }));
-      }
-    } catch (err) {
-      console.error('❌ Error obteniendo ubicación:', err);
-      setError(`Error obteniendo ubicación: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const useCurrentLocationAsOrigin = () => {
-    if (currentLocation) {
-      const locationText = currentLocation.address || 
-        `${currentLocation.lat.toFixed(6)}, ${currentLocation.lon.toFixed(6)}`;
-      setRouteOrigin(locationText);
-    }
-  };
-
-  // Función para búsqueda de lugares
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      setError('Debes escribir algo para buscar');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      setSearchResults([]);
-      
-      console.log('🔍 Buscando:', searchQuery);
-      
-      const results = await mapService.searchPlaces(searchQuery.trim(), {
-        limit: 10,
-        countrycodes: 'co'
-      });
-      
-      console.log('📊 Resultados de búsqueda:', results);
-      
-      if (results.success && results.data) {
-        setSearchResults(results.data);
-        if (results.data.length === 0) {
-          setError('No se encontraron resultados para tu búsqueda');
-        }
-      } else {
-        setError('No se pudieron obtener resultados de búsqueda');
-      }
-    } catch (err) {
-      console.error('❌ Error en búsqueda:', err);
-      setError(`Error en la búsqueda: ${err.message}`);
-      setSearchResults([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Función para calcular ruta
-  const handleCalculateRoute = async (e) => {
-    e.preventDefault();
+  const startTracking = (bus) => {
+    setIsTracking(true);
+    setSelectedBus(bus);
     
-    if (!routeOrigin.trim() || !routeDestination.trim()) {
-      setError('Debes especificar tanto el origen como el destino');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      setRouteResult(null);
-
-      console.log('🗺️ Calculando ruta desde:', routeOrigin, 'hasta:', routeDestination);
-
-      // Geocodificar origen y destino
-      console.log('📍 Geocodificando origen...');
-      const originResults = await mapService.searchPlaces(routeOrigin.trim(), { limit: 1 });
-      
-      console.log('📍 Geocodificando destino...');
-      const destResults = await mapService.searchPlaces(routeDestination.trim(), { limit: 1 });
-
-      if (!originResults.success || !originResults.data?.length) {
-        throw new Error(`No se encontró el origen: "${routeOrigin}"`);
-      }
-      if (!destResults.success || !destResults.data?.length) {
-        throw new Error(`No se encontró el destino: "${routeDestination}"`);
-      }
-
-      const origin = originResults.data[0];
-      const destination = destResults.data[0];
-
-      console.log('🚗 Calculando ruta entre puntos:', origin, destination);
-
-      // Calcular ruta
-      const route = await mapService.calculateRoute(
-        origin.lat,
-        origin.lon,
-        destination.lat,
-        destination.lon,
-        routeProfile
-      );
-
-      console.log('✅ Ruta calculada:', route);
-
-      if (route.success && route.data) {
-        setRouteResult({
-          ...route.data,
-          origin: { name: origin.name, lat: origin.lat, lon: origin.lon },
-          destination: { name: destination.name, lat: destination.lat, lon: destination.lon }
-        });
-      } else {
-        throw new Error('No se pudo calcular la ruta');
-      }
-
-    } catch (err) {
-      console.error('❌ Error calculando ruta:', err);
-      setError(`Error calculando ruta: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Función para buscar lugares cercanos
-  const handleNearbySearch = async () => {
-    if (!currentLocation) {
-      setError('Primero necesitas permitir el acceso a tu ubicación');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      setNearbyPlaces([]);
-      
-      console.log('📍 Buscando lugares cercanos:', nearbyType, 'radio:', nearbyRadius);
-      
-      const results = await mapService.findNearbyPlaces(
-        currentLocation.lat,
-        currentLocation.lon,
-        nearbyType,
-        nearbyRadius
-      );
-      
-      console.log('🏪 Lugares cercanos encontrados:', results);
-      
-      if (results.success && results.data) {
-        setNearbyPlaces(results.data);
-        if (results.data.length === 0) {
-          setError(`No se encontraron ${placeTypes.find(t => t.value === nearbyType)?.label?.toLowerCase()} en un radio de ${mapService.formatDistance(nearbyRadius)}`);
+    const trackingInterval = setInterval(() => {
+      setBuses(currentBuses => {
+        const trackedBus = currentBuses.find(b => b.id === bus.id);
+        if (trackedBus) {
+          setMapCenter([trackedBus.lat, trackedBus.lng]);
         }
-      } else {
-        setError('No se pudieron obtener lugares cercanos');
-      }
-    } catch (err) {
-      console.error('❌ Error buscando lugares cercanos:', err);
-      setError(`Error buscando lugares cercanos: ${err.message}`);
-      setNearbyPlaces([]);
-    } finally {
-      setLoading(false);
+        return currentBuses;
+      });
+    }, 2000);
+
+    // Detener tracking después de 30 segundos
+    setTimeout(() => {
+      setIsTracking(false);
+      clearInterval(trackingInterval);
+    }, 30000);
+  };
+
+  const handleMapClick = (latlng) => {
+    if (isAddingStop) {
+      const newStop = {
+        id: `new-stop-${Date.now()}`,
+        name: `Nueva Parada ${newMarkers.length + 1}`,
+        lat: latlng.lat,
+        lng: latlng.lng,
+        routes: [],
+        isNew: true
+      };
+      setNewMarkers([...newMarkers, newStop]);
+      setIsAddingStop(false);
     }
   };
 
-  const createRouteToPlace = async (place) => {
-    if (!currentLocation) {
-      setError('Necesitas permitir el acceso a tu ubicación para calcular rutas');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      console.log('🗺️ Calculando ruta hacia:', place.name);
-      
-      const route = await mapService.calculateRoute(
-        currentLocation.lat,
-        currentLocation.lon,
-        place.lat,
-        place.lon,
-        'driving'
-      );
-
-      if (route.success && route.data) {
-        const distance = mapService.formatDistance(route.data.distance);
-        const duration = mapService.formatDuration(route.data.duration);
-        
-        // Mostrar resultado en una ventana modal o alerta mejorada
-        const message = `🗺️ Ruta calculada a ${place.name}:\n\n📏 Distancia: ${distance}\n⏰ Tiempo estimado: ${duration}\n🚗 Modo: Conduciendo`;
-        
-        alert(message);
-        
-        // Opcionalmente, cambiar a la pestaña de rutas con los datos precargados
-        setRouteDestination(place.name);
-        setActiveTab('route');
-      } else {
-        throw new Error('No se pudo calcular la ruta');
-      }
-    } catch (err) {
-      console.error('❌ Error calculando ruta:', err);
-      setError(`Error calculando ruta: ${err.message}`);
-    } finally {
-      setLoading(false);
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'en_ruta': return '#10B981';
+      case 'parada': return '#EF4444';
+      case 'mantenimiento': return '#F59E0B';
+      default: return '#6B7280';
     }
   };
 
-  // Limpiar errores automáticamente después de 10 segundos
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        setError(null);
-      }, 10000);
-      return () => clearTimeout(timer);
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'en_ruta': return 'En Ruta';
+      case 'parada': return 'En Parada';
+      case 'mantenimiento': return 'Mantenimiento';
+      default: return 'Desconocido';
     }
-  }, [error]);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Rutas y Navegación</h1>
-              <p className="text-gray-600">Encuentra lugares, calcula rutas y explora tu área</p>
-            </div>
-            
-            {/* Estado del API */}
-            <div className="text-right">
-              <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                apiStatus?.connectivity 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                <div className={`w-2 h-2 rounded-full mr-2 ${
-                  apiStatus?.connectivity ? 'bg-green-400' : 'bg-red-400'
-                }`}></div>
-                {apiStatus?.connectivity ? 'API Conectado' : 'API Desconectado'}
-              </div>
-              <button
-                onClick={checkApiHealth}
-                className="text-xs text-blue-600 hover:text-blue-800 mt-1 block"
-              >
-                Verificar conexión
-              </button>
+    <div className="w-full h-screen flex flex-col bg-gray-100">
+      {/* Header de Control */}
+      <div className="bg-white shadow-sm border-b p-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-bold text-gray-900">🚌 Sistema de Rutas TransSync</h1>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>En tiempo real</span>
             </div>
           </div>
-          
-          {/* Ubicación actual */}
-          {currentLocation && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-blue-900">📍 Tu ubicación actual</h3>
-                  <p className="text-sm text-blue-700">
-                    {currentLocation.address || 'Obteniendo dirección...'}
-                  </p>
-                  <p className="text-xs text-blue-600 mt-1">
-                    Precisión: {currentLocation.accuracy ? `${Math.round(currentLocation.accuracy)}m` : 'Desconocida'}
-                  </p>
-                </div>
-                <button
-                  onClick={getCurrentLocation}
-                  className="text-blue-600 hover:text-blue-800 text-sm px-3 py-1 border border-blue-300 rounded"
-                  disabled={loading}
-                >
-                  {loading ? '⟳' : '🔄'} Actualizar
-                </button>
-              </div>
-            </div>
-          )}
 
-          {!currentLocation && (
-            <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-yellow-900">⚠️ Ubicación no disponible</h3>
-                  <p className="text-sm text-yellow-700">
-                    Permite el acceso a la ubicación para usar todas las funciones
-                  </p>
-                </div>
-                <button
-                  onClick={getCurrentLocation}
-                  className="text-yellow-600 hover:text-yellow-800 text-sm px-3 py-1 border border-yellow-300 rounded"
-                  disabled={loading}
-                >
-                  📍 Obtener ubicación
-                </button>
-              </div>
+          <div className="flex items-center gap-3">
+            {/* Filtros de visualización */}
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-1 text-sm">
+                <input
+                  type="checkbox"
+                  checked={showBuses}
+                  onChange={(e) => setShowBuses(e.target.checked)}
+                  className="rounded"
+                />
+                🚌 Buses
+              </label>
+              <label className="flex items-center gap-1 text-sm">
+                <input
+                  type="checkbox"
+                  checked={showRoutes}
+                  onChange={(e) => setShowRoutes(e.target.checked)}
+                  className="rounded"
+                />
+                🛣️ Rutas
+              </label>
+              <label className="flex items-center gap-1 text-sm">
+                <input
+                  type="checkbox"
+                  checked={showStops}
+                  onChange={(e) => setShowStops(e.target.checked)}
+                  className="rounded"
+                />
+                🚏 Paradas
+              </label>
             </div>
-          )}
+
+            {/* Botones de acción */}
+            <button
+              onClick={() => setIsAddingStop(!isAddingStop)}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                isAddingStop 
+                  ? 'bg-red-500 text-white hover:bg-red-600' 
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              {isAddingStop ? '❌ Cancelar' : '📍 Agregar Parada'}
+            </button>
+
+            <button
+              onClick={() => {
+                setMapCenter([4.6482, -74.0648]);
+                setMapZoom(11);
+                setSelectedRoute(null);
+                setSelectedBus(null);
+              }}
+              className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors"
+            >
+              🏠 Vista General
+            </button>
+          </div>
         </div>
 
-        {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            <div className="flex justify-between items-start">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p>{error}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setError(null)}
-                className="text-red-400 hover:text-red-600"
-              >
-                ✕
-              </button>
-            </div>
+        {isAddingStop && (
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+            💡 Haz clic en el mapa donde quieres agregar una nueva parada
           </div>
         )}
+      </div>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-              {[
-                { key: 'search', label: 'Buscar Lugares', icon: '🔍' },
-                { key: 'route', label: 'Calcular Ruta', icon: '🗺️' },
-                { key: 'nearby', label: 'Lugares Cercanos', icon: '📍' }
-              ].map((tab) => (
+      <div className="flex flex-1 overflow-hidden">
+        {/* Panel Lateral */}
+        <div className="w-80 bg-white shadow-lg overflow-y-auto flex-shrink-0">
+          {/* Información del bus seleccionado */}
+          {selectedBus && (
+            <div className="p-4 bg-blue-50 border-b">
+              <h3 className="font-bold text-blue-900 mb-2">🚌 {selectedBus.route}</h3>
+              <div className="space-y-1 text-sm">
+                <p><strong>Conductor:</strong> {selectedBus.driver}</p>
+                <p><strong>Estado:</strong> 
+                  <span className={`ml-1 px-2 py-1 rounded text-xs font-medium ${
+                    selectedBus.status === 'en_ruta' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {getStatusText(selectedBus.status)}
+                  </span>
+                </p>
+                <p><strong>Velocidad:</strong> {selectedBus.speed} km/h</p>
+                <p><strong>Pasajeros:</strong> {selectedBus.passengers}/{selectedBus.capacity}</p>
+                <p><strong>Última actualización:</strong> {selectedBus.lastUpdate.toLocaleTimeString()}</p>
+              </div>
+              <div className="mt-3 flex gap-2">
                 <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.key
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  onClick={() => startTracking(selectedBus)}
+                  disabled={isTracking}
+                  className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 disabled:opacity-50 transition-colors"
+                >
+                  {isTracking ? '📡 Siguiendo...' : '📡 Seguir Bus'}
+                </button>
+                <button
+                  onClick={() => setSelectedBus(null)}
+                  className="bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition-colors"
+                >
+                  ❌ Cerrar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Lista de Buses */}
+          <div className="p-4 border-b">
+            <h3 className="font-bold text-gray-900 mb-3">🚌 Buses Activos ({buses.length})</h3>
+            <div className="space-y-2">
+              {buses.map(bus => (
+                <div
+                  key={bus.id}
+                  onClick={() => handleBusClick(bus)}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                    selectedBus?.id === bus.id 
+                      ? 'bg-blue-100 border-2 border-blue-300' 
+                      : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
                   }`}
                 >
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.label}
-                </button>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-sm">{bus.route}</h4>
+                      <p className="text-xs text-gray-500">{bus.driver}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className={`w-3 h-3 rounded-full ${
+                        bus.status === 'en_ruta' ? 'bg-green-400' : 'bg-red-400'
+                      }`}></div>
+                      <span className="text-xs text-gray-500">{bus.speed} km/h</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex justify-between text-xs text-gray-600">
+                    <span>👥 {bus.passengers}/{bus.capacity}</span>
+                    <span>{getStatusText(bus.status)}</span>
+                  </div>
+                </div>
               ))}
-            </nav>
+            </div>
           </div>
 
-          <div className="p-6">
-            {/* Tab: Buscar Lugares */}
-            {activeTab === 'search' && (
-              <div>
-                <form onSubmit={handleSearch} className="mb-6">
-                  <div className="flex gap-3">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Buscar lugares, direcciones, puntos de interés..."
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      disabled={loading}
-                    />
-                    <button
-                      type="submit"
-                      disabled={loading || !searchQuery.trim()}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {loading ? '🔄 Buscando...' : '🔍 Buscar'}
-                    </button>
-                  </div>
-                </form>
-
-                {/* Resultados de búsqueda */}
-                {searchResults.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      📊 Resultados ({searchResults.length})
-                    </h3>
-                    {searchResults.map((place, index) => (
-                      <div key={place.id || index} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">{place.name}</h4>
-                            <p className="text-sm text-gray-600 mt-1">
-                              📍 {place.type} • {place.class}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              🗺️ {place.lat.toFixed(6)}, {place.lon.toFixed(6)}
-                            </p>
-                            {place.importance && (
-                              <p className="text-xs text-blue-600 mt-1">
-                                ⭐ Relevancia: {(place.importance * 100).toFixed(1)}%
-                              </p>
-                            )}
-                          </div>
-                          <div className="ml-4 space-x-2 flex flex-col space-y-2">
-                            <button
-                              onClick={() => {
-                                setRouteDestination(place.name);
-                                setActiveTab('route');
-                              }}
-                              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
-                            >
-                              🎯 Usar como destino
-                            </button>
-                            {currentLocation && (
-                              <button
-                                onClick={() => createRouteToPlace(place)}
-                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
-                                disabled={loading}
-                              >
-                                🗺️ Ir aquí
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Tab: Calcular Ruta */}
-            {activeTab === 'route' && (
-              <div>
-                <form onSubmit={handleCalculateRoute} className="space-y-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      📍 Origen
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={routeOrigin}
-                        onChange={(e) => setRouteOrigin(e.target.value)}
-                        placeholder="Dirección de origen"
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        disabled={loading}
-                      />
-                      {currentLocation && (
-                        <button
-                          type="button"
-                          onClick={useCurrentLocationAsOrigin}
-                          className="bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 whitespace-nowrap transition-colors"
-                          disabled={loading}
-                        >
-                          📍 Mi ubicación
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      🎯 Destino
-                    </label>
-                    <input
-                      type="text"
-                      value={routeDestination}
-                      onChange={(e) => setRouteDestination(e.target.value)}
-                      placeholder="Dirección de destino"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      disabled={loading}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      🚗 Tipo de transporte
-                    </label>
-                    <select
-                      value={routeProfile}
-                      onChange={(e) => setRouteProfile(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      disabled={loading}
-                    >
-                      <option value="driving">🚗 Conduciendo</option>
-                      <option value="walking">🚶 Caminando</option>
-                      <option value="cycling">🚴 Bicicleta</option>
-                    </select>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading || !routeOrigin.trim() || !routeDestination.trim()}
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {loading ? '🔄 Calculando ruta...' : '🗺️ Calcular Ruta'}
-                  </button>
-                </form>
-
-                {/* Resultado de la ruta */}
-                {routeResult && (
-                  <div className="bg-green-50 border border-green-200 p-6 rounded-lg">
-                    <h3 className="text-lg font-medium text-green-900 mb-4">✅ Ruta Calculada</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div className="text-center bg-white p-3 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">
-                          {mapService.formatDistance(routeResult.distance)}
-                        </div>
-                        <div className="text-sm text-green-700">📏 Distancia</div>
-                      </div>
-                      <div className="text-center bg-white p-3 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">
-                          {mapService.formatDuration(routeResult.duration)}
-                        </div>
-                        <div className="text-sm text-green-700">⏰ Tiempo estimado</div>
-                      </div>
-                      <div className="text-center bg-white p-3 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">
-                          {routeResult.profile === 'driving' ? '🚗' : 
-                           routeResult.profile === 'walking' ? '🚶' : '🚴'}
-                        </div>
-                        <div className="text-sm text-green-700">🚦 Transporte</div>
+          {/* Lista de Rutas */}
+          <div className="p-4 border-b">
+            <h3 className="font-bold text-gray-900 mb-3">🛣️ Rutas Disponibles</h3>
+            <div className="space-y-2">
+              {mockRoutes.map(route => (
+                <div
+                  key={route.id}
+                  onClick={() => handleRouteSelect(route)}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors border ${
+                    selectedRoute?.id === route.id 
+                      ? 'bg-purple-100 border-purple-300' 
+                      : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: route.color }}
+                    ></div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{route.name}</h4>
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>📏 {route.distance}</span>
+                        <span>⏰ {route.estimatedTime}</span>
                       </div>
                     </div>
-                    <div className="space-y-2 bg-white p-4 rounded-lg">
-                      <p><strong>📍 Origen:</strong> {routeResult.origin.name}</p>
-                      <p><strong>🎯 Destino:</strong> {routeResult.destination.name}</p>
-                      {routeResult.steps && routeResult.steps.length > 0 && (
-                        <details className="mt-3">
-                          <summary className="cursor-pointer text-sm text-green-700 hover:text-green-900">
-                            📋 Ver instrucciones paso a paso ({routeResult.steps.length} pasos)
-                          </summary>
-                          <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
-                            {routeResult.steps.slice(0, 10).map((step, index) => (
-                              <div key={index} className="text-xs text-gray-600 p-2 bg-gray-50 rounded">
-                                {index + 1}. {step.maneuver?.instruction || step.instruction || 'Continuar'}
-                              </div>
-                            ))}
-                            {routeResult.steps.length > 10 && (
-                              <div className="text-xs text-gray-500 text-center py-2">
-                                ... y {routeResult.steps.length - 10} pasos más
-                              </div>
-                            )}
-                          </div>
-                        </details>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Tab: Lugares Cercanos */}
-            {activeTab === 'nearby' && (
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      🏪 Tipo de lugar
-                    </label>
-                    <select
-                      value={nearbyType}
-                      onChange={(e) => setNearbyType(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      disabled={loading}
-                    >
-                      {placeTypes.map(type => (
-                        <option key={type.value} value={type.value}>
-                          {type.icon ? `${type.icon} ${type.label}` : type.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      📏 Radio de búsqueda
-                    </label>
-                    <select
-                      value={nearbyRadius}
-                      onChange={(e) => setNearbyRadius(parseInt(e.target.value))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      disabled={loading}
-                    >
-                      <option value={500}>📍 500 metros</option>
-                      <option value={1000}>📍 1 kilómetro</option>
-                      <option value={2000}>📍 2 kilómetros</option>
-                      <option value={5000}>📍 5 kilómetros</option>
-                      <option value={10000}>📍 10 kilómetros</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <button
-                      onClick={handleNearbySearch}
-                      disabled={loading || !currentLocation}
-                      className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {loading ? '🔄 Buscando...' : '🔍 Buscar Cerca'}
-                    </button>
+                    <div className={`w-2 h-2 rounded-full ${
+                      route.active ? 'bg-green-400' : 'bg-gray-400'
+                    }`}></div>
                   </div>
                 </div>
-
-                {!currentLocation && (
-                  <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div className="ml-3 flex-1">
-                        <p className="text-sm text-yellow-700">
-                          ⚠️ Necesitas permitir el acceso a tu ubicación para buscar lugares cercanos.
-                        </p>
-                        <button
-                          onClick={getCurrentLocation}
-                          className="mt-2 text-sm text-yellow-800 hover:text-yellow-900 underline font-medium"
-                          disabled={loading}
-                        >
-                          📍 Obtener mi ubicación
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Resultados de lugares cercanos */}
-                {nearbyPlaces.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        🏪 {placeTypes.find(t => t.value === nearbyType)?.label} cercanos
-                      </h3>
-                      <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
-                        {nearbyPlaces.length} encontrados
-                      </span>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {nearbyPlaces.map((place, index) => (
-                        <div key={place.id || index} className="bg-white border border-gray-200 p-4 rounded-lg hover:shadow-md transition-shadow">
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-900 text-sm leading-tight">
-                                {place.name || 'Sin nombre'}
-                              </h4>
-                              <span className="inline-block text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded mt-1">
-                                {place.amenity}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Información adicional */}
-                          <div className="space-y-1 mb-3 text-xs text-gray-600">
-                            {currentLocation && (
-                              <p className="flex items-center">
-                                📍 {mapService.formatDistance(
-                                  mapService.calculateDistance(
-                                    currentLocation.lat,
-                                    currentLocation.lon,
-                                    place.lat,
-                                    place.lon
-                                  )
-                                )}
-                              </p>
-                            )}
-                            
-                            {place.tags?.address && (
-                              <p className="flex items-center">
-                                🏠 {place.tags.address}
-                              </p>
-                            )}
-                            
-                            {place.tags?.phone && (
-                              <p className="flex items-center">
-                                📞 {place.tags.phone}
-                              </p>
-                            )}
-                            
-                            {place.tags?.opening_hours && (
-                              <p className="flex items-center">
-                                🕐 {place.tags.opening_hours}
-                              </p>
-                            )}
-                            
-                            {place.tags?.website && (
-                              <p className="flex items-center">
-                                🌐 <a href={place.tags.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 truncate">
-                                  {place.tags.website}
-                                </a>
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => createRouteToPlace(place)}
-                              className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-xs hover:bg-blue-700 transition-colors disabled:opacity-50"
-                              disabled={loading || !currentLocation}
-                            >
-                              🗺️ Calcular Ruta
-                            </button>
-                            <button
-                              onClick={() => {
-                                setSearchQuery(place.name || '');
-                                setActiveTab('search');
-                              }}
-                              className="flex-1 bg-gray-600 text-white px-3 py-2 rounded text-xs hover:bg-gray-700 transition-colors"
-                            >
-                              🔍 Ver detalles
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {nearbyPlaces.length === 0 && !loading && currentLocation && nearbyType && (
-                  <div className="text-center py-12 text-gray-500">
-                    <svg className="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No se encontraron lugares
-                    </h3>
-                    <p className="text-sm mb-4">
-                      No se encontraron <strong>{placeTypes.find(t => t.value === nearbyType)?.label?.toLowerCase()}</strong> en un radio de <strong>{mapService.formatDistance(nearbyRadius)}</strong>
-                    </p>
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => setNearbyRadius(Math.min(nearbyRadius * 2, 10000))}
-                        className="bg-purple-100 text-purple-800 px-4 py-2 rounded-lg text-sm hover:bg-purple-200 transition-colors mr-2"
-                        disabled={nearbyRadius >= 10000}
-                      >
-                        📏 Ampliar búsqueda
-                      </button>
-                      <button
-                        onClick={() => setNearbyType('restaurant')}
-                        className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 transition-colors"
-                      >
-                        🍽️ Buscar restaurantes
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Debug Info (solo en desarrollo) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-6 bg-gray-100 p-4 rounded-lg">
-            <details>
-              <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
-                🔧 Información de Debug
-              </summary>
-              <div className="text-xs text-gray-600 space-y-2 mt-2">
-                <div><strong>API Status:</strong> {JSON.stringify(apiStatus, null, 2)}</div>
-                <div><strong>Current Location:</strong> {JSON.stringify(currentLocation, null, 2)}</div>
-                <div><strong>Active Tab:</strong> {activeTab}</div>
-                <div><strong>Loading:</strong> {loading.toString()}</div>
-                <div><strong>Error:</strong> {error || 'None'}</div>
-                <div><strong>Search Results:</strong> {searchResults.length} items</div>
-                <div><strong>Nearby Places:</strong> {nearbyPlaces.length} items</div>
-                <div><strong>Place Types:</strong> {placeTypes.length} types loaded</div>
-              </div>
-            </details>
-          </div>
-        )}
-
-        {/* Loading Overlay */}
-        {loading && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm mx-4">
-              <div className="flex items-center space-x-3">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <div>
-                  <span className="text-gray-700 font-medium">Procesando solicitud...</span>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {activeTab === 'search' && 'Buscando lugares...'}
-                    {activeTab === 'route' && 'Calculando ruta...'}
-                    {activeTab === 'nearby' && 'Encontrando lugares cercanos...'}
-                    {!['search', 'route', 'nearby'].includes(activeTab) && 'Cargando...'}
-                  </p>
+          {/* Estadísticas */}
+          <div className="p-4">
+            <h3 className="font-bold text-gray-900 mb-3">📊 Estadísticas en Tiempo Real</h3>
+            <div className="space-y-3">
+              <div className="bg-green-50 p-3 rounded-lg">
+                <div className="text-lg font-bold text-green-600">
+                  {buses.filter(b => b.status === 'en_ruta').length}
                 </div>
+                <div className="text-sm text-green-700">Buses en Ruta</div>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="text-lg font-bold text-blue-600">
+                  {buses.reduce((total, bus) => total + bus.passengers, 0)}
+                </div>
+                <div className="text-sm text-blue-700">Pasajeros Totales</div>
+              </div>
+              <div className="bg-purple-50 p-3 rounded-lg">
+                <div className="text-lg font-bold text-purple-600">
+                  {Math.round(buses.reduce((total, bus) => total + bus.speed, 0) / buses.length)}
+                </div>
+                <div className="text-sm text-purple-700">Velocidad Promedio (km/h)</div>
               </div>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Mapa Principal */}
+        <div className="flex-1 relative">
+          <MapContainer
+            center={mapCenter}
+            zoom={mapZoom}
+            className="h-full w-full"
+            maxBounds={colombiaBounds}
+            maxBoundsViscosity={0.8}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            <MapControl center={mapCenter} zoom={mapZoom} />
+            <MapClickHandler onMapClick={handleMapClick} />
+            <BusUpdater buses={buses} setBuses={setBuses} />
+
+            {/* Rutas */}
+            {showRoutes && mockRoutes.map(route => (
+              <Polyline
+                key={route.id}
+                positions={route.coordinates}
+                color={route.color}
+                weight={selectedRoute?.id === route.id ? 6 : 4}
+                opacity={route.active ? 0.8 : 0.4}
+                dashArray={route.active ? null : "10, 10"}
+              >
+                <Popup>
+                  <div className="text-center">
+                    <h3 className="font-bold">{route.name}</h3>
+                    <p className="text-sm">📏 {route.distance} • ⏰ {route.estimatedTime}</p>
+                    <p className="text-xs mt-1">
+                      Estado: {route.active ? '🟢 Activa' : '🔴 Inactiva'}
+                    </p>
+                  </div>
+                </Popup>
+              </Polyline>
+            ))}
+
+            {/* Paradas de Bus */}
+            {showStops && mockBusStops.map(stop => (
+              <Marker
+                key={stop.id}
+                position={[stop.lat, stop.lng]}
+                icon={stopIcon}
+              >
+                <Popup>
+                  <div>
+                    <h3 className="font-bold">🚏 {stop.name}</h3>
+                    <p className="text-sm">Rutas que pasan:</p>
+                    <ul className="text-xs list-disc list-inside">
+                      {stop.routes.map((route, idx) => (
+                        <li key={idx}>{route}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+
+            {/* Nuevas paradas agregadas */}
+            {newMarkers.map(marker => (
+              <Marker
+                key={marker.id}
+                position={[marker.lat, marker.lng]}
+                icon={createCustomIcon('#F59E0B', '📍')}
+              >
+                <Popup>
+                  <div>
+                    <h3 className="font-bold">📍 {marker.name}</h3>
+                    <p className="text-sm">Nueva parada agregada</p>
+                    <button
+                      onClick={() => setNewMarkers(prev => prev.filter(m => m.id !== marker.id))}
+                      className="bg-red-500 text-white px-2 py-1 rounded text-xs mt-2 hover:bg-red-600"
+                    >
+                      ❌ Eliminar
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+
+            {/* Buses */}
+            {showBuses && buses.map(bus => (
+              <Marker
+                key={bus.id}
+                position={[bus.lat, bus.lng]}
+                icon={L.divIcon({
+                  html: `<div style="
+                    background-color: ${getStatusColor(bus.status)};
+                    width: 35px;
+                    height: 35px;
+                    border-radius: 50%;
+                    border: 3px solid white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 16px;
+                    transform: rotate(${bus.direction}deg);
+                    ${isTracking && selectedBus?.id === bus.id ? 'animation: pulse 1s infinite;' : ''}
+                  ">🚌</div>
+                  <style>
+                    @keyframes pulse {
+                      0% { transform: scale(1) rotate(${bus.direction}deg); }
+                      50% { transform: scale(1.1) rotate(${bus.direction}deg); }
+                      100% { transform: scale(1) rotate(${bus.direction}deg); }
+                    }
+                  </style>`,
+                  iconSize: [35, 35],
+                  iconAnchor: [17, 17]
+                })}
+                eventHandlers={{
+                  click: () => handleBusClick(bus)
+                }}
+              >
+                <Popup>
+                  <div className="min-w-[200px]">
+                    <h3 className="font-bold text-blue-900">🚌 {bus.route}</h3>
+                    <div className="mt-2 space-y-1 text-sm">
+                      <p><strong>👨‍✈️ Conductor:</strong> {bus.driver}</p>
+                      <p><strong>📍 Estado:</strong> 
+                        <span className={`ml-1 px-2 py-1 rounded text-xs font-medium ${
+                          bus.status === 'en_ruta' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {getStatusText(bus.status)}
+                        </span>
+                      </p>
+                      <p><strong>🚀 Velocidad:</strong> {bus.speed} km/h</p>
+                      <p><strong>👥 Ocupación:</strong> {bus.passengers}/{bus.capacity}</p>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${(bus.passengers / bus.capacity) * 100}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        <strong>🕒 Última actualización:</strong> {bus.lastUpdate.toLocaleTimeString()}
+                      </p>
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        onClick={() => startTracking(bus)}
+                        className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors"
+                      >
+                        📡 Seguir
+                      </button>
+                      <button
+                        onClick={() => setSelectedBus(bus)}
+                        className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors"
+                      >
+                        ℹ️ Detalles
+                      </button>
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+
+          {/* Indicador de tracking */}
+          {isTracking && selectedBus && (
+            <div className="absolute top-4 left-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-[1000]">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium">
+                  📡 Siguiendo: {selectedBus.route}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Controles de zoom y ubicación */}
+          <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-[1000]">
+            <button
+              onClick={() => setMapZoom(prev => Math.min(prev + 1, 18))}
+              className="bg-white shadow-lg rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            >
+              ➕
+            </button>
+            <button
+              onClick={() => setMapZoom(prev => Math.max(prev - 1, 3))}
+              className="bg-white shadow-lg rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            >
+              ➖
+            </button>
+            <button
+              onClick={() => {
+                // Simular ubicación actual del usuario
+                navigator.geolocation?.getCurrentPosition(
+                  (position) => {
+                    setMapCenter([position.coords.latitude, position.coords.longitude]);
+                    setMapZoom(15);
+                  },
+                  () => {
+                    // Fallback a Bogotá
+                    setMapCenter([4.6482, -74.0648]);
+                    setMapZoom(12);
+                  }
+                );
+              }}
+              className="bg-blue-500 text-white shadow-lg rounded-full w-10 h-10 flex items-center justify-center hover:bg-blue-600 transition-colors"
+            >
+              📍
+            </button>
+          </div>
+
+          {/* Leyenda del mapa */}
+          <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3 z-[1000] max-w-xs">
+            <h4 className="font-bold text-sm mb-2">🗺️ Leyenda</h4>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">🚌</div>
+                <span>Bus en ruta</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">🚌</div>
+                <span>Bus en parada</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">🚏</div>
+                <span>Parada de bus</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-1 bg-blue-500"></div>
+                <span>Ruta activa</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-1 border-b border-gray-400 border-dashed"></div>
+                <span>Ruta inactiva</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer con información adicional */}
+      <div className="bg-white border-t px-4 py-2">
+        <div className="flex justify-between items-center text-xs text-gray-500">
+          <div>
+            🕒 Última actualización: {new Date().toLocaleTimeString()}
+          </div>
+          <div className="flex gap-4">
+            <span>🚌 {buses.length} buses activos</span>
+            <span>🛣️ {mockRoutes.filter(r => r.active).length} rutas operativas</span>
+            <span>🚏 {mockBusStops.length + newMarkers.length} paradas registradas</span>
+          </div>
+          <div>
+            📡 Sistema en tiempo real
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Rutas;
+export default InteractiveMap;

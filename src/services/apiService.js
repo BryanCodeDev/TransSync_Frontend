@@ -611,6 +611,64 @@ export const mapService = {
 };
 
 // ================================
+// SERVICIOS DE TRANSPORTE (NUEVOS)
+// ================================
+export const transportService = {
+  // Obtener todas las rutas
+  getRoutes: async () => {
+    try {
+      const response = await apiClient.get('/transport/routes');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener una ruta específica
+  getRouteById: async (routeId) => {
+    try {
+      if (!routeId) throw new Error('ID de ruta requerido');
+      
+      const response = await apiClient.get(`/transport/routes/${routeId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener todas las paradas
+  getStops: async () => {
+    try {
+      const response = await apiClient.get('/transport/stops');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Agregar una nueva parada
+  addStop: async (stopData) => {
+    try {
+      const { lat, lng, name } = stopData;
+      
+      if (!lat || !lng || !name) {
+        throw new Error('Se requieren latitud, longitud y nombre');
+      }
+
+      const response = await apiClient.post('/transport/stops', {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        name: name.trim()
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  }
+};
+
+// ================================
 // VERIFICACIÓN DE SALUD DEL API
 // ================================
 export const healthCheck = async () => {
@@ -639,6 +697,7 @@ export default {
   auth: authService,
   users: userService,
   maps: mapService,
+  transport: transportService, // Nuevo servicio añadido
   utils: apiUtils,
   healthCheck
 };
