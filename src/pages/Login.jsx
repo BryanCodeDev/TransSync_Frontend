@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { 
   FaUser, 
   FaLock, 
@@ -9,7 +8,10 @@ import {
   FaCheckCircle,
   FaShieldAlt,
   FaUsers,
-  FaCogs
+  FaCogs,
+  FaSpinner,
+  FaWifi,
+  FaServer
 } from "react-icons/fa";
 
 const Login = () => {
@@ -18,9 +20,16 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [formTouched, setFormTouched] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const [serverStatus, setServerStatus] = useState(null);
+
+  // Mock navigate function
+  const navigate = (path) => {
+    console.log(`Navigating to: ${path}`);
+    window.location.hash = path;
+  };
 
   // Verificar si hay credenciales guardadas al cargar el componente
   useEffect(() => {
@@ -31,7 +40,31 @@ const Login = () => {
       setEmail(savedEmail);
       setRememberMe(true);
     }
+
+    // Verificar estado del servidor al cargar
+    checkServerConnection();
   }, []);
+
+  // Función para verificar conexión con el servidor
+  const checkServerConnection = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/health", {
+        method: "GET",
+        timeout: 5000
+      });
+      
+      if (response.ok) {
+        setServerStatus({ status: 'connected', message: 'Servidor conectado' });
+      } else {
+        setServerStatus({ status: 'error', message: 'Servidor no responde' });
+      }
+    } catch (error) {
+      setServerStatus({ 
+        status: 'disconnected', 
+        message: 'No se puede conectar con el servidor' 
+      });
+    }
+  };
 
   // Validación de email
   const isEmailValid = (email) => {
@@ -47,7 +80,8 @@ const Login = () => {
   const handleInputChange = (setter) => (e) => {
     setter(e.target.value);
     setFormTouched(true);
-    setError(""); // Limpiar errores al cambiar input
+    setError("");
+    setSuccess("");
   };
 
   const handleLogin = async (e) => {
@@ -66,10 +100,10 @@ const Login = () => {
     }
 
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
-      // Cambié la ruta para que coincida con tu backend
       const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,6 +113,8 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
+        setSuccess("¡Inicio de sesión exitoso! Redirigiendo...");
+        
         // Guardar estado de "recordarme"
         if (rememberMe) {
           localStorage.setItem("rememberedEmail", email);
@@ -88,7 +124,7 @@ const Login = () => {
           localStorage.setItem("rememberMe", "false");
         }
         
-        // Guardar información de autenticación actualizada para tu backend
+        // Guardar información de autenticación
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userName", data.user?.name || "");
         localStorage.setItem("userRole", data.user?.role || "");
@@ -98,25 +134,38 @@ const Login = () => {
         // Guardar token
         if (data.token) {
           localStorage.setItem("authToken", data.token);
-          localStorage.setItem("userToken", data.token); // Por compatibilidad
+          localStorage.setItem("userToken", data.token);
         }
         
-        // Redirigir según el rol
-        const userRole = data.user?.role;
-        if (userRole === "SUPERADMIN") {
-          navigate("/admin/dashboard");
-        } else if (userRole === "ADMINISTRADOR") {
-          navigate("/admin/dashboard");
-        } else {
-          // Para usuarios pendientes o sin rol específico
-          navigate("/dashboard");
-        }
+        // Redirigir según el rol después de un momento
+        setTimeout(() => {
+          const userRole = data.user?.role;
+          if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/dashboard");
+          }
+        }, 1500);
       } else {
-        setError(data.message || "Error de autenticación. Verifique sus credenciales.");
+        // Manejo específico de errores
+        if (response.status === 401) {
+          setError("Credenciales incorrectas. Verifique su email y contraseña.");
+        } else if (response.status === 403) {
+          setError("Su cuenta no está activada. Por favor verifique su correo electrónico.");
+        } else {
+          setError(data.message || "Error de autenticación. Intente nuevamente.");
+        }
       }
     } catch (err) {
       console.error("Error de login:", err);
-      setError("Error al conectar con el servidor. Verifique su conexión e intente nuevamente.");
+      
+      // Manejo de errores de conexión
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError("No se puede conectar con el servidor. Verifique su conexión a internet.");
+        setServerStatus({ status: 'disconnected', message: 'Sin conexión al servidor' });
+      } else {
+        setError("Error al conectar con el servidor. Verifique su conexión e intente nuevamente.");
+      }
     } finally {
       setLoading(false);
     }
@@ -124,11 +173,9 @@ const Login = () => {
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
-    // Redirigir a la página de forgot password cuando la implementes
     navigate("/forgot-password");
   };
 
-  // Función para alternar visibilidad de contraseña
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -172,18 +219,55 @@ const Login = () => {
             <div className="text-center mb-10">
               <h2 className="text-3xl xl:text-4xl font-bold text-slate-800 mb-3">Iniciar Sesión</h2>
               <p className="text-slate-600 text-lg">Acceda a su cuenta empresarial</p>
+              
+              {/* Server status indicator */}
+              {serverStatus && (
+                <div className={`mt-4 p-3 rounded-lg text-sm flex items-center justify-center ${
+                  serverStatus.status === 'connected' 
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : serverStatus.status === 'disconnected'
+                    ? 'bg-red-50 text-red-700 border border-red-200'
+                    : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                }`}>
+                  {serverStatus.status === 'connected' && <FaWifi className="mr-2" />}
+                  {serverStatus.status === 'disconnected' && <FaServer className="mr-2" />}
+                  {serverStatus.status === 'error' && <FaExclamationTriangle className="mr-2" />}
+                  <span>{serverStatus.message}</span>
+                </div>
+              )}
             </div>
+
+            {/* Success message */}
+            {success && (
+              <div className="flex items-center bg-green-50 text-green-700 p-4 rounded-xl mb-8 border border-green-200">
+                <FaCheckCircle className="mr-3 flex-shrink-0 text-green-500 text-lg" />
+                <span className="text-sm">{success}</span>
+              </div>
+            )}
 
             {/* Error message */}
             {error && (
               <div className="flex items-center bg-red-50 text-red-700 p-4 rounded-xl mb-8 border border-red-200">
                 <FaExclamationTriangle className="mr-3 flex-shrink-0 text-red-500 text-lg" />
-                <span className="text-sm">{error}</span>
+                <div className="text-sm">
+                  <span>{error}</span>
+                  {error.includes("servidor") && (
+                    <div className="mt-2">
+                      <button 
+                        onClick={checkServerConnection}
+                        className="text-blue-600 hover:text-blue-800 underline font-medium"
+                        disabled={loading}
+                      >
+                        Verificar conexión nuevamente
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             {/* Form */}
-            <form onSubmit={handleLogin} className="space-y-8">
+            <div className="space-y-8">
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-3">
@@ -197,7 +281,8 @@ const Login = () => {
                     placeholder="Ingrese su correo"
                     value={email}
                     onChange={handleInputChange(setEmail)}
-                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg ${
+                    disabled={loading}
+                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg disabled:opacity-50 ${
                       formTouched && !isEmailValid(email) && email 
                         ? 'border-red-500 focus:ring-2 focus:ring-red-500' 
                         : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
@@ -227,7 +312,8 @@ const Login = () => {
                     placeholder="Ingrese su contraseña"
                     value={password}
                     onChange={handleInputChange(setPassword)}
-                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg ${
+                    disabled={loading}
+                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg disabled:opacity-50 ${
                       formTouched && !isPasswordValid(password) && password 
                         ? 'border-red-500 focus:ring-2 focus:ring-red-500' 
                         : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
@@ -237,8 +323,9 @@ const Login = () => {
                   />
                   <button 
                     type="button" 
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200 disabled:opacity-50"
                     onClick={togglePasswordVisibility}
+                    disabled={loading}
                     tabIndex="-1"
                     aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
@@ -261,13 +348,14 @@ const Login = () => {
                       type="checkbox" 
                       checked={rememberMe}
                       onChange={() => setRememberMe(!rememberMe)}
+                      disabled={loading}
                       className="sr-only"
                     />
                     <div className={`w-5 h-5 rounded border-2 transition-all duration-200 ${
                       rememberMe 
                         ? 'bg-blue-600 border-blue-600' 
                         : 'bg-white border-slate-300 hover:border-slate-400'
-                    }`}>
+                    } ${loading ? 'opacity-50' : ''}`}>
                       {rememberMe && (
                         <FaCheckCircle className="w-full h-full text-white" />
                       )}
@@ -277,8 +365,9 @@ const Login = () => {
                 </label>
                 <button 
                   type="button" 
-                  className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200 hover:underline"
+                  className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200 hover:underline disabled:opacity-50"
                   onClick={handleForgotPassword}
+                  disabled={loading}
                 >
                   ¿Olvidó su contraseña?
                 </button>
@@ -286,13 +375,14 @@ const Login = () => {
 
               {/* Submit button */}
               <button
-                type="submit"
+                type="button"
+                onClick={handleLogin}
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
-                disabled={loading}
+                disabled={loading || serverStatus?.status === 'disconnected'}
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                    <FaSpinner className="w-6 h-6 mr-3 animate-spin" />
                     Verificando...
                   </div>
                 ) : (
@@ -305,13 +395,14 @@ const Login = () => {
                 <p className="text-slate-600 text-base mb-4">¿No tienes una cuenta?</p>
                 <button 
                   type="button" 
-                  className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base"
+                  className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base disabled:opacity-50"
                   onClick={() => navigate("/register")}
+                  disabled={loading}
                 >
                   Crear cuenta nueva
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       </div>

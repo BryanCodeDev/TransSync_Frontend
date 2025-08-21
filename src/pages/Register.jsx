@@ -9,7 +9,8 @@ import {
   FaCheckCircle,
   FaShieldAlt,
   FaUsers,
-  FaCogs
+  FaCogs,
+  FaSpinner
 } from "react-icons/fa";
 
 const Register = () => {
@@ -22,17 +23,18 @@ const Register = () => {
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [formTouched, setFormTouched] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Mock navigate function for demo
+  const { email, password, confirmPassword } = formData;
+
+  // Mock navigate function
   const navigate = (path) => {
     console.log(`Navigating to: ${path}`);
-    alert(`Redirecting to ${path}`);
+    window.location.hash = path; // Simple navigation simulation
   };
-
-  const { email, password, confirmPassword } = formData;
 
   const validateField = (name, value) => {
     let error = "";
@@ -89,6 +91,7 @@ const Register = () => {
     });
     
     setError("");
+    setSuccess("");
   };
 
   const validateForm = () => {
@@ -116,6 +119,7 @@ const Register = () => {
     }
     
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
@@ -133,16 +137,33 @@ const Register = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Registro exitoso. Por favor, verifica tu correo electrónico para completar el registro.");
-        navigate("/login");
+        setSuccess("¡Registro exitoso! Por favor, verifica tu correo electrónico para completar el registro.");
+        // Limpiar el formulario
+        setFormData({
+          email: "",
+          password: "",
+          confirmPassword: ""
+        });
+        setFormTouched(false);
+        setFormErrors({});
+        
+        // Redirigir después de un momento
+        setTimeout(() => {
+          navigate("/login");
+        }, 3000);
       } else {
         throw new Error(data.message || "Error al registrar usuario");
       }
     } catch (err) {
       console.error("Error de registro:", err);
       
+      // Manejo específico de errores comunes
       if (err.message.includes("ya existe") || err.message.includes("Ya Está Registrado")) {
         setError("Este correo electrónico ya está registrado. Intente iniciar sesión.");
+      } else if (err.message.includes("foreign key constraint") || err.message.includes("Error En El Servidor")) {
+        setError("Error en la configuración del sistema. Por favor contacte al administrador o intente más tarde.");
+      } else if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError("No se puede conectar con el servidor. Verifique su conexión a internet.");
       } else {
         setError(err.message || "Error al registrar usuario. Intente nuevamente.");
       }
@@ -228,16 +249,31 @@ const Register = () => {
               </div>
             </div>
 
+            {/* Success message */}
+            {success && (
+              <div className="flex items-center bg-green-50 text-green-700 p-4 rounded-xl mb-8 border border-green-200">
+                <FaCheckCircle className="mr-3 flex-shrink-0 text-green-500 text-lg" />
+                <span className="text-sm">{success}</span>
+              </div>
+            )}
+
             {/* Error message */}
             {error && (
               <div className="flex items-center bg-red-50 text-red-700 p-4 rounded-xl mb-8 border border-red-200">
                 <FaExclamationTriangle className="mr-3 flex-shrink-0 text-red-500 text-lg" />
-                <span className="text-sm">{error}</span>
+                <div className="text-sm">
+                  <p>{error}</p>
+                  {error.includes("configuración del sistema") && (
+                    <p className="mt-2 text-red-600 font-medium">
+                      Sugerencia: Contacte al administrador del sistema para verificar la configuración de la base de datos.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
             {/* Form */}
-            <div onSubmit={handleRegister} className="space-y-8">
+            <div className="space-y-8">
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-3">
@@ -252,7 +288,8 @@ const Register = () => {
                     placeholder="Ingrese su correo electrónico"
                     value={email}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg ${
+                    disabled={loading}
+                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg disabled:opacity-50 ${
                       formTouched && formErrors.email 
                         ? "border-red-500 focus:ring-2 focus:ring-red-500" 
                         : "border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -283,7 +320,8 @@ const Register = () => {
                     placeholder="Cree una contraseña segura"
                     value={password}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg ${
+                    disabled={loading}
+                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg disabled:opacity-50 ${
                       formTouched && formErrors.password 
                         ? "border-red-500 focus:ring-2 focus:ring-red-500" 
                         : "border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -293,8 +331,9 @@ const Register = () => {
                   />
                   <button 
                     type="button" 
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200 disabled:opacity-50"
                     onClick={() => togglePasswordVisibility('password')}
+                    disabled={loading}
                     tabIndex="-1"
                     aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
@@ -345,7 +384,8 @@ const Register = () => {
                     placeholder="Confirme su contraseña"
                     value={confirmPassword}
                     onChange={handleChange}
-                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg ${
+                    disabled={loading}
+                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg disabled:opacity-50 ${
                       formTouched && formErrors.confirmPassword 
                         ? "border-red-500 focus:ring-2 focus:ring-red-500" 
                         : "border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -355,8 +395,9 @@ const Register = () => {
                   />
                   <button 
                     type="button" 
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200 disabled:opacity-50"
                     onClick={() => togglePasswordVisibility('confirmPassword')}
+                    disabled={loading}
                     tabIndex="-1"
                     aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
@@ -422,13 +463,14 @@ const Register = () => {
 
               {/* Submit button */}
               <button 
-                type="submit" 
+                type="button"
+                onClick={handleRegister}
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
                 disabled={loading}
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                    <FaSpinner className="w-6 h-6 mr-3 animate-spin" />
                     Registrando...
                   </div>
                 ) : (
@@ -441,8 +483,9 @@ const Register = () => {
                 <p className="text-slate-600 text-base mb-4">¿Ya tienes una cuenta?</p>
                 <button 
                   type="button" 
-                  className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base"
+                  className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base disabled:opacity-50"
                   onClick={() => navigate("/login")}
+                  disabled={loading}
                 >
                   Iniciar sesión
                 </button>
