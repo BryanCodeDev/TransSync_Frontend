@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom'; // Importar useNavigate
 import { 
   FaUser, 
   FaLock, 
@@ -15,6 +16,8 @@ import {
 } from "react-icons/fa";
 
 const Login = () => {
+  const navigate = useNavigate(); // Hook de React Router para navegación
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -24,12 +27,6 @@ const Login = () => {
   const [formTouched, setFormTouched] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [serverStatus, setServerStatus] = useState(null);
-
-  // Mock navigate function
-  const navigate = (path) => {
-    console.log(`Navigating to: ${path}`);
-    window.location.hash = path;
-  };
 
   // Verificar si hay credenciales guardadas al cargar el componente
   useEffect(() => {
@@ -174,6 +171,10 @@ const Login = () => {
   const handleForgotPassword = (e) => {
     e.preventDefault();
     navigate("/forgot-password");
+  };
+
+  const handleNavigateToRegister = () => {
+    navigate("/register");
   };
 
   const togglePasswordVisibility = () => {
@@ -396,7 +397,7 @@ const Login = () => {
                 <button 
                   type="button" 
                   className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base disabled:opacity-50"
-                  onClick={() => navigate("/register")}
+                  onClick={handleNavigateToRegister}
                   disabled={loading}
                 >
                   Crear cuenta nueva

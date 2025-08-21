@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from 'react-router-dom'; // Importar useNavigate
 import { 
   FaLock, 
   FaEnvelope, 
@@ -14,6 +15,8 @@ import {
 } from "react-icons/fa";
 
 const Register = () => {
+  const navigate = useNavigate(); // Hook de React Router para navegación
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -30,10 +33,9 @@ const Register = () => {
 
   const { email, password, confirmPassword } = formData;
 
-  // Mock navigate function
-  const navigate = (path) => {
-    console.log(`Navigating to: ${path}`);
-    window.location.hash = path; // Simple navigation simulation
+  // Función de navegación
+  const handleNavigateToLogin = () => {
+    navigate("/login");
   };
 
   const validateField = (name, value) => {
@@ -484,7 +486,7 @@ const Register = () => {
                 <button 
                   type="button" 
                   className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base disabled:opacity-50"
-                  onClick={() => navigate("/login")}
+                  onClick={handleNavigateToLogin}
                   disabled={loading}
                 >
                   Iniciar sesión
