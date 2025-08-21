@@ -63,7 +63,8 @@ apiClient.interceptors.response.use(
       url: error.config?.url,
       method: error.config?.method,
       status: error.response?.status,
-      message: error.response?.data?.message || error.message
+      message: error.response?.data?.message || error.message,
+      fullURL: error.config ? `${API_BASE_URL}${error.config.url}` : 'Unknown'
     });
 
     // Manejo específico de errores
@@ -108,7 +109,7 @@ export const apiUtils = {
     }
 
     if (error.response?.status === 404) {
-      return 'Recurso no encontrado.';
+      return 'Recurso no encontrado. Verifica la URL del servidor.';
     }
 
     if (error.response?.status >= 500) {
