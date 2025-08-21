@@ -13,7 +13,7 @@ import {
   FaPlus,
   FaEye
 } from 'react-icons/fa';
-import { getCurrentUser, logout, getUserRole } from '../utilidades/authService';
+import { getCurrentUser, logout, getUserRole } from '../utilidades/authAPI';
 import adminAPI from '../utilidades/adminAPI';
 
 const AdminDashboard = () => {

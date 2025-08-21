@@ -6,7 +6,7 @@ import {
   FaSignOutAlt, FaChevronLeft, FaChevronRight,
   FaUserShield, FaBars, FaTimes, FaCogs, FaUser
 } from "react-icons/fa";
-import { getCurrentUser, getUserRole, logout } from '..//utilidades/authService';
+import { getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
 
 const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp }) => {
   const [isMobile, setIsMobile] = useState(false);

@@ -1,5 +1,50 @@
-// api/authAPI.js - Servicio de autenticación
-import { apiClient, apiUtils } from '../api/baseAPI';
+// api/authAPI.js - Servicio de autenticación integrado
+import axios from "axios";
+import { apiUtils } from '../api/baseAPI';
+
+// URL base para auth (puede ser diferente del base general)
+const AUTH_API_URL = "http://localhost:5000/api/auth";
+
+const authClient = axios.create({
+  baseURL: AUTH_API_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
+// Interceptor para manejo de errores específicos de auth
+authClient.interceptors.response.use(
+  (response) => {
+    // Logging en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ Auth Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
+        status: response.status,
+        data: response.data
+      });
+    }
+    return response;
+  },
+  (error) => {
+    // Logging del error para depuración
+    console.error('❌ Auth Service Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message
+    });
+
+    // Formatear el error para el frontend
+    const formattedError = {
+      message: error.response?.data?.message || error.message || "Error desconocido",
+      status: error.response?.status,
+      code: error.code,
+      response: error.response
+    };
+
+    return Promise.reject(formattedError);
+  }
+);
 
 const authAPI = {
   // ================================
@@ -7,57 +52,85 @@ const authAPI = {
   // ================================
   
   // Registro de usuario
-  register: async (userData) => {
+  register: async (userData, password, name) => {
     try {
-      const { email, password, name } = userData;
+      // Permitir tanto formato de objeto como parámetros separados
+      let email, finalPassword, finalName;
+      
+      if (typeof userData === 'object') {
+        ({ email, password: finalPassword, name: finalName } = userData);
+      } else {
+        // Compatibilidad con authService.js (email, password como parámetros)
+        email = userData;
+        finalPassword = password;
+        finalName = name;
+      }
       
       // Validaciones
-      const missing = apiUtils.validateRequired({ email, password });
-      if (missing.length > 0) {
-        throw new Error(`Campos requeridos: ${missing.join(', ')}`);
+      if (!email || !finalPassword) {
+        throw new Error("Email y contraseña son requeridos");
       }
 
       if (!apiUtils.isValidEmail(email)) {
-        throw new Error('Formato de email inválido');
+        throw new Error('Por favor ingrese un correo electrónico válido');
       }
 
-      if (password.length < 6) {
+      if (finalPassword.length < 6) {
         throw new Error('La contraseña debe tener al menos 6 caracteres');
       }
 
-      const response = await apiClient.post('/auth/register', { 
+      const response = await authClient.post('/register', { 
         email: email.trim().toLowerCase(), 
-        password,
-        name: name?.trim()
+        password: finalPassword,
+        name: finalName?.trim()
       });
 
       return response.data;
     } catch (error) {
+      // Manejo específico de errores comunes
+      if (error.message.includes("ya existe") || error.message.includes("Ya Está Registrado")) {
+        throw new Error("Este correo electrónico ya está registrado. Intente iniciar sesión.");
+      } else if (error.message.includes("foreign key constraint") || error.message.includes("Error En El Servidor")) {
+        throw new Error("Error en la configuración del sistema. Por favor contacte al administrador o intente más tarde.");
+      } else if (error.code === 'ECONNABORTED') {
+        throw new Error("La solicitud tardó demasiado. Verifique su conexión e intente nuevamente.");
+      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        throw new Error("No se puede conectar con el servidor. Verifique que el servidor esté ejecutándose.");
+      }
+      
       throw new Error(apiUtils.formatError(error));
     }
   },
 
   // Login de usuario
-  login: async (credentials) => {
+  login: async (credentials, password) => {
     try {
-      const { email, password } = credentials;
+      // Permitir tanto formato de objeto como parámetros separados
+      let email, finalPassword;
+      
+      if (typeof credentials === 'object') {
+        ({ email, password: finalPassword } = credentials);
+      } else {
+        // Compatibilidad con authService.js (email, password como parámetros)
+        email = credentials;
+        finalPassword = password;
+      }
       
       // Validaciones
-      const missing = apiUtils.validateRequired({ email, password });
-      if (missing.length > 0) {
-        throw new Error(`Campos requeridos: ${missing.join(', ')}`);
+      if (!email || !finalPassword) {
+        throw new Error("Email y contraseña son requeridos");
       }
 
       if (!apiUtils.isValidEmail(email)) {
         throw new Error('Formato de email inválido');
       }
 
-      const response = await apiClient.post('/auth/login', { 
+      const response = await authClient.post('/login', { 
         email: email.trim().toLowerCase(), 
-        password 
+        password: finalPassword 
       });
 
-      // Guardar datos de autenticación
+      // Guardar datos de autenticación automáticamente
       if (response.data.token) {
         authAPI.saveAuthData(response.data);
       }
@@ -65,10 +138,14 @@ const authAPI = {
       return response.data;
     } catch (error) {
       // Manejo específico de errores de login
-      if (error.response?.status === 401) {
+      if (error.status === 401 || error.response?.status === 401) {
         throw new Error('Credenciales incorrectas. Verifique su email y contraseña.');
-      } else if (error.response?.status === 403) {
+      } else if (error.status === 403 || error.response?.status === 403) {
         throw new Error('Su cuenta no está activada. Por favor verifique su correo electrónico.');
+      } else if (error.code === 'ECONNABORTED') {
+        throw new Error("La solicitud tardó demasiado. Verifique su conexión e intente nuevamente.");
+      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        throw new Error("No se puede conectar con el servidor. Verifique que el servidor esté ejecutándose.");
       }
       
       throw new Error(apiUtils.formatError(error));
@@ -82,12 +159,12 @@ const authAPI = {
         throw new Error('Token de verificación requerido');
       }
 
-      const response = await apiClient.get(`/auth/verify?token=${token}`);
+      const response = await authClient.get(`/verify?token=${token}`);
       return response.data;
     } catch (error) {
-      if (error.response?.status === 400) {
+      if (error.status === 400 || error.response?.status === 400) {
         throw new Error('Token de verificación inválido o expirado.');
-      } else if (error.response?.status === 404) {
+      } else if (error.status === 404 || error.response?.status === 404) {
         throw new Error('Usuario no encontrado o ya verificado.');
       }
       
@@ -107,15 +184,15 @@ const authAPI = {
       }
 
       if (!apiUtils.isValidEmail(email)) {
-        throw new Error('Formato de email inválido');
+        throw new Error('Por favor ingrese un correo electrónico válido');
       }
 
-      const response = await apiClient.post('/auth/forgot-password', {
+      const response = await authClient.post('/forgot-password', {
         email: email.trim().toLowerCase()
       });
       return response.data;
     } catch (error) {
-      if (error.response?.status === 404) {
+      if (error.status === 404 || error.response?.status === 404) {
         throw new Error('El correo electrónico no está registrado.');
       }
       
@@ -131,17 +208,17 @@ const authAPI = {
       }
 
       if (newPassword.length < 6) {
-        throw new Error('La contraseña debe tener al menos 6 caracteres');
+        throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
       }
 
-      const response = await apiClient.post(`/auth/reset-password?token=${token}`, {
+      const response = await authClient.post(`/reset-password?token=${token}`, {
         newPassword
       });
       return response.data;
     } catch (error) {
-      if (error.response?.status === 400) {
+      if (error.status === 400 || error.response?.status === 400) {
         throw new Error('Token de restablecimiento inválido o expirado.');
-      } else if (error.response?.status === 404) {
+      } else if (error.status === 404 || error.response?.status === 404) {
         throw new Error('Usuario no encontrado.');
       }
       
@@ -158,7 +235,7 @@ const authAPI = {
     try {
       // Intentar logout en el servidor (opcional)
       try {
-        await apiClient.post('/auth/logout');
+        await authClient.post('/logout');
       } catch (error) {
         console.warn('Error en logout del servidor:', error);
       }
@@ -188,7 +265,7 @@ const authAPI = {
         throw new Error('Formato de email inválido');
       }
 
-      const response = await apiClient.put('/auth/profile', {
+      const response = await authClient.put('/profile', {
         name: name?.trim(),
         email: email?.trim().toLowerCase()
       });
@@ -227,7 +304,7 @@ const authAPI = {
         throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
       }
 
-      const response = await apiClient.put('/auth/change-password', {
+      const response = await authClient.put('/change-password', {
         currentPassword,
         newPassword
       });
@@ -367,21 +444,74 @@ const authAPI = {
   // Verificar la salud de la conexión con el servidor de auth
   checkServerHealth: async () => {
     try {
-      const response = await apiClient.get('/auth/health', { timeout: 5000 });
+      const startTime = Date.now();
+      
+      // Intentar tanto el endpoint de health específico como uno general
+      let response;
+      try {
+        response = await authClient.get('/health', { timeout: 5000 });
+      } catch (error) {
+        // Fallback a health check general
+        response = await fetch("http://localhost:5000/api/health", {
+          method: "GET",
+          signal: AbortSignal.timeout(5000)
+        });
+        
+        if (!response.ok) {
+          throw new Error('Server health check failed');
+        }
+        
+        response = { 
+          status: response.status, 
+          data: { status: 'OK', message: 'Servidor conectado' }
+        };
+      }
+      
+      const responseTime = Date.now() - startTime;
       
       if (response.status === 200) {
-        return { status: 'OK', message: 'Servidor de autenticación conectado' };
+        return { 
+          status: 'OK', 
+          message: 'Servidor de autenticación conectado',
+          responseTime,
+          timestamp: new Date().toISOString()
+        };
       } else {
-        return { status: 'WARNING', message: 'Servidor de autenticación responde pero con problemas' };
+        return { 
+          status: 'WARNING', 
+          message: 'Servidor de autenticación responde pero con problemas',
+          responseTime,
+          timestamp: new Date().toISOString()
+        };
       }
     } catch (error) {
       return { 
         status: 'ERROR', 
         message: 'No se puede conectar con el servidor de autenticación',
-        error: apiUtils.formatError(error)
+        error: apiUtils.formatError(error),
+        timestamp: new Date().toISOString(),
+        responseTime: null
       };
     }
   }
 };
 
+// Exportaciones compatibles con ambos sistemas
 export default authAPI;
+
+// Exportaciones individuales para compatibilidad con authService.js
+export const {
+  register,
+  login,
+  verifyAccount,
+  forgotPassword,
+  resetPassword,
+  logout,
+  isAuthenticated,
+  getCurrentUser,
+  getUserRole,
+  hasRole,
+  isSuperAdmin,
+  isAdmin,
+  checkServerHealth
+} = authAPI;

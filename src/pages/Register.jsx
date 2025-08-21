@@ -108,7 +108,7 @@ const Register = () => {
     updateUI({ loading: true });
 
     try {
-      const result = await authAPI.register({
+      await authAPI.register({
         email: formData.email.trim(),
         password: formData.password
       });
