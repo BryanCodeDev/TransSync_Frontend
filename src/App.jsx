@@ -1,12 +1,13 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { isAuthenticated, getUserRole } from './services/authService';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { isAuthenticated } from './services/authService';
 import Sidebar from "./components/Sidebar";
 import ChatBot from "./components/ChatBot";
 
-// Importaciones directas de componentes
+// Importaciones de páginas
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import Drivers from "./pages/Drivers";
 import Rutas from "./pages/Rutas";
 import Vehiculos from "./pages/Vehiculos";
@@ -16,31 +17,8 @@ import Emergency from "./pages/Emergency";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
-// Componente Protected Route
-const ProtectedRoute = ({ children, requiredRoles = [], redirectTo = '/login' }) => {
-  const location = useLocation();
-  
-  if (!isAuthenticated()) {
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
-  }
-
-  if (requiredRoles.length > 0) {
-    const userRole = getUserRole();
-    
-    if (!userRole || !requiredRoles.includes(userRole)) {
-      if (userRole === 'SUPERADMIN' || userRole === 'ADMINISTRADOR') {
-        return <Navigate to="/admin/dashboard" replace />;
-      } else {
-        return <Navigate to="/dashboard" replace />;
-      }
-    }
-  }
-
-  return children;
-};
-
-// Layout principal para rutas protegidas
-const ProtectedLayout = () => {
+// Hook personalizado para gestión del sidebar
+const useSidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -48,68 +26,210 @@ const ProtectedLayout = () => {
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
-      setSidebarOpen(!mobile);
     };
     
-    setSidebarOpen(!isMobile);
+    // Configuración inicial
+    const initialMobile = window.innerWidth <= 768;
+    setIsMobile(initialMobile);
+    setSidebarOpen(!initialMobile);
+    
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dependencias intencionalmente vacías para ejecutar solo una vez
+
+  // Efecto separado para manejar cambios de sidebar basado en isMobile
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
   }, [isMobile]);
 
   const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
-  const handleOverlayClick = () => {
+  const closeSidebar = () => {
     if (isMobile) setSidebarOpen(false);
   };
 
+  return { sidebarOpen, isMobile, toggleSidebar, closeSidebar };
+};
+
+// Componente Protected Route básico (solo verifica autenticación)
+const ProtectedRoute = ({ children }) => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+// Layout principal para rutas protegidas
+const ProtectedLayout = ({ children }) => {
+  const { sidebarOpen, isMobile, toggleSidebar, closeSidebar } = useSidebar();
+
   const getContentClasses = () => {
-    if (isMobile) return "min-h-screen w-full transition-all duration-300";
+    if (isMobile) {
+      return "min-h-screen w-full transition-all duration-300 ease-in-out";
+    }
+    
     const paddingLeft = sidebarOpen ? 'pl-[280px]' : 'pl-[70px]';
-    return `min-h-screen w-full transition-all duration-300 ${paddingLeft}`;
+    return `min-h-screen w-full transition-all duration-300 ease-in-out ${paddingLeft}`;
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-50">
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Sidebar */}
       <Sidebar 
         isOpen={sidebarOpen} 
         toggleSidebar={toggleSidebar}
-        onOverlayClick={handleOverlayClick}
+        onOverlayClick={closeSidebar}
         isMobile={isMobile}
       />
       
+      {/* Contenido principal */}
       <main className={getContentClasses()}>
-        <Routes>
-          <Route path="/home" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/drivers" element={<Drivers />} />
-          <Route path="/rutas" element={<Rutas />} />
-          <Route path="/vehiculos" element={<Vehiculos />} />
-          <Route path="/horarios" element={<Horarios />} />
-          <Route path="/informes" element={<Informes />} />
-          <Route path="/emergency" element={<Emergency />} />
-          <Route path="*" element={<Navigate to="/home" replace />} />
-        </Routes>
+        <div className="p-4 md:p-6 lg:p-8">
+          {children}
+        </div>
       </main>
       
-      <ChatBot position="bottom-right" theme="professional" />
+      {/* ChatBot flotante */}
+      <ChatBot 
+        position="bottom-right" 
+        theme="professional"
+        className="fixed bottom-6 right-6 z-50"
+      />
     </div>
   );
+};
+
+// Componente de redirección automática para la ruta raíz
+const AutoRedirect = () => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <Navigate to="/home" replace />;
 };
 
 // Componente principal App
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/*" element={
-          <ProtectedRoute>
-            <ProtectedLayout />
-          </ProtectedRoute>
-        } />
-      </Routes>
+      <div className="App">
+        <Routes>
+          {/* Rutas públicas - SIN Layout */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Ruta raíz con redirección automática */}
+          <Route path="/" element={<AutoRedirect />} />
+          
+          {/* Rutas protegidas - CON Layout - SIN RESTRICCIONES */}
+          <Route 
+            path="/home" 
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <Home />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <Dashboard />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <AdminDashboard />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/drivers" 
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <Drivers />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/rutas" 
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <Rutas />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/vehiculos" 
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <Vehiculos />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/horarios" 
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <Horarios />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/informes" 
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <Informes />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/emergency" 
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <Emergency />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Ruta catch-all para páginas no encontradas */}
+          <Route path="*" element={<Navigate to="/home" replace />} />
+        </Routes>
+      </div>
     </Router>
   );
 }

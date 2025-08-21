@@ -4,11 +4,15 @@ import {
   FaHome, FaChartLine, FaUserTie, FaRoute, FaBus, 
   FaClock, FaExclamationTriangle, FaFileAlt, 
   FaSignOutAlt, FaChevronLeft, FaChevronRight,
-  FaUserShield, FaBars, FaTimes
+  FaUserShield, FaBars, FaTimes, FaCogs, FaUser
 } from "react-icons/fa";
+// Importar las funciones de autenticación
+import { getCurrentUser, getUserRole, logout } from '../services/authService';
 
 const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp }) => {
   const [isMobile, setIsMobile] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -28,6 +32,28 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
       return () => window.removeEventListener('resize', checkMobile);
     }
   }, [isMobileProp]);
+
+  // Obtener datos del usuario actual
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        const user = getCurrentUser();
+        const role = getUserRole();
+        
+        console.log('User data loaded:', { user, role }); // Para debugging
+        
+        setCurrentUser(user);
+        setUserRole(role);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        // Valores por defecto en caso de error
+        setCurrentUser(null);
+        setUserRole('');
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   // Cerrar sidebar en móvil al cambiar de ruta
   const [previousPath, setPreviousPath] = useState(location.pathname);
@@ -53,10 +79,17 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     }
   }, [isMobile, isOpen]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
-      localStorage.removeItem("isAuthenticated");
-      navigate("/login");
+      try {
+        await logout();
+        navigate("/login");
+      } catch (error) {
+        console.error('Error during logout:', error);
+        // Limpiar de todas formas
+        localStorage.clear();
+        navigate("/login");
+      }
     }
   };
 
@@ -87,9 +120,75 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     }
   };
 
+  // Función para formatear el rol del usuario
+  const formatUserRole = (role) => {
+    const roles = {
+      'SUPERADMIN': 'Super Administrador',
+      'ADMINISTRADOR': 'Administrador',
+      'USER': 'Usuario',
+      'PENDIENTE': 'Usuario Pendiente'
+    };
+    return roles[role] || role || 'Usuario';
+  };
+
+  // Función para obtener las iniciales del usuario
+  const getUserInitials = () => {
+    if (currentUser?.name) {
+      return currentUser.name
+        .split(' ')
+        .map(word => word.charAt(0))
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    } else if (currentUser?.email) {
+      return currentUser.email.charAt(0).toUpperCase();
+    }
+    return 'U'; // Usuario por defecto
+  };
+
+  // Función para obtener el nombre a mostrar
+  const getDisplayName = () => {
+    if (currentUser?.name) {
+      return currentUser.name;
+    } else if (currentUser?.email) {
+      // Si no hay nombre, usar la parte local del email
+      return currentUser.email.split('@')[0];
+    }
+    return 'Usuario';
+  };
+
+  // Función para determinar el color del avatar basado en el rol
+  const getAvatarGradient = () => {
+    switch (userRole) {
+      case 'SUPERADMIN':
+        return 'from-purple-500 to-purple-700';
+      case 'ADMINISTRADOR':
+        return 'from-blue-500 to-blue-700';
+      case 'USER':
+        return 'from-green-500 to-green-700';
+      case 'PENDIENTE':
+        return 'from-yellow-500 to-yellow-700';
+      default:
+        return 'from-gray-500 to-gray-700';
+    }
+  };
+
+  // Función para obtener el icono apropiado según el rol
+  const getUserRoleIcon = () => {
+    switch (userRole) {
+      case 'SUPERADMIN':
+        return <FaUserShield size={20} className="text-white" />;
+      case 'ADMINISTRADOR':
+        return <FaCogs size={20} className="text-white" />;
+      default:
+        return <FaUser size={20} className="text-white" />;
+    }
+  };
+
   const menuItems = [
     { path: "/home", icon: <FaHome />, label: "Inicio" },
     { path: "/dashboard", icon: <FaChartLine />, label: "Dashboard" },
+    { path: "/admin/dashboard", icon: <FaCogs />, label: "Admin Dashboard" },
     { path: "/drivers", icon: <FaUserTie />, label: "Conductores" },
     { path: "/rutas", icon: <FaRoute />, label: "Rutas" },
     { path: "/vehiculos", icon: <FaBus />, label: "Vehículos" }, 
@@ -199,19 +298,34 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
           )}
         </div>
 
-        {/* Perfil de usuario */}
+        {/* Perfil de usuario - ACTUALIZADO */}
         <div className="p-4 border-b border-white/20 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shadow-lg">
-                <FaUserShield size={20} className="text-white" />
+              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-lg ring-2 ring-white/20`}>
+                {currentUser ? (
+                  <span className="text-white font-bold text-sm">
+                    {getUserInitials()}
+                  </span>
+                ) : (
+                  getUserRoleIcon()
+                )}
               </div>
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-sm" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse" />
             </div>
             {(isOpen || !isMobile) && (
               <div className={`flex-1 min-w-0 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                <h4 className="text-sm font-semibold text-white truncate">Administrador</h4>
-                <p className="text-xs text-blue-200 opacity-80 truncate">Sistema TransSync</p>
+                <h4 className="text-sm font-semibold text-white truncate" title={getDisplayName()}>
+                  {getDisplayName()}
+                </h4>
+                <p className="text-xs text-blue-200 opacity-80 truncate" title={formatUserRole(userRole)}>
+                  {formatUserRole(userRole)}
+                </p>
+                {currentUser?.email && (
+                  <p className="text-xs text-blue-300 opacity-60 truncate mt-0.5" title={currentUser.email}>
+                    {currentUser.email}
+                  </p>
+                )}
                 <div className="flex items-center gap-1 mt-1">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                   <span className="text-xs text-green-300">En línea</span>
