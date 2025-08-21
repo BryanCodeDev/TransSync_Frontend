@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-// Componente Button mejorado
+// Componente Button con paleta uniforme
 const Button = ({ 
   children, 
   onClick, 
@@ -13,9 +13,9 @@ const Button = ({
   const baseClasses = "font-semibold rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm hover:shadow-md",
-    secondary: "bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-500 shadow-sm hover:shadow-md",
-    outline: "bg-transparent border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white focus:ring-blue-500"
+    primary: "bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white hover:from-[#0d1642] hover:to-[#283593] focus:ring-[#3949ab] focus:ring-opacity-50 shadow-sm hover:shadow-md",
+    secondary: "bg-gradient-to-r from-[#283593] to-[#3949ab] text-white hover:from-[#1a237e] hover:to-[#283593] focus:ring-[#283593] focus:ring-opacity-50 shadow-sm hover:shadow-md",
+    outline: "bg-transparent border-2 border-[#1a237e] text-[#1a237e] hover:bg-gradient-to-r hover:from-[#1a237e] hover:to-[#3949ab] hover:text-white focus:ring-[#1a237e] focus:ring-opacity-50"
   };
   
   const sizes = {
@@ -68,7 +68,7 @@ const ChatBot = ({
     scrollToBottom();
   }, [messages]);
 
-  // Animaciones CSS mejoradas
+  // Animaciones CSS mejoradas con paleta de colores uniforme
   useEffect(() => {
     const styleId = 'chatbot-animations';
     if (!document.getElementById(styleId)) {
@@ -122,13 +122,13 @@ const ChatBot = ({
         
         @keyframes pulse {
           0% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            box-shadow: 0 0 0 0 rgba(26, 35, 126, 0.7);
           }
           70% {
-            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            box-shadow: 0 0 0 10px rgba(26, 35, 126, 0);
           }
           100% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            box-shadow: 0 0 0 0 rgba(26, 35, 126, 0);
           }
         }
         
@@ -169,7 +169,7 @@ const ChatBot = ({
           to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Scrollbar personalizada */
+        /* Scrollbar personalizada con paleta uniforme */
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
@@ -179,17 +179,17 @@ const ChatBot = ({
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(156, 163, 175, 0.5);
+          background: rgba(26, 35, 126, 0.3);
           border-radius: 3px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(156, 163, 175, 0.8);
+          background: rgba(26, 35, 126, 0.6);
         }
         
-        /* Gradiente de texto */
+        /* Gradiente de texto con paleta uniforme */
         .gradient-text {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -250,7 +250,7 @@ const ChatBot = ({
     const responses = {
       default: "Lo siento, no tengo información específica sobre eso. Te recomiendo contactar a nuestro equipo de soporte técnico para recibir asistencia personalizada.",
       greeting: [
-        "¡Hola! Es un placer ayudarte hoy. 😊", 
+        "¡Hola! Es un placer ayudarte hoy.", 
         "¡Buen día! ¿En qué puedo asistirte?", 
         "¡Saludos! Estoy aquí para resolver tus consultas."
       ],
@@ -330,32 +330,32 @@ const ChatBot = ({
     return `${pos.desktop} max-md:${pos.mobile}`;
   };
 
-  // Temas mejorados con más variedad
+  // Temas mejorados con paleta de colores uniforme
   const themeClasses = {
     light: {
       window: 'bg-white text-gray-800 border border-gray-200',
-      header: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white',
+      header: 'bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white',
       botBubble: 'bg-gray-50 text-gray-800 border border-gray-100 shadow-sm',
-      userBubble: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm',
-      input: 'bg-white border-gray-200 text-gray-800 focus:border-blue-500',
+      userBubble: 'bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white shadow-sm',
+      input: 'bg-white border-gray-200 text-gray-800 focus:border-[#3949ab]',
       inputArea: 'border-gray-100 bg-gray-50',
       timestamp: 'text-gray-500'
     },
     dark: {
       window: 'bg-gray-900 text-gray-100 border border-gray-700',
-      header: 'bg-gradient-to-r from-gray-800 to-gray-900 text-white',
+      header: 'bg-gradient-to-r from-[#0d1642] to-[#1a237e] text-white',
       botBubble: 'bg-gray-800 text-gray-100 border border-gray-700 shadow-sm',
-      userBubble: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-sm',
-      input: 'bg-gray-800 border-gray-600 text-gray-100 focus:border-blue-500',
+      userBubble: 'bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white shadow-sm',
+      input: 'bg-gray-800 border-gray-600 text-gray-100 focus:border-[#3949ab]',
       inputArea: 'border-gray-700 bg-gray-800',
       timestamp: 'text-gray-400'
     },
     professional: {
       window: 'bg-white text-slate-800 border border-slate-200 shadow-2xl',
-      header: 'bg-gradient-to-r from-slate-700 to-slate-800 text-white',
+      header: 'bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white',
       botBubble: 'bg-slate-50 text-slate-800 border border-slate-100 shadow-sm',
-      userBubble: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm',
-      input: 'bg-white border-slate-200 text-slate-800 focus:border-slate-500',
+      userBubble: 'bg-gradient-to-r from-[#283593] to-[#3949ab] text-white shadow-sm',
+      input: 'bg-white border-slate-200 text-slate-800 focus:border-[#3949ab]',
       inputArea: 'border-slate-100 bg-slate-50',
       timestamp: 'text-slate-500'
     }
@@ -366,13 +366,6 @@ const ChatBot = ({
   // Determinar tamaño de ventana responsivo
   const getWindowSize = () => {
     return {
-      // Móvil pequeño
-      mobile: 'w-[calc(100vw-1rem)] h-[calc(100vh-2rem)] max-h-[600px] max-w-[400px]',
-      // Tablet
-      tablet: 'w-[380px] h-[520px]',
-      // Desktop
-      desktop: 'w-[400px] h-[600px]',
-      // Clases responsivas combinadas
       responsive: 'w-[400px] h-[600px] max-sm:w-[calc(100vw-1rem)] max-sm:h-[calc(100vh-2rem)] max-sm:max-h-[600px] max-sm:max-w-[400px] max-md:w-[380px] max-md:h-[520px]'
     };
   };
@@ -383,13 +376,13 @@ const ChatBot = ({
         <button 
           className={`
             relative group
-            bg-gradient-to-r from-blue-500 to-blue-600 
+            bg-gradient-to-r from-[#1a237e] to-[#3949ab]
             text-white border-none rounded-full 
             w-16 h-16 flex items-center justify-center cursor-pointer 
             shadow-lg hover:shadow-xl
             transition-all duration-300 ease-out
-            hover:scale-110 hover:from-blue-600 hover:to-blue-700
-            focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50
+            hover:scale-110 hover:from-[#0d1642] hover:to-[#283593]
+            focus:outline-none focus:ring-4 focus:ring-[#3949ab] focus:ring-opacity-50
             max-sm:w-14 max-sm:h-14
             chat-button-pulse
           `}
@@ -399,14 +392,14 @@ const ChatBot = ({
           <span className="text-2xl max-sm:text-xl filter drop-shadow-sm">💬</span>
           
           {/* Indicador de notificación */}
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-[#c62828] to-[#d32f2f] rounded-full flex items-center justify-center">
             <span className="text-white text-xs font-bold">1</span>
           </div>
           
           {/* Tooltip */}
-          <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+          <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-[#1a237e] text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none border border-white/20">
             Asistente Virtual
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-[#1a237e]"></div>
           </div>
         </button>
       ) : (
@@ -456,7 +449,7 @@ const ChatBot = ({
             <>
               {/* Contenedor de mensajes con scroll personalizado */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                {messages.map((msg, index) => (
+                {messages.map((msg) => (
                   <div 
                     key={msg.id} 
                     className={`flex items-end space-x-2 message-fade-in ${
@@ -464,7 +457,7 @@ const ChatBot = ({
                     }`}
                   >
                     {msg.sender === 'bot' && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center text-white text-sm font-semibold shadow-sm">
                         {typeof agentAvatar === 'string' && agentAvatar.startsWith('http') ? (
                           <img src={agentAvatar} alt="Bot" className="w-full h-full object-cover rounded-full" />
                         ) : (
@@ -492,7 +485,7 @@ const ChatBot = ({
                     </div>
                     
                     {msg.sender === 'user' && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#283593] to-[#3949ab] flex items-center justify-center text-white text-sm font-semibold shadow-sm">
                         {typeof userAvatar === 'string' && userAvatar.startsWith('http') ? (
                           <img src={userAvatar} alt="Usuario" className="w-full h-full object-cover rounded-full" />
                         ) : (
@@ -505,14 +498,14 @@ const ChatBot = ({
                 
                 {isTyping && (
                   <div className="flex items-end space-x-2 message-fade-in">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm shadow-sm">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center text-white text-sm shadow-sm">
                       <span>{agentAvatar}</span>
                     </div>
                     <div className={`px-4 py-3 rounded-2xl rounded-bl-md ${currentTheme.botBubble}`}>
                       <div className="flex items-center space-x-1">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full inline-block typing-dot"></span>
-                        <span className="w-2 h-2 bg-blue-500 rounded-full inline-block typing-dot"></span>
-                        <span className="w-2 h-2 bg-blue-500 rounded-full inline-block typing-dot"></span>
+                        <span className="w-2 h-2 bg-[#3949ab] rounded-full inline-block typing-dot"></span>
+                        <span className="w-2 h-2 bg-[#3949ab] rounded-full inline-block typing-dot"></span>
+                        <span className="w-2 h-2 bg-[#3949ab] rounded-full inline-block typing-dot"></span>
                       </div>
                     </div>
                   </div>
@@ -529,7 +522,7 @@ const ChatBot = ({
                       className={`
                         w-full px-4 py-3 border rounded-xl text-sm outline-none resize-none
                         transition-all duration-200 ease-in-out
-                        focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+                        focus:ring-2 focus:ring-[#3949ab] focus:ring-opacity-50
                         placeholder-gray-400
                         ${currentTheme.input}
                       `}
@@ -562,7 +555,7 @@ const ChatBot = ({
                         setInputText(suggestion);
                         setTimeout(handleSendMessage, 100);
                       }}
-                      className="px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors duration-200 border border-blue-200"
+                      className="px-3 py-1 text-xs bg-gradient-to-r from-[#1a237e]/10 to-[#3949ab]/10 text-[#1a237e] rounded-full hover:from-[#1a237e]/20 hover:to-[#3949ab]/20 transition-colors duration-200 border border-[#3949ab]/30"
                     >
                       {suggestion}
                     </button>

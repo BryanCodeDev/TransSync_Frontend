@@ -5,7 +5,6 @@ import {
   LayoutGrid, 
   Clock, 
   AlertTriangle,
-  Droplet,
   Calendar
 } from "lucide-react";
 import { Line, Doughnut } from "react-chartjs-2";
@@ -43,8 +42,7 @@ const Dashboard = () => {
     drivers: 0,
     routes: 0,
     schedules: 0,
-    alerts: 0,
-    fuel: 0
+    alerts: 0
   });
   const [selectedPeriod, setSelectedPeriod] = useState('semana');
   const [alerts] = useState([]);
@@ -53,29 +51,8 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // Función para obtener datos reales del dashboard
   const fetchDashboardData = async () => {
     try {
-      // Implementar las llamadas a las APIs reales
-      // const statsResponse = await api.getStats();
-      // const alertsResponse = await api.getAlerts();
-      // const tripsResponse = await api.getTripData(selectedPeriod);
-      // const passengersResponse = await api.getPassengerData();
-      // const fuelResponse = await api.getFuelData();
-      
-      // Actualizar el estado con los datos reales
-      // setData(statsResponse.data);
-      // setAlerts(alertsResponse.data);
-      // setChartData({
-      //   tripData: tripsResponse.data,
-      //   passengerData: passengersResponse.data,
-      //   fuelConsumptionData: fuelResponse.data
-      // });
-      
-      // Descomentar cuando se implementen las APIs reales
-      // setIsLoading(false);
-      
-      // Para propósitos de desarrollo, establecer isLoading a false después de un tiempo breve
       setTimeout(() => {
         setIsLoading(false);
       }, 300);
@@ -85,7 +62,7 @@ const Dashboard = () => {
     }
   };
 
-  // Datos de ejemplo para mantener la estructura mientras se implementan las APIs
+  // Datos de ejemplo con colores unificados
   const tripData = {
     semana: {
       labels: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
@@ -194,8 +171,7 @@ const Dashboard = () => {
     { icon: <Users />, label: "Conductores", value: data.drivers, colorClass: "border-green-500", iconBg: "bg-green-50", iconColor: "text-green-500" },
     { icon: <LayoutGrid />, label: "Rutas activas", value: data.routes, colorClass: "border-purple-500", iconBg: "bg-purple-50", iconColor: "text-purple-500" },
     { icon: <Clock />, label: "Horarios", value: data.schedules, colorClass: "border-orange-500", iconBg: "bg-orange-50", iconColor: "text-orange-500" },
-    { icon: <AlertTriangle />, label: "Alertas activas", value: data.alerts, colorClass: "border-red-500", iconBg: "bg-red-50", iconColor: "text-red-500" },
-    { icon: <Droplet />, label: "Combustible (%)", value: data.fuel, colorClass: "border-teal-500", iconBg: "bg-teal-50", iconColor: "text-teal-500" }
+    { icon: <AlertTriangle />, label: "Alertas activas", value: data.alerts, colorClass: "border-red-500", iconBg: "bg-red-50", iconColor: "text-red-500" }
   ];
 
   return (
@@ -212,7 +188,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
         {stats.map((stat, index) => (
           <div 
             key={index} 

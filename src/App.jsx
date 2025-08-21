@@ -64,7 +64,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Layout principal para rutas protegidas
+// Layout principal para rutas protegidas SIN MÁRGENES PREDEFINIDOS
 const ProtectedLayout = ({ children }) => {
   const { sidebarOpen, isMobile, toggleSidebar, closeSidebar } = useSidebar();
 
@@ -87,11 +87,10 @@ const ProtectedLayout = ({ children }) => {
         isMobile={isMobile}
       />
       
-      {/* Contenido principal */}
+      {/* Contenido principal SIN padding predefinido */}
       <main className={getContentClasses()}>
-        <div className="p-4 md:p-6 lg:p-8">
-          {children}
-        </div>
+        {/* Eliminé el div con padding interno para que tengas control total */}
+        {children}
       </main>
       
       {/* ChatBot flotante */}

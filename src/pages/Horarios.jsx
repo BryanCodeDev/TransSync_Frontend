@@ -1,5 +1,20 @@
 import React, { useState } from 'react';
-import { Clock, Search, Filter, Download, Truck, Map } from 'lucide-react';
+import { 
+  Clock, 
+  Search, 
+  Filter, 
+  Download, 
+  Bus, 
+  Map, 
+  ChevronLeft, 
+  ChevronRight,
+  Play,
+  Square,
+  AlertTriangle,
+  Eye,
+  Route,
+  Timer
+} from 'lucide-react';
 
 const Horarios = () => {
   const [filtroRuta, setFiltroRuta] = useState('');
@@ -25,49 +40,65 @@ const Horarios = () => {
     });
   };
 
-  const getStatusClass = (estatus) => {
+  const getStatusConfig = (estatus) => {
     switch(estatus) {
-      case 'Activo': return 'bg-green-100 text-green-800';
-      case 'Reducido': return 'bg-yellow-100 text-yellow-800';
-      case 'Suspendido': return 'bg-red-100 text-red-800';
-      default: return '';
+      case 'Activo': 
+        return {
+          className: 'bg-green-50 text-green-700 border-green-200',
+          icon: <Play className="w-3 h-3" />
+        };
+      case 'Reducido': 
+        return {
+          className: 'bg-amber-50 text-amber-700 border-amber-200',
+          icon: <AlertTriangle className="w-3 h-3" />
+        };
+      case 'Suspendido': 
+        return {
+          className: 'bg-red-50 text-red-700 border-red-200',
+          icon: <Square className="w-3 h-3" />
+        };
+      default: 
+        return {
+          className: 'bg-gray-50 text-gray-700 border-gray-200',
+          icon: <Square className="w-3 h-3" />
+        };
     }
   };
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-sm m-6">
       <div className="flex justify-between items-center mb-6 md:flex-row flex-col md:items-center items-start md:gap-0 gap-4">
-        <h2 className="text-2xl font-semibold text-blue-600 flex items-center gap-2">
-          <Clock className="text-blue-600" />
+        <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+          <Clock className="text-indigo-600 w-7 h-7" />
           Horarios de Servicio
         </h2>
         
         <div className="flex gap-3 md:w-auto w-full">
-          <button className="flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-md font-medium cursor-pointer transition-all duration-200 hover:bg-blue-100 md:flex-1 flex-1 justify-center">
-            <Map size={16} />
-            Ver mapa
+          <button className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-lg font-medium cursor-pointer transition-all duration-200 hover:bg-indigo-100 md:flex-1 flex-1 justify-center">
+            <Map className="w-4 h-4" />
+            Ver Mapa
           </button>
-          <button className="flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-md font-medium cursor-pointer transition-all duration-200 hover:bg-blue-100 md:flex-1 flex-1 justify-center">
-            <Download size={16} />
+          <button className="flex items-center gap-2 px-4 py-2 bg-cyan-50 text-cyan-600 border border-cyan-200 rounded-lg font-medium cursor-pointer transition-all duration-200 hover:bg-cyan-100 md:flex-1 flex-1 justify-center">
+            <Download className="w-4 h-4" />
             Exportar
           </button>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6 md:flex-row flex-col">
-        <div className="flex items-center bg-gray-50 border border-gray-300 rounded-md px-3 py-2 flex-grow">
-          <Search size={18} className="text-gray-500 mr-2" />
+        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 flex-grow focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500">
+          <Search className="w-5 h-5 text-gray-400 mr-2" />
           <input 
             type="text" 
             placeholder="Buscar por ruta o nombre" 
-            className="border-none bg-transparent w-full text-sm text-gray-800 outline-none"
+            className="border-none bg-transparent w-full text-sm text-gray-800 outline-none placeholder-gray-500"
             value={filtroRuta}
             onChange={(e) => setFiltroRuta(e.target.value)}
           />
         </div>
         
-        <div className="flex items-center bg-gray-50 border border-gray-300 rounded-md px-3 py-2">
-          <Filter size={18} className="text-gray-500 mr-2" />
+        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500">
+          <Filter className="w-5 h-5 text-gray-400 mr-2" />
           <select 
             className="border-none bg-transparent text-sm text-gray-800 outline-none cursor-pointer"
             value={filtroHorario}
@@ -80,54 +111,112 @@ const Horarios = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-300">
-        <table className="w-full border-collapse text-sm text-left">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+        <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th className="bg-gray-50 text-gray-600 font-medium p-3 border-b border-gray-300">Ruta</th>
-              <th className="bg-gray-50 text-gray-600 font-medium p-3 border-b border-gray-300">Nombre</th>
-              <th className="bg-gray-50 text-gray-600 font-medium p-3 border-b border-gray-300">Hora Salida</th>
-              <th className="bg-gray-50 text-gray-600 font-medium p-3 border-b border-gray-300">Hora Llegada</th>
-              <th className="bg-gray-50 text-gray-600 font-medium p-3 border-b border-gray-300">Frecuencia</th>
-              <th className="bg-gray-50 text-gray-600 font-medium p-3 border-b border-gray-300">Estatus</th>
-              <th className="bg-gray-50 text-gray-600 font-medium p-3 border-b border-gray-300">Acciones</th>
+              <th className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold p-4 text-left border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Route className="w-4 h-4 text-indigo-600" />
+                  Ruta
+                </div>
+              </th>
+              <th className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold p-4 text-left border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Bus className="w-4 h-4 text-indigo-600" />
+                  Nombre
+                </div>
+              </th>
+              <th className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold p-4 text-left border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-indigo-600" />
+                  Hora Salida
+                </div>
+              </th>
+              <th className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold p-4 text-left border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-indigo-600" />
+                  Hora Llegada
+                </div>
+              </th>
+              <th className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold p-4 text-left border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Timer className="w-4 h-4 text-indigo-600" />
+                  Frecuencia
+                </div>
+              </th>
+              <th className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold p-4 text-left border-b border-gray-200">
+                Estado
+              </th>
+              <th className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold p-4 text-center border-b border-gray-200">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody>
-            {filtrarHorarios().map((h) => (
-              <tr key={h.id} className="transition-colors duration-200 hover:bg-gray-50">
-                <td className="p-3 border-b border-gray-300 text-gray-700 font-semibold text-blue-600">{h.ruta}</td>
-                <td className="p-3 border-b border-gray-300 text-gray-700">{h.nombre}</td>
-                <td className="p-3 border-b border-gray-300 text-gray-700">{h.salida}</td>
-                <td className="p-3 border-b border-gray-300 text-gray-700">{h.llegada}</td>
-                <td className="p-3 border-b border-gray-300 text-gray-700">{h.frecuencia}</td>
-                <td className="p-3 border-b border-gray-300 text-gray-700">
-                  <span className={`inline-flex px-2 py-1 rounded-xl text-xs font-medium ${getStatusClass(h.estatus)}`}>
-                    {h.estatus}
-                  </span>
-                </td>
-                <td className="p-3 border-b border-gray-300 text-gray-700">
-                  <div className="flex gap-2">
-                    <button className="flex items-center justify-center w-8 h-8 rounded border border-gray-300 bg-white text-gray-500 cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200" title="Ver detalles">
-                      <Truck size={16} />
-                    </button>
-                    <button className="flex items-center justify-center w-8 h-8 rounded border border-gray-300 bg-white text-gray-500 cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200" title="Ver en mapa">
-                      <Map size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {filtrarHorarios().map((h, index) => {
+              const statusConfig = getStatusConfig(h.estatus);
+              return (
+                <tr key={h.id} className={`transition-colors duration-200 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
+                  <td className="p-4 border-b border-gray-200">
+                    <div className="font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md inline-block">
+                      {h.ruta}
+                    </div>
+                  </td>
+                  <td className="p-4 border-b border-gray-200 text-gray-700 font-medium">{h.nombre}</td>
+                  <td className="p-4 border-b border-gray-200 text-gray-600">{h.salida}</td>
+                  <td className="p-4 border-b border-gray-200 text-gray-600">{h.llegada}</td>
+                  <td className="p-4 border-b border-gray-200 text-gray-600">
+                    <span className="bg-gray-100 px-2 py-1 rounded-md text-sm font-medium">
+                      {h.frecuencia}
+                    </span>
+                  </td>
+                  <td className="p-4 border-b border-gray-200">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${statusConfig.className}`}>
+                      {statusConfig.icon}
+                      {h.estatus}
+                    </span>
+                  </td>
+                  <td className="p-4 border-b border-gray-200">
+                    <div className="flex justify-center gap-2">
+                      <button 
+                        className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-500 cursor-pointer transition-all duration-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200" 
+                        title="Ver detalles"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button 
+                        className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-500 cursor-pointer transition-all duration-200 hover:bg-cyan-50 hover:text-cyan-600 hover:border-cyan-200" 
+                        title="Ver en mapa"
+                      >
+                        <Map className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
       
-      <div className="flex justify-between items-center mt-4 text-sm text-gray-500">
-        <p>Total de rutas: {filtrarHorarios().length}</p>
+      <div className="flex justify-between items-center mt-6 text-sm text-gray-600">
+        <div className="flex items-center gap-2">
+          <Bus className="w-4 h-4 text-indigo-600" />
+          <p>Total de rutas: <span className="font-semibold text-gray-900">{filtrarHorarios().length}</span></p>
+        </div>
         <div className="flex items-center gap-3">
-          <button className="px-3 py-1 rounded border border-gray-300 bg-white text-gray-600 cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:border-gray-400">Anterior</button>
-          <span className="text-gray-500">Página 1 de 1</span>
-          <button className="px-3 py-1 rounded border border-gray-300 bg-white text-gray-600 cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:border-gray-400">Siguiente</button>
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-600 cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:border-gray-300">
+            <ChevronLeft className="w-4 h-4" />
+            Anterior
+          </button>
+          <span className="flex items-center px-3 py-2 text-gray-500 font-medium">
+            Página 1 de 1
+          </span>
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-600 cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:border-gray-300">
+            Siguiente
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

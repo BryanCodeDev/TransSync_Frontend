@@ -27,45 +27,45 @@ const Button = ({
   
   const variantClasses = {
     primary: `
-      bg-blue-500 text-white border border-blue-500
-      hover:bg-blue-600 hover:border-blue-600 hover:-translate-y-0.5 
-      hover:shadow-[0_4px_12px_rgba(59,130,246,0.3)]
-      focus:ring-blue-200
+      bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white border border-[#3949ab]
+      hover:from-[#0d1642] hover:to-[#283593] hover:border-[#283593] hover:-translate-y-0.5 
+      hover:shadow-[0_4px_12px_rgba(26,35,126,0.3)]
+      focus:ring-[#3949ab] focus:ring-opacity-50
     `,
     secondary: `
-      bg-gray-600 text-white border border-gray-600
-      hover:bg-gray-700 hover:border-gray-700 hover:-translate-y-0.5 
-      hover:shadow-[0_4px_12px_rgba(75,85,99,0.3)]
-      focus:ring-gray-200
+      bg-gradient-to-r from-[#283593] to-[#3949ab] text-white border border-[#3949ab]
+      hover:from-[#1a237e] hover:to-[#283593] hover:border-[#1a237e] hover:-translate-y-0.5 
+      hover:shadow-[0_4px_12px_rgba(40,53,147,0.3)]
+      focus:ring-[#283593] focus:ring-opacity-50
     `,
     outline: `
-      bg-transparent text-blue-500 border border-blue-500
-      hover:bg-blue-500 hover:bg-opacity-5 hover:border-blue-600 hover:text-blue-600 
-      hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)]
-      focus:ring-blue-200
+      bg-transparent text-[#1a237e] border border-[#1a237e]
+      hover:bg-gradient-to-r hover:from-[#1a237e] hover:to-[#3949ab] hover:text-white hover:border-[#3949ab]
+      hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(26,35,126,0.15)]
+      focus:ring-[#1a237e] focus:ring-opacity-50
     `,
     danger: `
-      bg-red-500 text-white border border-red-500
-      hover:bg-red-600 hover:border-red-600 hover:-translate-y-0.5 
-      hover:shadow-[0_4px_12px_rgba(239,68,68,0.3)]
-      focus:ring-red-200
+      bg-gradient-to-r from-[#c62828] to-[#d32f2f] text-white border border-[#d32f2f]
+      hover:from-[#b71c1c] hover:to-[#c62828] hover:border-[#b71c1c] hover:-translate-y-0.5 
+      hover:shadow-[0_4px_12px_rgba(198,40,40,0.3)]
+      focus:ring-[#c62828] focus:ring-opacity-50
     `,
     success: `
-      bg-emerald-500 text-white border border-emerald-500
-      hover:bg-emerald-600 hover:border-emerald-600 hover:-translate-y-0.5 
-      hover:shadow-[0_4px_12px_rgba(16,185,129,0.3)]
-      focus:ring-emerald-200
+      bg-gradient-to-r from-[#2e7d32] to-[#388e3c] text-white border border-[#388e3c]
+      hover:from-[#1b5e20] hover:to-[#2e7d32] hover:border-[#1b5e20] hover:-translate-y-0.5 
+      hover:shadow-[0_4px_12px_rgba(46,125,50,0.3)]
+      focus:ring-[#2e7d32] focus:ring-opacity-50
     `,
     white: `
-      bg-white text-gray-800 border border-gray-200
-      hover:bg-gray-50 hover:border-gray-300 hover:-translate-y-0.5 
+      bg-white text-[#1a237e] border border-gray-200
+      hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 hover:border-[#283593] hover:-translate-y-0.5 
       hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]
-      focus:ring-gray-200
+      focus:ring-[#1a237e] focus:ring-opacity-50
     `,
     ghost: `
-      bg-transparent text-gray-600 border border-transparent
-      hover:bg-black hover:bg-opacity-5 hover:text-gray-800
-      focus:ring-gray-200
+      bg-transparent text-[#283593] border border-transparent
+      hover:bg-gradient-to-r hover:from-[#1a237e]/5 hover:to-[#3949ab]/5 hover:text-[#1a237e]
+      focus:ring-[#283593] focus:ring-opacity-50
     `
   };
   
