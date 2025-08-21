@@ -4,7 +4,7 @@ import axios from "axios";
 // ================================
 // CONFIGURACIÓN BASE
 // ================================
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 const REQUEST_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT) || 10000;
 
 // Crear instancia de axios con configuración base
@@ -183,7 +183,7 @@ export const apiUtils = {
 export const healthCheck = async () => {
   try {
     const startTime = Date.now();
-    const response = await apiClient.get('/health', { timeout: 5000 });
+    const response = await apiClient.get('/api/health', { timeout: 5000 });
     const responseTime = Date.now() - startTime;
     
     return {

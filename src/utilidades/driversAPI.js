@@ -1,4 +1,4 @@
- // api/driversAPI.js - Servicio específico para conductores
+// api/driversAPI.js - Servicio específico para conductores
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const driversAPI = {
@@ -10,7 +10,8 @@ const driversAPI = {
   getAll: async (filters = {}) => {
     try {
       const params = apiUtils.createUrlParams(filters);
-      const response = await apiClient.get(`/conductores${params ? `?${params}` : ''}`);
+      // Corregido: usar /api/conductores en lugar de /conductores
+      const response = await apiClient.get(`/api/conductores${params ? `?${params}` : ''}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -21,7 +22,7 @@ const driversAPI = {
   getById: async (id) => {
     try {
       if (!id) throw new Error('ID de conductor requerido');
-      const response = await apiClient.get(`/conductores/${id}`);
+      const response = await apiClient.get(`/api/conductores/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -79,7 +80,7 @@ const driversAPI = {
         throw new Error('El número de teléfono debe tener al menos 7 dígitos');
       }
 
-      const response = await apiClient.post('/conductores', {
+      const response = await apiClient.post('/api/conductores', {
         ...driverData,
         nomConductor: nomConductor.trim(),
         apeConductor: apeConductor.trim(),
@@ -132,7 +133,7 @@ const driversAPI = {
       if (cleanedData.numDocConductor) cleanedData.numDocConductor = cleanedData.numDocConductor.trim();
       if (cleanedData.telConductor) cleanedData.telConductor = cleanedData.telConductor.trim();
 
-      const response = await apiClient.put(`/conductores/${id}`, cleanedData);
+      const response = await apiClient.put(`/api/conductores/${id}`, cleanedData);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -143,7 +144,7 @@ const driversAPI = {
   delete: async (id) => {
     try {
       if (!id) throw new Error('ID de conductor requerido');
-      const response = await apiClient.delete(`/conductores/${id}`);
+      const response = await apiClient.delete(`/api/conductores/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -166,7 +167,7 @@ const driversAPI = {
         throw new Error('Estado inválido. Estados válidos: ' + validStates.join(', '));
       }
 
-      const response = await apiClient.patch(`/conductores/${id}/estado`, {
+      const response = await apiClient.patch(`/api/conductores/${id}/estado`, {
         estConductor: nuevoEstado
       });
 
@@ -212,7 +213,7 @@ const driversAPI = {
         throw new Error('ID de conductor e ID de vehículo son requeridos');
       }
 
-      const response = await apiClient.patch(`/conductores/${idConductor}/asignar-vehiculo`, {
+      const response = await apiClient.patch(`/api/conductores/${idConductor}/asignar-vehiculo`, {
         idVehiculo
       });
 
@@ -227,7 +228,7 @@ const driversAPI = {
     try {
       if (!idConductor) throw new Error('ID de conductor requerido');
 
-      const response = await apiClient.patch(`/conductores/${idConductor}/desasignar-vehiculo`);
+      const response = await apiClient.patch(`/api/conductores/${idConductor}/desasignar-vehiculo`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -241,7 +242,7 @@ const driversAPI = {
   // Obtener conductores disponibles (para asignación)
   getAvailable: async () => {
     try {
-      const response = await apiClient.get('/conductores/disponibles');
+      const response = await apiClient.get('/api/conductores/disponibles');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -251,7 +252,7 @@ const driversAPI = {
   // Obtener conductores activos
   getActive: async () => {
     try {
-      const response = await apiClient.get('/conductores?estConductor=ACTIVO');
+      const response = await apiClient.get('/api/conductores?estConductor=ACTIVO');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -261,7 +262,7 @@ const driversAPI = {
   // Obtener conductores sin vehículo asignado
   getUnassigned: async () => {
     try {
-      const response = await apiClient.get('/conductores?sinVehiculo=true');
+      const response = await apiClient.get('/api/conductores?sinVehiculo=true');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -275,7 +276,7 @@ const driversAPI = {
         throw new Error('El término de búsqueda debe tener al menos 2 caracteres');
       }
 
-      const response = await apiClient.get(`/conductores/buscar?q=${encodeURIComponent(searchTerm.trim())}`);
+      const response = await apiClient.get(`/api/conductores/buscar?q=${encodeURIComponent(searchTerm.trim())}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -289,7 +290,7 @@ const driversAPI = {
   // Obtener estadísticas de conductores
   getStatistics: async () => {
     try {
-      const response = await apiClient.get('/conductores/estadisticas');
+      const response = await apiClient.get('/api/conductores/estadisticas');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -299,7 +300,7 @@ const driversAPI = {
   // Obtener distribución por estado
   getStatusDistribution: async () => {
     try {
-      const response = await apiClient.get('/conductores/distribucion-estados');
+      const response = await apiClient.get('/api/conductores/distribucion-estados');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -313,7 +314,7 @@ const driversAPI = {
   // Verificar vencimiento de licencias
   checkLicenseExpiration: async (diasAnticipacion = 30) => {
     try {
-      const response = await apiClient.get(`/conductores/licencias-vencimiento?dias=${diasAnticipacion}`);
+      const response = await apiClient.get(`/api/conductores/licencias-vencimiento?dias=${diasAnticipacion}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -323,7 +324,7 @@ const driversAPI = {
   // Obtener conductores con licencias próximas a vencer
   getExpiringLicenses: async (days = 30) => {
     try {
-      const response = await apiClient.get(`/conductores/licencias-expiran?dias=${days}`);
+      const response = await apiClient.get(`/api/conductores/licencias-expiran?dias=${days}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -351,7 +352,7 @@ const driversAPI = {
         }
       }
 
-      const response = await apiClient.patch(`/conductores/${id}/renovar-licencia`, {
+      const response = await apiClient.patch(`/api/conductores/${id}/renovar-licencia`, {
         fecVenLicConductor: nuevaFechaVencimiento,
         ...(tipoLicencia && { tipLicConductor: tipoLicencia })
       });
@@ -462,7 +463,7 @@ const driversAPI = {
   exportDrivers: async (format = 'csv', filters = {}) => {
     try {
       const params = apiUtils.createUrlParams({ ...filters, formato: format });
-      const response = await apiClient.get(`/conductores/export${params ? `?${params}` : ''}`, {
+      const response = await apiClient.get(`/api/conductores/export${params ? `?${params}` : ''}`, {
         responseType: 'blob'
       });
       

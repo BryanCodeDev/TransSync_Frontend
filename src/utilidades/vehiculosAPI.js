@@ -1,5 +1,5 @@
-// api/vehiculosAPI.js - Servicio específico para vehículos
-import { apiClient, apiUtils } from './baseAPI';
+// utilidades/vehiculosAPI.js - Servicio actualizado para vehículos
+import { apiClient, apiUtils } from '../api/baseAPI';
 
 const vehiculosAPI = {
   // ================================
@@ -10,7 +10,7 @@ const vehiculosAPI = {
   getAll: async (filters = {}) => {
     try {
       const params = apiUtils.createUrlParams(filters);
-      const response = await apiClient.get(`/vehiculos${params ? `?${params}` : ''}`);
+      const response = await apiClient.get(`/api/vehiculos${params ? `?${params}` : ''}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -21,7 +21,7 @@ const vehiculosAPI = {
   getById: async (id) => {
     try {
       if (!id) throw new Error('ID de vehículo requerido');
-      const response = await apiClient.get(`/vehiculos/${id}`);
+      const response = await apiClient.get(`/api/vehiculos/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -31,24 +31,27 @@ const vehiculosAPI = {
   // Crear nuevo vehículo
   create: async (vehicleData) => {
     try {
-      // Validaciones específicas para vehículos
+      // Validaciones específicas para vehículos según la base de datos
       const { 
-        placaVehiculo, 
-        marcaVehiculo, 
-        modeloVehiculo, 
-        anoVehiculo,
-        capacidadVehiculo,
-        tipVehiculo,
+        numVehiculo, 
+        plaVehiculo, 
+        marVehiculo, 
+        modVehiculo, 
+        anioVehiculo,
+        fecVenSOAT,
+        fecVenTec,
+        estVehiculo,
         idEmpresa 
       } = vehicleData;
 
       const missing = apiUtils.validateRequired({ 
-        placaVehiculo, 
-        marcaVehiculo, 
-        modeloVehiculo, 
-        anoVehiculo,
-        capacidadVehiculo,
-        tipVehiculo
+        numVehiculo,
+        plaVehiculo, 
+        marVehiculo, 
+        modVehiculo, 
+        anioVehiculo,
+        fecVenSOAT,
+        fecVenTec
       });
 
       if (missing.length > 0) {
@@ -56,32 +59,41 @@ const vehiculosAPI = {
       }
 
       // Validar placa (formato básico)
-      if (placaVehiculo.length < 6) {
+      if (plaVehiculo.length < 6) {
         throw new Error('La placa debe tener al menos 6 caracteres');
       }
 
       // Validar año
       const currentYear = new Date().getFullYear();
-      if (anoVehiculo < 1950 || anoVehiculo > currentYear + 1) {
+      if (anioVehiculo < 1950 || anioVehiculo > currentYear + 1) {
         throw new Error(`El año debe estar entre 1950 y ${currentYear + 1}`);
       }
 
-      // Validar capacidad
-      if (capacidadVehiculo < 1 || capacidadVehiculo > 100) {
-        throw new Error('La capacidad debe estar entre 1 y 100 pasajeros');
+      // Validar estado de vehículo
+      const validStates = ['DISPONIBLE', 'EN_RUTA', 'EN_MANTENIMIENTO', 'FUERA_DE_SERVICIO'];
+      if (estVehiculo && !validStates.includes(estVehiculo)) {
+        throw new Error('Estado de vehículo inválido. Debe ser: ' + validStates.join(', '));
       }
 
-      // Validar tipo de vehículo
-      const validTypes = ['BUS', 'MICROBUS', 'VAN', 'AUTOMOVIL', 'CAMION'];
-      if (!validTypes.includes(tipVehiculo)) {
-        throw new Error('Tipo de vehículo inválido. Debe ser: ' + validTypes.join(', '));
+      // Validar fechas de vencimiento
+      const fechaSOAT = new Date(fecVenSOAT);
+      const fechaTec = new Date(fecVenTec);
+      const hoy = new Date();
+      
+      if (fechaSOAT <= hoy) {
+        throw new Error('La fecha de vencimiento del SOAT debe ser futura');
       }
 
-      const response = await apiClient.post('/vehiculos', {
+      if (fechaTec <= hoy) {
+        throw new Error('La fecha de vencimiento de la revisión técnica debe ser futura');
+      }
+
+      const response = await apiClient.post('/api/vehiculos', {
         ...vehicleData,
-        placaVehiculo: placaVehiculo.trim().toUpperCase(),
-        marcaVehiculo: marcaVehiculo.trim(),
-        modeloVehiculo: modeloVehiculo.trim(),
+        plaVehiculo: plaVehiculo.trim().toUpperCase(),
+        marVehiculo: marVehiculo.trim(),
+        modVehiculo: modVehiculo.trim(),
+        numVehiculo: numVehiculo.trim(),
         idEmpresa: idEmpresa || 1
       });
 
@@ -97,37 +109,49 @@ const vehiculosAPI = {
       if (!id) throw new Error('ID de vehículo requerido');
 
       // Validar datos si se proporcionan
-      if (vehicleData.placaVehiculo && vehicleData.placaVehiculo.length < 6) {
+      if (vehicleData.plaVehiculo && vehicleData.plaVehiculo.length < 6) {
         throw new Error('La placa debe tener al menos 6 caracteres');
       }
 
-      if (vehicleData.anoVehiculo) {
+      if (vehicleData.anioVehiculo) {
         const currentYear = new Date().getFullYear();
-        if (vehicleData.anoVehiculo < 1950 || vehicleData.anoVehiculo > currentYear + 1) {
+        if (vehicleData.anioVehiculo < 1950 || vehicleData.anioVehiculo > currentYear + 1) {
           throw new Error(`El año debe estar entre 1950 y ${currentYear + 1}`);
         }
       }
 
-      if (vehicleData.capacidadVehiculo) {
-        if (vehicleData.capacidadVehiculo < 1 || vehicleData.capacidadVehiculo > 100) {
-          throw new Error('La capacidad debe estar entre 1 y 100 pasajeros');
+      if (vehicleData.estVehiculo) {
+        const validStates = ['DISPONIBLE', 'EN_RUTA', 'EN_MANTENIMIENTO', 'FUERA_DE_SERVICIO'];
+        if (!validStates.includes(vehicleData.estVehiculo)) {
+          throw new Error('Estado de vehículo inválido');
         }
       }
 
-      if (vehicleData.tipVehiculo) {
-        const validTypes = ['BUS', 'MICROBUS', 'VAN', 'AUTOMOVIL', 'CAMION'];
-        if (!validTypes.includes(vehicleData.tipVehiculo)) {
-          throw new Error('Tipo de vehículo inválido');
+      // Validar fechas de vencimiento si se proporcionan
+      if (vehicleData.fecVenSOAT) {
+        const fechaSOAT = new Date(vehicleData.fecVenSOAT);
+        const hoy = new Date();
+        if (fechaSOAT <= hoy) {
+          throw new Error('La fecha de vencimiento del SOAT debe ser futura');
+        }
+      }
+
+      if (vehicleData.fecVenTec) {
+        const fechaTec = new Date(vehicleData.fecVenTec);
+        const hoy = new Date();
+        if (fechaTec <= hoy) {
+          throw new Error('La fecha de vencimiento de la revisión técnica debe ser futura');
         }
       }
 
       // Limpiar campos de texto si existen
       const cleanedData = { ...vehicleData };
-      if (cleanedData.placaVehiculo) cleanedData.placaVehiculo = cleanedData.placaVehiculo.trim().toUpperCase();
-      if (cleanedData.marcaVehiculo) cleanedData.marcaVehiculo = cleanedData.marcaVehiculo.trim();
-      if (cleanedData.modeloVehiculo) cleanedData.modeloVehiculo = cleanedData.modeloVehiculo.trim();
+      if (cleanedData.plaVehiculo) cleanedData.plaVehiculo = cleanedData.plaVehiculo.trim().toUpperCase();
+      if (cleanedData.marVehiculo) cleanedData.marVehiculo = cleanedData.marVehiculo.trim();
+      if (cleanedData.modVehiculo) cleanedData.modVehiculo = cleanedData.modVehiculo.trim();
+      if (cleanedData.numVehiculo) cleanedData.numVehiculo = cleanedData.numVehiculo.trim();
 
-      const response = await apiClient.put(`/vehiculos/${id}`, cleanedData);
+      const response = await apiClient.put(`/api/vehiculos/${id}`, cleanedData);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -138,7 +162,7 @@ const vehiculosAPI = {
   delete: async (id) => {
     try {
       if (!id) throw new Error('ID de vehículo requerido');
-      const response = await apiClient.delete(`/vehiculos/${id}`);
+      const response = await apiClient.delete(`/api/vehiculos/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -156,12 +180,12 @@ const vehiculosAPI = {
         throw new Error('ID de vehículo y nuevo estado son requeridos');
       }
 
-      const validStates = ['ACTIVO', 'INACTIVO', 'MANTENIMIENTO', 'REPARACION', 'FUERA_DE_SERVICIO'];
+      const validStates = ['DISPONIBLE', 'EN_RUTA', 'EN_MANTENIMIENTO', 'FUERA_DE_SERVICIO'];
       if (!validStates.includes(nuevoEstado)) {
         throw new Error('Estado inválido. Estados válidos: ' + validStates.join(', '));
       }
 
-      const response = await apiClient.patch(`/vehiculos/${id}/estado`, {
+      const response = await apiClient.patch(`/api/vehiculos/${id}/estado`, {
         estVehiculo: nuevoEstado
       });
 
@@ -173,27 +197,57 @@ const vehiculosAPI = {
 
   // Activar vehículo
   activate: async (id) => {
-    return vehiculosAPI.changeStatus(id, 'ACTIVO');
+    return vehiculosAPI.changeStatus(id, 'DISPONIBLE');
   },
 
   // Desactivar vehículo
   deactivate: async (id) => {
-    return vehiculosAPI.changeStatus(id, 'INACTIVO');
+    return vehiculosAPI.changeStatus(id, 'FUERA_DE_SERVICIO');
   },
 
   // Marcar como en mantenimiento
   setMaintenance: async (id) => {
-    return vehiculosAPI.changeStatus(id, 'MANTENIMIENTO');
+    return vehiculosAPI.changeStatus(id, 'EN_MANTENIMIENTO');
   },
 
-  // Marcar como en reparación
-  setRepair: async (id) => {
-    return vehiculosAPI.changeStatus(id, 'REPARACION');
+  // Marcar como en ruta
+  setOnRoute: async (id) => {
+    return vehiculosAPI.changeStatus(id, 'EN_RUTA');
   },
 
-  // Marcar como fuera de servicio
-  setOutOfService: async (id) => {
-    return vehiculosAPI.changeStatus(id, 'FUERA_DE_SERVICIO');
+  // ================================
+  // GESTIÓN DE CONDUCTORES
+  // ================================
+
+  // Asignar conductor a vehículo
+  assignDriver: async (idVehiculo, idConductor) => {
+    try {
+      if (!idVehiculo || !idConductor) {
+        throw new Error('ID de vehículo e ID de conductor son requeridos');
+      }
+
+      const response = await apiClient.patch(`/api/vehiculos/${idVehiculo}/asignar-conductor`, {
+        idConductor
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Desasignar conductor de vehículo
+  unassignDriver: async (idVehiculo) => {
+    try {
+      if (!idVehiculo) {
+        throw new Error('ID de vehículo es requerido');
+      }
+
+      const response = await apiClient.patch(`/api/vehiculos/${idVehiculo}/desasignar-conductor`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
   },
 
   // ================================
@@ -203,17 +257,7 @@ const vehiculosAPI = {
   // Obtener vehículos disponibles
   getAvailable: async () => {
     try {
-      const response = await apiClient.get('/vehiculos?estVehiculo=ACTIVO&sinConductor=true');
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Obtener vehículos activos
-  getActive: async () => {
-    try {
-      const response = await apiClient.get('/vehiculos?estVehiculo=ACTIVO');
+      const response = await apiClient.get('/api/vehiculos?estado=DISPONIBLE');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -223,7 +267,7 @@ const vehiculosAPI = {
   // Obtener vehículos sin conductor asignado
   getUnassigned: async () => {
     try {
-      const response = await apiClient.get('/vehiculos?sinConductor=true');
+      const response = await apiClient.get('/api/vehiculos?sinConductor=true');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -233,64 +277,21 @@ const vehiculosAPI = {
   // Obtener vehículos en mantenimiento
   getInMaintenance: async () => {
     try {
-      const response = await apiClient.get('/vehiculos?estVehiculo=MANTENIMIENTO,REPARACION');
+      const response = await apiClient.get('/api/vehiculos?estado=EN_MANTENIMIENTO');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
   },
 
-  // Buscar vehículos por placa o marca
+  // Buscar vehículos
   search: async (searchTerm) => {
     try {
       if (!searchTerm || searchTerm.trim().length < 2) {
         throw new Error('El término de búsqueda debe tener al menos 2 caracteres');
       }
 
-      const response = await apiClient.get(`/vehiculos/buscar?q=${encodeURIComponent(searchTerm.trim())}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // ================================
-  // MANTENIMIENTO
-  // ================================
-  
-  // Obtener historial de mantenimiento
-  getMaintenanceHistory: async (id) => {
-    try {
-      if (!id) throw new Error('ID de vehículo requerido');
-      const response = await apiClient.get(`/vehiculos/${id}/mantenimientos`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Programar mantenimiento
-  scheduleMaintenance: async (id, maintenanceData) => {
-    try {
-      if (!id) throw new Error('ID de vehículo requerido');
-      
-      const { fechaMantenimiento, tipoMantenimiento, descripcion } = maintenanceData;
-      
-      const missing = apiUtils.validateRequired({ 
-        fechaMantenimiento, 
-        tipoMantenimiento 
-      });
-
-      if (missing.length > 0) {
-        throw new Error(`Campos requeridos: ${missing.join(', ')}`);
-      }
-
-      const response = await apiClient.post(`/vehiculos/${id}/mantenimientos`, {
-        fechaMantenimiento,
-        tipoMantenimiento,
-        descripcion: descripcion?.trim()
-      });
-
+      const response = await apiClient.get(`/api/vehiculos?search=${encodeURIComponent(searchTerm.trim())}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -304,27 +305,17 @@ const vehiculosAPI = {
   // Obtener estadísticas de vehículos
   getStatistics: async () => {
     try {
-      const response = await apiClient.get('/vehiculos/estadisticas');
+      const response = await apiClient.get('/api/vehiculos/estadisticas');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
   },
 
-  // Obtener distribución por tipo
-  getTypeDistribution: async () => {
+  // Verificar vencimientos de documentos
+  checkExpirations: async (dias = 30) => {
     try {
-      const response = await apiClient.get('/vehiculos/distribucion-tipos');
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Obtener distribución por estado
-  getStatusDistribution: async () => {
-    try {
-      const response = await apiClient.get('/vehiculos/distribucion-estados');
+      const response = await apiClient.get(`/api/vehiculos/vencimientos?dias=${dias}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -335,40 +326,59 @@ const vehiculosAPI = {
   // UTILIDADES ESPECÍFICAS
   // ================================
   
-  // Validar datos de vehículo
+  // Validar datos de vehículo según la base de datos
   validateVehicleData: (vehicleData) => {
     const errors = [];
     
+    // Validar número interno
+    if (!vehicleData.numVehiculo || vehicleData.numVehiculo.trim().length < 1) {
+      errors.push('El número interno es requerido');
+    }
+    
     // Validar placa
-    if (!vehicleData.placaVehiculo || vehicleData.placaVehiculo.trim().length < 6) {
+    if (!vehicleData.plaVehiculo || vehicleData.plaVehiculo.trim().length < 6) {
       errors.push('La placa debe tener al menos 6 caracteres');
     }
     
     // Validar marca
-    if (!vehicleData.marcaVehiculo || vehicleData.marcaVehiculo.trim().length < 2) {
+    if (!vehicleData.marVehiculo || vehicleData.marVehiculo.trim().length < 2) {
       errors.push('La marca debe tener al menos 2 caracteres');
     }
 
     // Validar modelo
-    if (!vehicleData.modeloVehiculo || vehicleData.modeloVehiculo.trim().length < 2) {
-      errors.push('El modelo debe tener al menos 2 caracteres');
+    if (!vehicleData.modVehiculo || vehicleData.modVehiculo.trim().length < 1) {
+      errors.push('El modelo es requerido');
     }
 
     // Validar año
     const currentYear = new Date().getFullYear();
-    if (!vehicleData.anoVehiculo || vehicleData.anoVehiculo < 1950 || vehicleData.anoVehiculo > currentYear + 1) {
+    if (!vehicleData.anioVehiculo || vehicleData.anioVehiculo < 1950 || vehicleData.anioVehiculo > currentYear + 1) {
       errors.push(`El año debe estar entre 1950 y ${currentYear + 1}`);
     }
 
-    // Validar capacidad
-    if (!vehicleData.capacidadVehiculo || vehicleData.capacidadVehiculo < 1 || vehicleData.capacidadVehiculo > 100) {
-      errors.push('La capacidad debe estar entre 1 y 100 pasajeros');
+    // Validar estado
+    if (vehicleData.estVehiculo) {
+      const validStates = ['DISPONIBLE', 'EN_RUTA', 'EN_MANTENIMIENTO', 'FUERA_DE_SERVICIO'];
+      if (!validStates.includes(vehicleData.estVehiculo)) {
+        errors.push('Debe seleccionar un estado válido');
+      }
     }
 
-    // Validar tipo
-    const validTypes = ['BUS', 'MICROBUS', 'VAN', 'AUTOMOVIL', 'CAMION'];
-    if (!vehicleData.tipVehiculo || !validTypes.includes(vehicleData.tipVehiculo)) {
-      errors.push('Debe seleccionar un tipo de vehículo válido');
+    // Validar fechas de vencimiento
+    if (vehicleData.fecVenSOAT) {
+      const fechaSOAT = new Date(vehicleData.fecVenSOAT);
+      const hoy = new Date();
+      if (fechaSOAT <= hoy) {
+        errors.push('La fecha de vencimiento del SOAT debe ser futura');
+      }
+    }
+
+    if (vehicleData.fecVenTec) {
+      const fechaTec = new Date(vehicleData.fecVenTec);
+      const hoy = new Date();
+      if (fechaTec <= hoy) {
+        errors.push('La fecha de vencimiento de la revisión técnica debe ser futura');
+      }
     }
 
     return errors;
@@ -378,22 +388,22 @@ const vehiculosAPI = {
   formatVehicleData: (vehicle) => {
     return {
       ...vehicle,
-      descripcionCompleta: `${vehicle.marcaVehiculo} ${vehicle.modeloVehiculo} ${vehicle.anoVehiculo}`,
-      placaFormateada: vehicle.placaVehiculo?.toUpperCase(),
+      descripcionCompleta: `${vehicle.marVehiculo} ${vehicle.modVehiculo} ${vehicle.anioVehiculo}`,
+      placaFormateada: vehicle.plaVehiculo?.toUpperCase(),
       estadoFormateado: vehiculosAPI.getStatusLabel(vehicle.estVehiculo),
-      tipoFormateado: vehiculosAPI.getTypeLabel(vehicle.tipVehiculo),
-      capacidadFormateada: `${vehicle.capacidadVehiculo} pasajeros`
+      conductorAsignado: vehicle.conductor ? vehicle.conductor.nombre : 'Sin asignar',
+      diasVencimientoSOAT: vehicle.diasVencimientoSOAT,
+      diasVencimientoTecnica: vehicle.diasVencimientoTec
     };
   },
 
-  // Obtener etiqueta del estado
+  // Obtener etiqueta del estado según la base de datos
   getStatusLabel: (status) => {
     const statusLabels = {
-      'ACTIVO': 'Activo',
-      'INACTIVO': 'Inactivo',
-      'MANTENIMIENTO': 'En mantenimiento',
-      'REPARACION': 'En reparación',
-      'FUERA_DE_SERVICIO': 'Fuera de servicio'
+      'DISPONIBLE': 'Disponible',
+      'EN_RUTA': 'En Ruta',
+      'EN_MANTENIMIENTO': 'En Mantenimiento',
+      'FUERA_DE_SERVICIO': 'Fuera de Servicio'
     };
     return statusLabels[status] || status;
   },
@@ -401,32 +411,19 @@ const vehiculosAPI = {
   // Obtener color del estado para UI
   getStatusColor: (status) => {
     const statusColors = {
-      'ACTIVO': 'green',
-      'INACTIVO': 'red',
-      'MANTENIMIENTO': 'blue',
-      'REPARACION': 'orange',
-      'FUERA_DE_SERVICIO': 'gray'
+      'DISPONIBLE': 'green',
+      'EN_RUTA': 'blue',
+      'EN_MANTENIMIENTO': 'orange',
+      'FUERA_DE_SERVICIO': 'red'
     };
     return statusColors[status] || 'gray';
-  },
-
-  // Obtener etiqueta del tipo
-  getTypeLabel: (type) => {
-    const typeLabels = {
-      'BUS': 'Bus',
-      'MICROBUS': 'Microbus',
-      'VAN': 'Van',
-      'AUTOMOVIL': 'Automóvil',
-      'CAMION': 'Camión'
-    };
-    return typeLabels[type] || type;
   },
 
   // Exportar lista de vehículos
   exportVehicles: async (format = 'csv', filters = {}) => {
     try {
       const params = apiUtils.createUrlParams({ ...filters, formato: format });
-      const response = await apiClient.get(`/vehiculos/export${params ? `?${params}` : ''}`, {
+      const response = await apiClient.get(`/api/vehiculos/export${params ? `?${params}` : ''}`, {
         responseType: 'blob'
       });
       

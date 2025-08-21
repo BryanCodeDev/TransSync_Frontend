@@ -1,64 +1,262 @@
-import { useState, useEffect } from 'react';
-import { FaBus, FaCheckCircle, FaTimesCircle, FaSearch, FaFilter, FaPlus } from "react-icons/fa";
+import { useState, useEffect, useCallback } from 'react';
+import { FaBus, FaCheckCircle, FaTimesCircle, FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaUser, FaExclamationTriangle, FaCogs, FaRoad } from "react-icons/fa";
+import vehiculosAPI from '../utilidades/vehiculosAPI';
+// Importar también el API para conductores
+import { apiClient } from '../api/baseAPI'; // O el API que uses para conductores
 
 const Vehiculos = () => {
-  // Enhanced vehicle data with more relevant fields for transport management
-  const [vehiculos, setVehiculos] = useState([
-    { id: 1, placa: "ABC-123", modelo: "Mercedes-Benz O500", año: 2022, capacidad: 45, conductor: "Carlos Ramírez", ruta: "R-101", ultimoMantenimiento: "2025-03-15", disponible: true, estado: "Excelente" },
-    { id: 2, placa: "XYZ-789", modelo: "Volvo 9800", año: 2021, capacidad: 50, conductor: "Ana Martínez", ruta: "R-205", ultimoMantenimiento: "2025-04-01", disponible: false, estado: "En mantenimiento" },
-    { id: 3, placa: "DEF-456", modelo: "Scania K410", año: 2023, capacidad: 40, conductor: "Juan Torres", ruta: "R-103", ultimoMantenimiento: "2025-03-28", disponible: true, estado: "Bueno" },
-    { id: 4, placa: "GHI-789", modelo: "Mercedes-Benz O500", año: 2020, capacidad: 45, conductor: "Laura Pérez", ruta: "R-104", ultimoMantenimiento: "2025-02-10", disponible: true, estado: "Regular" },
-    { id: 5, placa: "JKL-012", modelo: "Volvo 9700", año: 2021, capacidad: 50, conductor: "No asignado", ruta: "Sin asignar", ultimoMantenimiento: "2025-03-05", disponible: false, estado: "En revisión" },
-  ]);
-
+  const [vehiculos, setVehiculos] = useState([]);
   const [filteredVehiculos, setFilteredVehiculos] = useState([]);
+  const [conductoresDisponibles, setConductoresDisponibles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedVehiculo, setSelectedVehiculo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [estadisticas, setEstadisticas] = useState({});
+  
   const [newVehiculo, setNewVehiculo] = useState({
-    placa: '', modelo: '', año: '', capacidad: '', conductor: '', ruta: '', ultimoMantenimiento: '', disponible: true, estado: 'Excelente'
+    numVehiculo: '',
+    plaVehiculo: '',
+    marVehiculo: '',
+    modVehiculo: '',
+    anioVehiculo: new Date().getFullYear(),
+    fecVenSOAT: '',
+    fecVenTec: '',
+    estVehiculo: 'DISPONIBLE',
+    idConductorAsignado: ''
   });
 
-  // Filter vehicles based on search term and status filter
-  useEffect(() => {
+  const [editVehiculo, setEditVehiculo] = useState({});
+
+  // Estados de vehículos válidos según la base de datos
+  const estadosVehiculo = [
+    { value: 'DISPONIBLE', label: 'Disponible', color: 'text-green-600 bg-green-50' },
+    { value: 'EN_RUTA', label: 'En Ruta', color: 'text-blue-600 bg-blue-50' },
+    { value: 'EN_MANTENIMIENTO', label: 'En Mantenimiento', color: 'text-orange-600 bg-orange-50' },
+    { value: 'FUERA_DE_SERVICIO', label: 'Fuera de Servicio', color: 'text-red-600 bg-red-50' }
+  ];
+
+  // Filtrar vehículos - usando useCallback para evitar recreación en cada render
+  const filterVehiculos = useCallback(() => {
     let results = vehiculos;
     
     if (searchTerm) {
+      const search = searchTerm.toLowerCase();
       results = results.filter(v => 
-        v.placa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.conductor.toLowerCase().includes(searchTerm.toLowerCase())
+        v.plaVehiculo?.toLowerCase().includes(search) ||
+        v.marVehiculo?.toLowerCase().includes(search) ||
+        v.modVehiculo?.toLowerCase().includes(search) ||
+        v.numVehiculo?.toLowerCase().includes(search) ||
+        v.conductor?.nombre?.toLowerCase().includes(search)
       );
     }
     
     if (filterStatus !== 'all') {
-      results = results.filter(v => 
-        filterStatus === 'available' ? v.disponible : !v.disponible
-      );
+      results = results.filter(v => v.estVehiculo === filterStatus);
     }
     
     setFilteredVehiculos(results);
   }, [searchTerm, filterStatus, vehiculos]);
 
-  const handleAddVehiculo = () => {
-    const id = vehiculos.length > 0 ? Math.max(...vehiculos.map(v => v.id)) + 1 : 1;
-    setVehiculos([...vehiculos, { ...newVehiculo, id }]);
-    setShowAddModal(false);
+  // Cargar datos iniciales
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  // Filtrar vehículos cuando cambien los filtros - ahora incluye filterVehiculos en las dependencias
+  useEffect(() => {
+    filterVehiculos();
+  }, [filterVehiculos]);
+
+  const loadInitialData = async () => {
+    setLoading(true);
+    try {
+      // Cargar vehículos y estadísticas
+      const [vehiculosData, estadisticasData] = await Promise.all([
+        vehiculosAPI.getAll({ limit: 100 }),
+        vehiculosAPI.getStatistics()
+      ]);
+
+      setVehiculos(vehiculosData.vehiculos || []);
+      setEstadisticas(estadisticasData.estadisticas || {});
+
+      // Cargar conductores disponibles - ajustar según tu API de conductores
+      try {
+        const conductoresResponse = await apiClient.get('/api/conductores/disponibles');
+        setConductoresDisponibles(conductoresResponse.data.conductoresDisponibles || []);
+      } catch (error) {
+        console.error('Error al cargar conductores:', error);
+        setConductoresDisponibles([]);
+      }
+
+      setError('');
+    } catch (error) {
+      console.error('Error al cargar datos:', error);
+      setError('Error al cargar los vehículos. Por favor, intenta nuevamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddVehiculo = async () => {
+    try {
+      setError('');
+      
+      // Validaciones básicas
+      if (!newVehiculo.numVehiculo || !newVehiculo.plaVehiculo || !newVehiculo.marVehiculo || 
+          !newVehiculo.modVehiculo || !newVehiculo.fecVenSOAT || !newVehiculo.fecVenTec) {
+        setError('Por favor, completa todos los campos requeridos.');
+        return;
+      }
+
+      const vehiculoData = {
+        ...newVehiculo,
+        idConductorAsignado: newVehiculo.idConductorAsignado || null
+      };
+
+      await vehiculosAPI.create(vehiculoData);
+      
+      // Recargar datos
+      await loadInitialData();
+      
+      // Cerrar modal y resetear formulario
+      setShowAddModal(false);
+      resetNewVehiculo();
+      
+    } catch (error) {
+      console.error('Error al crear vehículo:', error);
+      setError(error.message || 'Error al crear el vehículo');
+    }
+  };
+
+  const handleEditVehiculo = async () => {
+    try {
+      setError('');
+      
+      await vehiculosAPI.update(selectedVehiculo.idVehiculo, editVehiculo);
+      
+      // Recargar datos
+      await loadInitialData();
+      
+      // Cerrar modal
+      setShowEditModal(false);
+      setSelectedVehiculo(null);
+      setEditVehiculo({});
+      
+    } catch (error) {
+      console.error('Error al actualizar vehículo:', error);
+      setError(error.message || 'Error al actualizar el vehículo');
+    }
+  };
+
+  const handleDeleteVehiculo = async (vehiculo) => {
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar el vehículo ${vehiculo.plaVehiculo}?`)) {
+      return;
+    }
+
+    try {
+      setError('');
+      await vehiculosAPI.delete(vehiculo.idVehiculo);
+      
+      // Recargar datos
+      await loadInitialData();
+      
+    } catch (error) {
+      console.error('Error al eliminar vehículo:', error);
+      setError(error.message || 'Error al eliminar el vehículo');
+    }
+  };
+
+  // Función para cambiar estado - ahora se usa correctamente
+  const handleChangeStatus = async (vehiculo, nuevoEstado) => {
+    try {
+      setError('');
+      await vehiculosAPI.changeStatus(vehiculo.idVehiculo, nuevoEstado);
+      
+      // Recargar datos
+      await loadInitialData();
+      
+    } catch (error) {
+      console.error('Error al cambiar estado:', error);
+      setError(error.message || 'Error al cambiar el estado del vehículo');
+    }
+  };
+
+  const openEditModal = (vehiculo) => {
+    setSelectedVehiculo(vehiculo);
+    setEditVehiculo({
+      numVehiculo: vehiculo.numVehiculo,
+      plaVehiculo: vehiculo.plaVehiculo,
+      marVehiculo: vehiculo.marVehiculo,
+      modVehiculo: vehiculo.modVehiculo,
+      anioVehiculo: vehiculo.anioVehiculo,
+      fecVenSOAT: vehiculo.fecVenSOAT?.split('T')[0],
+      fecVenTec: vehiculo.fecVenTec?.split('T')[0],
+      estVehiculo: vehiculo.estVehiculo,
+      idConductorAsignado: vehiculo.conductor?.idConductor || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const resetNewVehiculo = () => {
     setNewVehiculo({
-      placa: '', modelo: '', año: '', capacidad: '', conductor: '', ruta: '', ultimoMantenimiento: '', disponible: true, estado: 'Excelente'
+      numVehiculo: '',
+      plaVehiculo: '',
+      marVehiculo: '',
+      modVehiculo: '',
+      anioVehiculo: new Date().getFullYear(),
+      fecVenSOAT: '',
+      fecVenTec: '',
+      estVehiculo: 'DISPONIBLE',
+      idConductorAsignado: ''
     });
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setNewVehiculo({
-      ...newVehiculo,
-      [name]: type === 'checkbox' ? checked : value
-    });
+  const getEstadoInfo = (estado) => {
+    return estadosVehiculo.find(e => e.value === estado) || 
+           { value: estado, label: estado, color: 'text-gray-600 bg-gray-50' };
   };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No especificada';
+    return new Date(dateString).toLocaleDateString('es-CO');
+  };
+
+  const isVencimientoProximo = (fechaVencimiento, diasLimite = 30) => {
+    if (!fechaVencimiento) return false;
+    const fecha = new Date(fechaVencimiento);
+    const hoy = new Date();
+    const diffTime = fecha - hoy;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays <= diasLimite && diffDays >= 0;
+  };
+
+  const isVencido = (fechaVencimiento) => {
+    if (!fechaVencimiento) return false;
+    const fecha = new Date(fechaVencimiento);
+    const hoy = new Date();
+    return fecha < hoy;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6 bg-white p-5 rounded-xl shadow-sm">
         <h2 className="text-2xl font-semibold text-slate-800 flex items-center gap-3 m-0">
           <FaBus className="text-blue-500 text-3xl" />
@@ -66,16 +264,20 @@ const Vehiculos = () => {
         </h2>
         <div className="flex gap-5">
           <div className="flex flex-col items-center bg-gray-50 py-2 px-5 rounded-lg min-w-24">
-            <span className="text-2xl font-bold text-blue-500">{vehiculos.length}</span>
+            <span className="text-2xl font-bold text-blue-500">{estadisticas.total || 0}</span>
             <span className="text-sm text-slate-500">Total</span>
           </div>
           <div className="flex flex-col items-center bg-gray-50 py-2 px-5 rounded-lg min-w-24">
-            <span className="text-2xl font-bold text-blue-500">{vehiculos.filter(v => v.disponible).length}</span>
+            <span className="text-2xl font-bold text-green-500">{estadisticas.disponibles || 0}</span>
             <span className="text-sm text-slate-500">Disponibles</span>
           </div>
           <div className="flex flex-col items-center bg-gray-50 py-2 px-5 rounded-lg min-w-24">
-            <span className="text-2xl font-bold text-blue-500">{vehiculos.filter(v => !v.disponible).length}</span>
-            <span className="text-sm text-slate-500">No Disponibles</span>
+            <span className="text-2xl font-bold text-blue-500">{estadisticas.enRuta || 0}</span>
+            <span className="text-sm text-slate-500">En Ruta</span>
+          </div>
+          <div className="flex flex-col items-center bg-gray-50 py-2 px-5 rounded-lg min-w-24">
+            <span className="text-2xl font-bold text-orange-500">{estadisticas.enMantenimiento || 0}</span>
+            <span className="text-sm text-slate-500">Mantenimiento</span>
           </div>
         </div>
       </div>
@@ -85,7 +287,7 @@ const Vehiculos = () => {
           <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
-            placeholder="Buscar por placa, modelo o conductor..." 
+            placeholder="Buscar por placa, marca, modelo o conductor..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
@@ -100,8 +302,9 @@ const Vehiculos = () => {
             className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 text-base bg-white cursor-pointer transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none appearance-none"
           >
             <option value="all">Todos los vehículos</option>
-            <option value="available">Disponibles</option>
-            <option value="unavailable">No disponibles</option>
+            {estadosVehiculo.map(estado => (
+              <option key={estado.value} value={estado.value}>{estado.label}</option>
+            ))}
           </select>
         </div>
 
@@ -113,178 +316,259 @@ const Vehiculos = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
-        {filteredVehiculos.map((vehiculo) => (
-          <div key={vehiculo.id} className="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="m-0 text-lg text-slate-800">{vehiculo.modelo}</h3>
-              <span className={`flex items-center gap-1 text-sm font-semibold py-1 px-2 rounded-2xl ${
-                vehiculo.disponible 
-                  ? "text-green-600 bg-green-50" 
-                  : "text-red-500 bg-red-50"
-              }`}>
-                {vehiculo.disponible ? <FaCheckCircle /> : <FaTimesCircle />}
-                <span>{vehiculo.disponible ? "Disponible" : "No disponible"}</span>
-              </span>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-5">
+        {filteredVehiculos.map((vehiculo) => {
+          const estadoInfo = getEstadoInfo(vehiculo.estVehiculo);
+          const soatProximoVencer = isVencimientoProximo(vehiculo.fecVenSOAT);
+          const tecnicaProximaVencer = isVencimientoProximo(vehiculo.fecVenTec);
+          const soatVencido = isVencido(vehiculo.fecVenSOAT);
+          const tecnicaVencida = isVencido(vehiculo.fecVenTec);
+          
+          return (
+            <div key={vehiculo.idVehiculo} className="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 className="m-0 text-lg text-slate-800 font-semibold">
+                  {vehiculo.marVehiculo} {vehiculo.modVehiculo}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className={`flex items-center gap-1 text-sm font-semibold py-1 px-3 rounded-full ${estadoInfo.color}`}>
+                    {vehiculo.estVehiculo === 'DISPONIBLE' && <FaCheckCircle />}
+                    {vehiculo.estVehiculo === 'EN_RUTA' && <FaRoad />}
+                    {vehiculo.estVehiculo === 'EN_MANTENIMIENTO' && <FaCogs />}
+                    {vehiculo.estVehiculo === 'FUERA_DE_SERVICIO' && <FaTimesCircle />}
+                    {estadoInfo.label}
+                  </span>
+                  {/* Dropdown para cambiar estado */}
+                  <select 
+                    value={vehiculo.estVehiculo}
+                    onChange={(e) => handleChangeStatus(vehiculo, e.target.value)}
+                    className="text-xs border border-gray-300 rounded px-2 py-1"
+                    title="Cambiar estado"
+                  >
+                    {estadosVehiculo.map(estado => (
+                      <option key={estado.value} value={estado.value}>
+                        {estado.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="p-4">
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="font-semibold text-slate-500 text-sm">Placa:</span>
+                  <span className="text-slate-800 text-sm font-mono">{vehiculo.plaVehiculo}</span>
+                </div>
+                
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="font-semibold text-slate-500 text-sm">Número interno:</span>
+                  <span className="text-slate-800 text-sm">{vehiculo.numVehiculo}</span>
+                </div>
+                
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="font-semibold text-slate-500 text-sm">Año:</span>
+                  <span className="text-slate-800 text-sm">{vehiculo.anioVehiculo}</span>
+                </div>
+                
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="font-semibold text-slate-500 text-sm">Conductor:</span>
+                  <span className="text-slate-800 text-sm flex items-center gap-1">
+                    {vehiculo.conductor ? (
+                      <>
+                        <FaUser className="text-green-500" />
+                        {vehiculo.conductor.nombre}
+                      </>
+                    ) : (
+                      <span className="text-gray-400">Sin asignar</span>
+                    )}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="font-semibold text-slate-500 text-sm">SOAT:</span>
+                  <span className={`text-sm flex items-center gap-1 ${
+                    soatVencido ? 'text-red-600 font-semibold' : 
+                    soatProximoVencer ? 'text-orange-600 font-semibold' : 'text-slate-800'
+                  }`}>
+                    {(soatVencido || soatProximoVencer) && <FaExclamationTriangle />}
+                    {formatDate(vehiculo.fecVenSOAT)}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between py-2">
+                  <span className="font-semibold text-slate-500 text-sm">Técnica:</span>
+                  <span className={`text-sm flex items-center gap-1 ${
+                    tecnicaVencida ? 'text-red-600 font-semibold' : 
+                    tecnicaProximaVencer ? 'text-orange-600 font-semibold' : 'text-slate-800'
+                  }`}>
+                    {(tecnicaVencida || tecnicaProximaVencer) && <FaExclamationTriangle />}
+                    {formatDate(vehiculo.fecVenTec)}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 p-4 bg-gray-50">
+                <button 
+                  onClick={() => openEditModal(vehiculo)}
+                  className="flex-1 py-2 px-4 rounded-md text-sm font-semibold cursor-pointer transition-all duration-300 border-none bg-blue-500 text-white hover:bg-blue-600 flex items-center justify-center gap-1"
+                >
+                  <FaEdit /> Editar
+                </button>
+                <button 
+                  onClick={() => handleDeleteVehiculo(vehiculo)}
+                  className="flex-1 py-2 px-4 rounded-md text-sm font-semibold cursor-pointer transition-all duration-300 border-none bg-red-500 text-white hover:bg-red-600 flex items-center justify-center gap-1"
+                >
+                  <FaTrash /> Eliminar
+                </button>
+              </div>
             </div>
-            <div className="p-4">
-              <div className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <span className="font-semibold text-slate-500 text-sm">Placa:</span>
-                <span className="text-slate-800 text-sm">{vehiculo.placa}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <span className="font-semibold text-slate-500 text-sm">Año:</span>
-                <span className="text-slate-800 text-sm">{vehiculo.año}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <span className="font-semibold text-slate-500 text-sm">Capacidad:</span>
-                <span className="text-slate-800 text-sm">{vehiculo.capacidad} pasajeros</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <span className="font-semibold text-slate-500 text-sm">Conductor:</span>
-                <span className="text-slate-800 text-sm">{vehiculo.conductor}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <span className="font-semibold text-slate-500 text-sm">Ruta:</span>
-                <span className="text-slate-800 text-sm">{vehiculo.ruta}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <span className="font-semibold text-slate-500 text-sm">Estado:</span>
-                <span className="text-slate-800 text-sm">{vehiculo.estado}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <span className="font-semibold text-slate-500 text-sm">Último mantenimiento:</span>
-                <span className="text-slate-800 text-sm">{vehiculo.ultimoMantenimiento}</span>
-              </div>
-            </div>
-            <div className="flex gap-2 p-4 bg-gray-50">
-              <button className="flex-1 py-2 px-4 rounded-md text-sm font-semibold cursor-pointer transition-all duration-300 border-none bg-blue-500 text-white hover:bg-blue-600">
-                Editar
-              </button>
-              <button className="flex-1 py-2 px-4 rounded-md text-sm font-semibold cursor-pointer transition-all duration-300 border-none bg-gray-200 text-slate-800 hover:bg-gray-300">
-                Ver detalles
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
+      {filteredVehiculos.length === 0 && !loading && (
+        <div className="text-center py-12">
+          <FaBus className="text-gray-400 text-6xl mb-4 mx-auto" />
+          <p className="text-gray-500 text-lg">No se encontraron vehículos</p>
+          {searchTerm && (
+            <p className="text-gray-400 text-sm">
+              Intenta con otros términos de búsqueda o cambia los filtros
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Modal para agregar vehículo */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto">
-            <h3 className="mt-0 text-slate-800 border-b border-gray-100 pb-4">Agregar Nuevo Vehículo</h3>
-            <div className="flex gap-5 mb-4">
-              <div className="flex-1 flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Placa</label>
+            <h3 className="mt-0 text-xl font-semibold text-slate-800 border-b border-gray-100 pb-4 mb-4">
+              Agregar Nuevo Vehículo
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Número Interno *</label>
                 <input 
                   type="text" 
-                  name="placa" 
-                  value={newVehiculo.placa} 
-                  onChange={handleInputChange} 
-                  required 
+                  value={newVehiculo.numVehiculo} 
+                  onChange={(e) => setNewVehiculo({...newVehiculo, numVehiculo: e.target.value})}
                   className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                  placeholder="Ej: V001"
                 />
               </div>
-              <div className="flex-1 flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Modelo</label>
+              
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Placa *</label>
                 <input 
                   type="text" 
-                  name="modelo" 
-                  value={newVehiculo.modelo} 
-                  onChange={handleInputChange} 
-                  required 
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                  value={newVehiculo.plaVehiculo} 
+                  onChange={(e) => setNewVehiculo({...newVehiculo, plaVehiculo: e.target.value.toUpperCase()})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-mono"
+                  placeholder="ABC-123"
                 />
               </div>
             </div>
-            <div className="flex gap-5 mb-4">
-              <div className="flex-1 flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Año</label>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Marca *</label>
+                <input 
+                  type="text" 
+                  value={newVehiculo.marVehiculo} 
+                  onChange={(e) => setNewVehiculo({...newVehiculo, marVehiculo: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                  placeholder="Ej: Mercedes-Benz"
+                />
+              </div>
+              
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Modelo *</label>
+                <input 
+                  type="text" 
+                  value={newVehiculo.modVehiculo} 
+                  onChange={(e) => setNewVehiculo({...newVehiculo, modVehiculo: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                  placeholder="Ej: O500"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Año *</label>
                 <input 
                   type="number" 
-                  name="año" 
-                  value={newVehiculo.año} 
-                  onChange={handleInputChange} 
-                  required 
+                  value={newVehiculo.anioVehiculo} 
+                  onChange={(e) => setNewVehiculo({...newVehiculo, anioVehiculo: parseInt(e.target.value)})}
                   className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                  min="1950"
+                  max={new Date().getFullYear() + 1}
                 />
               </div>
-              <div className="flex-1 flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Capacidad</label>
-                <input 
-                  type="number" 
-                  name="capacidad" 
-                  value={newVehiculo.capacidad} 
-                  onChange={handleInputChange} 
-                  required 
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                />
-              </div>
-            </div>
-            <div className="flex gap-5 mb-4">
-              <div className="flex-1 flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Conductor</label>
-                <input 
-                  type="text" 
-                  name="conductor" 
-                  value={newVehiculo.conductor} 
-                  onChange={handleInputChange} 
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                />
-              </div>
-              <div className="flex-1 flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Ruta</label>
-                <input 
-                  type="text" 
-                  name="ruta" 
-                  value={newVehiculo.ruta} 
-                  onChange={handleInputChange} 
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                />
-              </div>
-            </div>
-            <div className="flex gap-5 mb-4">
-              <div className="flex-1 flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Último Mantenimiento</label>
-                <input 
-                  type="date" 
-                  name="ultimoMantenimiento" 
-                  value={newVehiculo.ultimoMantenimiento} 
-                  onChange={handleInputChange} 
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                />
-              </div>
-              <div className="flex-1 flex flex-col">
+              
+              <div className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 mb-2">Estado</label>
                 <select 
-                  name="estado" 
-                  value={newVehiculo.estado} 
-                  onChange={handleInputChange}
+                  value={newVehiculo.estVehiculo} 
+                  onChange={(e) => setNewVehiculo({...newVehiculo, estVehiculo: e.target.value})}
                   className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 >
-                  <option value="Excelente">Excelente</option>
-                  <option value="Bueno">Bueno</option>
-                  <option value="Regular">Regular</option>
-                  <option value="En mantenimiento">En mantenimiento</option>
-                  <option value="En revisión">En revisión</option>
+                  {estadosVehiculo.map(estado => (
+                    <option key={estado.value} value={estado.value}>{estado.label}</option>
+                  ))}
                 </select>
               </div>
             </div>
-            <div className="flex flex-row items-center gap-2 mt-2">
-              <input 
-                type="checkbox" 
-                id="disponible" 
-                name="disponible" 
-                checked={newVehiculo.disponible} 
-                onChange={handleInputChange} 
-                className="w-4 h-4"
-              />
-              <label htmlFor="disponible" className="text-sm font-semibold text-slate-500">Disponible para operación</label>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Vencimiento SOAT *</label>
+                <input 
+                  type="date" 
+                  value={newVehiculo.fecVenSOAT} 
+                  onChange={(e) => setNewVehiculo({...newVehiculo, fecVenSOAT: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Vencimiento Técnica *</label>
+                <input 
+                  type="date" 
+                  value={newVehiculo.fecVenTec} 
+                  onChange={(e) => setNewVehiculo({...newVehiculo, fecVenTec: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
             </div>
-            <div className="flex justify-end gap-4 mt-6">
+            
+            <div className="flex flex-col mb-6">
+              <label className="text-sm font-semibold text-slate-500 mb-2">Conductor Asignado</label>
+              <select 
+                value={newVehiculo.idConductorAsignado} 
+                onChange={(e) => setNewVehiculo({...newVehiculo, idConductorAsignado: e.target.value})}
+                className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+              >
+                <option value="">Sin conductor asignado</option>
+                {conductoresDisponibles.map(conductor => (
+                  <option key={conductor.idConductor} value={conductor.idConductor}>
+                    {conductor.nomConductor} {conductor.apeConductor} - {conductor.numDocConductor}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="flex justify-end gap-4">
               <button 
                 className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-gray-200 text-slate-800 border-none hover:bg-gray-300" 
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetNewVehiculo();
+                  setError('');
+                }}
               >
                 Cancelar
               </button>
@@ -292,7 +576,154 @@ const Vehiculos = () => {
                 className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-green-500 text-white border-none hover:bg-green-600" 
                 onClick={handleAddVehiculo}
               >
-                Guardar
+                Guardar Vehículo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para editar vehículo */}
+      {showEditModal && selectedVehiculo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto">
+            <h3 className="mt-0 text-xl font-semibold text-slate-800 border-b border-gray-100 pb-4 mb-4">
+              Editar Vehículo - {selectedVehiculo.plaVehiculo}
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Número Interno *</label>
+                <input 
+                  type="text" 
+                  value={editVehiculo.numVehiculo || ''} 
+                  onChange={(e) => setEditVehiculo({...editVehiculo, numVehiculo: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                />
+              </div>
+              
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Placa *</label>
+                <input 
+                  type="text" 
+                  value={editVehiculo.plaVehiculo || ''} 
+                  onChange={(e) => setEditVehiculo({...editVehiculo, plaVehiculo: e.target.value.toUpperCase()})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-mono"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Marca *</label>
+                <input 
+                  type="text" 
+                  value={editVehiculo.marVehiculo || ''} 
+                  onChange={(e) => setEditVehiculo({...editVehiculo, marVehiculo: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                />
+              </div>
+              
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Modelo *</label>
+                <input 
+                  type="text" 
+                  value={editVehiculo.modVehiculo || ''} 
+                  onChange={(e) => setEditVehiculo({...editVehiculo, modVehiculo: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Año *</label>
+                <input 
+                  type="number" 
+                  value={editVehiculo.anioVehiculo || ''} 
+                  onChange={(e) => setEditVehiculo({...editVehiculo, anioVehiculo: parseInt(e.target.value)})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                  min="1950"
+                  max={new Date().getFullYear() + 1}
+                />
+              </div>
+              
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Estado</label>
+                <select 
+                  value={editVehiculo.estVehiculo || ''} 
+                  onChange={(e) => setEditVehiculo({...editVehiculo, estVehiculo: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                >
+                  {estadosVehiculo.map(estado => (
+                    <option key={estado.value} value={estado.value}>{estado.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Vencimiento SOAT *</label>
+                <input 
+                  type="date" 
+                  value={editVehiculo.fecVenSOAT || ''} 
+                  onChange={(e) => setEditVehiculo({...editVehiculo, fecVenSOAT: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                />
+              </div>
+              
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold text-slate-500 mb-2">Vencimiento Técnica *</label>
+                <input 
+                  type="date" 
+                  value={editVehiculo.fecVenTec || ''} 
+                  onChange={(e) => setEditVehiculo({...editVehiculo, fecVenTec: e.target.value})}
+                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                />
+              </div>
+            </div>
+            
+            <div className="flex flex-col mb-6">
+              <label className="text-sm font-semibold text-slate-500 mb-2">Conductor Asignado</label>
+              <select 
+                value={editVehiculo.idConductorAsignado || ''} 
+                onChange={(e) => setEditVehiculo({...editVehiculo, idConductorAsignado: e.target.value})}
+                className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+              >
+                <option value="">Sin conductor asignado</option>
+                {selectedVehiculo.conductor && (
+                  <option value={selectedVehiculo.conductor.idConductor}>
+                    {selectedVehiculo.conductor.nombre} (Actual)
+                  </option>
+                )}
+                {conductoresDisponibles
+                  .filter(c => !selectedVehiculo.conductor || c.idConductor !== selectedVehiculo.conductor.idConductor)
+                  .map(conductor => (
+                    <option key={conductor.idConductor} value={conductor.idConductor}>
+                      {conductor.nomConductor} {conductor.apeConductor} - {conductor.numDocConductor}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            
+            <div className="flex justify-end gap-4">
+              <button 
+                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-gray-200 text-slate-800 border-none hover:bg-gray-300" 
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedVehiculo(null);
+                  setEditVehiculo({});
+                  setError('');
+                }}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-blue-500 text-white border-none hover:bg-blue-600" 
+                onClick={handleEditVehiculo}
+              >
+                Actualizar Vehículo
               </button>
             </div>
           </div>

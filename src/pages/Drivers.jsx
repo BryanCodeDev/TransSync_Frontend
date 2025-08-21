@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Search, Plus, Eye, Edit, MessageSquare, ChevronLeft, ChevronRight, AlertCircle, Loader } from "lucide-react";
-import apiService from "../utilidades/driversAPI";
+import driversAPI from "../utilidades/driversAPI";
 
 const Drivers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,8 +17,10 @@ const Drivers = () => {
       setLoading(true);
       setError(null);
       
-      const response = await apiService.data.getDrivers(filters);
-      setDrivers(response.conductores || []);
+      // Corregido: usar driversAPI.getAll en lugar de apiService.data.getDrivers
+      const response = await driversAPI.getAll(filters);
+      // La respuesta puede venir directamente como array o con una propiedad específica
+      setDrivers(response.conductores || response || []);
     } catch (error) {
       console.error('Error cargando conductores:', error);
       setError(error.message || 'Error al cargar los conductores');

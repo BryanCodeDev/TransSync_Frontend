@@ -2,7 +2,7 @@
 import authAPI from '../utilidades/authAPI';
 import adminAPI from '../utilidades/adminAPI';
 import driversAPI from '../utilidades/driversAPI';
-import vehiculosAPI from '../utilidades/vehiculosAPI';
+import vehiculosAPI from '../utilidades/vehiculosAPI'; // Actualizado para usar el nuevo
 import rutasAPI from '../utilidades/rutasAPI';
 import horariosAPI from '../utilidades/horariosAPI';
 import informesAPI from '../utilidades/informesAPI';
@@ -20,7 +20,7 @@ const API = {
   
   // Servicios de datos principales
   drivers: driversAPI,
-  vehiculos: vehiculosAPI,
+  vehiculos: vehiculosAPI, // Actualizado
   rutas: rutasAPI,
   horarios: horariosAPI,
   
@@ -67,7 +67,7 @@ export {
   authAPI,
   adminAPI,
   driversAPI,
-  vehiculosAPI,
+  vehiculosAPI, // Actualizado
   rutasAPI,
   horariosAPI,
   informesAPI,
