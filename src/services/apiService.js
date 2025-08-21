@@ -555,7 +555,9 @@ export const adminService = {
 // SERVICIOS DE DATOS GENERALES
 // ================================
 export const dataService = {
-  // Obtener rutas
+  // ================================
+  // SERVICIOS DE RUTAS
+  // ================================
   getRutas: async (filters = {}) => {
     try {
       const params = apiUtils.createUrlParams(filters);
@@ -566,7 +568,6 @@ export const dataService = {
     }
   },
 
-  // Crear ruta
   crearRuta: async (rutaData) => {
     try {
       const response = await apiClient.post('/rutas', rutaData);
@@ -576,7 +577,6 @@ export const dataService = {
     }
   },
 
-  // Actualizar ruta
   actualizarRuta: async (id, rutaData) => {
     try {
       if (!id) throw new Error('ID de ruta requerido');
@@ -587,7 +587,6 @@ export const dataService = {
     }
   },
 
-  // Eliminar ruta
   eliminarRuta: async (id) => {
     try {
       if (!id) throw new Error('ID de ruta requerido');
@@ -598,7 +597,9 @@ export const dataService = {
     }
   },
 
-  // Obtener vehículos
+  // ================================
+  // SERVICIOS DE VEHÍCULOS
+  // ================================
   getVehiculos: async (filters = {}) => {
     try {
       const params = apiUtils.createUrlParams(filters);
@@ -609,7 +610,6 @@ export const dataService = {
     }
   },
 
-  // Crear vehículo
   crearVehiculo: async (vehiculoData) => {
     try {
       const response = await apiClient.post('/vehiculos', vehiculoData);
@@ -619,7 +619,6 @@ export const dataService = {
     }
   },
 
-  // Actualizar vehículo
   actualizarVehiculo: async (id, vehiculoData) => {
     try {
       if (!id) throw new Error('ID de vehículo requerido');
@@ -630,7 +629,6 @@ export const dataService = {
     }
   },
 
-  // Eliminar vehículo
   eliminarVehiculo: async (id) => {
     try {
       if (!id) throw new Error('ID de vehículo requerido');
@@ -641,32 +639,113 @@ export const dataService = {
     }
   },
 
-  // Obtener conductores
+  // ================================
+  // SERVICIOS DE CONDUCTORES (ACTUALIZADOS Y MEJORADOS)
+  // ================================
+  
+  // Obtener conductores con información completa
   getDrivers: async (filters = {}) => {
     try {
       const params = apiUtils.createUrlParams(filters);
-      const response = await apiClient.get(`/drivers${params ? `?${params}` : ''}`);
+      const response = await apiClient.get(`/conductores${params ? `?${params}` : ''}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
   },
 
-  // Crear conductor
+  // Obtener conductor por ID con detalles completos
+  getDriverById: async (id) => {
+    try {
+      if (!id) throw new Error('ID de conductor requerido');
+      const response = await apiClient.get(`/conductores/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Crear conductor con validaciones mejoradas
   crearDriver: async (driverData) => {
     try {
-      const response = await apiClient.post('/drivers', driverData);
+      // Validaciones específicas para conductores
+      const { 
+        nomConductor, 
+        apeConductor, 
+        numDocConductor, 
+        tipLicConductor, 
+        fecVenLicConductor,
+        idEmpresa 
+      } = driverData;
+
+      const missing = apiUtils.validateRequired({ 
+        nomConductor, 
+        apeConductor, 
+        numDocConductor, 
+        tipLicConductor, 
+        fecVenLicConductor 
+      });
+
+      if (missing.length > 0) {
+        throw new Error(`Campos requeridos: ${missing.join(', ')}`);
+      }
+
+      // Validar tipo de licencia
+      const validLicenses = ['B1', 'B2', 'B3', 'C1', 'C2', 'C3'];
+      if (!validLicenses.includes(tipLicConductor)) {
+        throw new Error('Tipo de licencia inválido');
+      }
+
+      // Validar fecha de vencimiento
+      const fechaVencimiento = new Date(fecVenLicConductor);
+      const hoy = new Date();
+      if (fechaVencimiento <= hoy) {
+        throw new Error('La fecha de vencimiento de la licencia debe ser futura');
+      }
+
+      const response = await apiClient.post('/conductores', {
+        ...driverData,
+        nomConductor: nomConductor.trim(),
+        apeConductor: apeConductor.trim(),
+        numDocConductor: numDocConductor.trim(),
+        idEmpresa: idEmpresa || 1 // Empresa por defecto si no se especifica
+      });
+
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
   },
 
-  // Actualizar conductor
+  // Actualizar conductor con validaciones
   actualizarDriver: async (id, driverData) => {
     try {
       if (!id) throw new Error('ID de conductor requerido');
-      const response = await apiClient.put(`/drivers/${id}`, driverData);
+
+      // Validar datos si se proporcionan
+      if (driverData.tipLicConductor) {
+        const validLicenses = ['B1', 'B2', 'B3', 'C1', 'C2', 'C3'];
+        if (!validLicenses.includes(driverData.tipLicConductor)) {
+          throw new Error('Tipo de licencia inválido');
+        }
+      }
+
+      if (driverData.fecVenLicConductor) {
+        const fechaVencimiento = new Date(driverData.fecVenLicConductor);
+        const hoy = new Date();
+        if (fechaVencimiento <= hoy) {
+          throw new Error('La fecha de vencimiento de la licencia debe ser futura');
+        }
+      }
+
+      // Limpiar campos de texto si existen
+      const cleanedData = { ...driverData };
+      if (cleanedData.nomConductor) cleanedData.nomConductor = cleanedData.nomConductor.trim();
+      if (cleanedData.apeConductor) cleanedData.apeConductor = cleanedData.apeConductor.trim();
+      if (cleanedData.numDocConductor) cleanedData.numDocConductor = cleanedData.numDocConductor.trim();
+      if (cleanedData.telConductor) cleanedData.telConductor = cleanedData.telConductor.trim();
+
+      const response = await apiClient.put(`/conductores/${id}`, cleanedData);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -677,14 +756,97 @@ export const dataService = {
   eliminarDriver: async (id) => {
     try {
       if (!id) throw new Error('ID de conductor requerido');
-      const response = await apiClient.delete(`/drivers/${id}`);
+      const response = await apiClient.delete(`/conductores/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
   },
 
-  // Obtener horarios
+  // Cambiar estado de conductor
+  cambiarEstadoConductor: async (id, nuevoEstado) => {
+    try {
+      if (!id || !nuevoEstado) {
+        throw new Error('ID de conductor y nuevo estado son requeridos');
+      }
+
+      const validStates = ['ACTIVO', 'INACTIVO', 'DIA_DESCANSO', 'INCAPACITADO', 'DE_VACACIONES'];
+      if (!validStates.includes(nuevoEstado)) {
+        throw new Error('Estado inválido');
+      }
+
+      const response = await apiClient.patch(`/conductores/${id}/estado`, {
+        estConductor: nuevoEstado
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Asignar vehículo a conductor
+  asignarVehiculoConductor: async (idConductor, idVehiculo) => {
+    try {
+      if (!idConductor || !idVehiculo) {
+        throw new Error('ID de conductor e ID de vehículo son requeridos');
+      }
+
+      const response = await apiClient.patch(`/conductores/${idConductor}/asignar-vehiculo`, {
+        idVehiculo
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Desasignar vehículo de conductor
+  desasignarVehiculoConductor: async (idConductor) => {
+    try {
+      if (!idConductor) throw new Error('ID de conductor requerido');
+
+      const response = await apiClient.patch(`/conductores/${idConductor}/desasignar-vehiculo`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener conductores disponibles (para asignación)
+  getConductoresDisponibles: async () => {
+    try {
+      const response = await apiClient.get('/conductores/disponibles');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener estadísticas de conductores
+  getEstadisticasConductores: async () => {
+    try {
+      const response = await apiClient.get('/conductores/estadisticas');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Verificar vencimiento de licencias
+  verificarVencimientoLicencias: async (diasAnticipacion = 30) => {
+    try {
+      const response = await apiClient.get(`/conductores/licencias-vencimiento?dias=${diasAnticipacion}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // ================================
+  // SERVICIOS DE HORARIOS
+  // ================================
   getHorarios: async (filters = {}) => {
     try {
       const params = apiUtils.createUrlParams(filters);
@@ -695,7 +857,6 @@ export const dataService = {
     }
   },
 
-  // Crear horario
   crearHorario: async (horarioData) => {
     try {
       const response = await apiClient.post('/horarios', horarioData);
@@ -705,7 +866,6 @@ export const dataService = {
     }
   },
 
-  // Actualizar horario
   actualizarHorario: async (id, horarioData) => {
     try {
       if (!id) throw new Error('ID de horario requerido');
@@ -716,7 +876,6 @@ export const dataService = {
     }
   },
 
-  // Eliminar horario
   eliminarHorario: async (id) => {
     try {
       if (!id) throw new Error('ID de horario requerido');
@@ -846,6 +1005,288 @@ export const emergencyService = {
 };
 
 // ================================
+// SERVICIOS DE EMPRESAS
+// ================================
+export const empresaService = {
+  // Obtener empresas
+  getEmpresas: async (filters = {}) => {
+    try {
+      const params = apiUtils.createUrlParams(filters);
+      const response = await apiClient.get(`/empresas${params ? `?${params}` : ''}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener empresa por ID
+  getEmpresaById: async (id) => {
+    try {
+      if (!id) throw new Error('ID de empresa requerido');
+      const response = await apiClient.get(`/empresas/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Crear empresa
+  crearEmpresa: async (empresaData) => {
+    try {
+      const { nomEmpresa, nitEmpresa, dirEmpresa, telEmpresa } = empresaData;
+      
+      const missing = apiUtils.validateRequired({ 
+        nomEmpresa, 
+        nitEmpresa, 
+        dirEmpresa, 
+        telEmpresa 
+      });
+
+      if (missing.length > 0) {
+        throw new Error(`Campos requeridos: ${missing.join(', ')}`);
+      }
+
+      const response = await apiClient.post('/empresas', {
+        ...empresaData,
+        nomEmpresa: nomEmpresa.trim(),
+        nitEmpresa: nitEmpresa.trim(),
+        dirEmpresa: dirEmpresa.trim(),
+        telEmpresa: telEmpresa.trim()
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Actualizar empresa
+  actualizarEmpresa: async (id, empresaData) => {
+    try {
+      if (!id) throw new Error('ID de empresa requerido');
+
+      // Limpiar campos de texto si existen
+      const cleanedData = { ...empresaData };
+      if (cleanedData.nomEmpresa) cleanedData.nomEmpresa = cleanedData.nomEmpresa.trim();
+      if (cleanedData.nitEmpresa) cleanedData.nitEmpresa = cleanedData.nitEmpresa.trim();
+      if (cleanedData.dirEmpresa) cleanedData.dirEmpresa = cleanedData.dirEmpresa.trim();
+      if (cleanedData.telEmpresa) cleanedData.telEmpresa = cleanedData.telEmpresa.trim();
+
+      const response = await apiClient.put(`/empresas/${id}`, cleanedData);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Eliminar empresa
+  eliminarEmpresa: async (id) => {
+    try {
+      if (!id) throw new Error('ID de empresa requerido');
+      const response = await apiClient.delete(`/empresas/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Cambiar estado de empresa
+  cambiarEstadoEmpresa: async (id, estado) => {
+    try {
+      if (!id || typeof estado !== 'boolean') {
+        throw new Error('ID de empresa y estado son requeridos');
+      }
+
+      const response = await apiClient.patch(`/empresas/${id}/estado`, {
+        estActivo: estado
+      });
+
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  }
+};
+
+// ================================
+// SERVICIOS DE NOTIFICACIONES
+// ================================
+export const notificationService = {
+  // Obtener notificaciones del usuario
+  getNotificaciones: async (filters = {}) => {
+    try {
+      const params = apiUtils.createUrlParams(filters);
+      const response = await apiClient.get(`/notificaciones${params ? `?${params}` : ''}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Marcar notificación como leída
+  marcarComoLeida: async (id) => {
+    try {
+      if (!id) throw new Error('ID de notificación requerido');
+      const response = await apiClient.patch(`/notificaciones/${id}/leer`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Marcar todas como leídas
+  marcarTodasComoLeidas: async () => {
+    try {
+      const response = await apiClient.patch('/notificaciones/leer-todas');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Eliminar notificación
+  eliminarNotificacion: async (id) => {
+    try {
+      if (!id) throw new Error('ID de notificación requerido');
+      const response = await apiClient.delete(`/notificaciones/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener contador de notificaciones no leídas
+  getContadorNoLeidas: async () => {
+    try {
+      const response = await apiClient.get('/notificaciones/contador');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  }
+};
+
+// ================================
+// SERVICIOS DE MANTENIMIENTO
+// ================================
+export const maintenanceService = {
+  // Obtener mantenimientos
+  getMantenimientos: async (filters = {}) => {
+    try {
+      const params = apiUtils.createUrlParams(filters);
+      const response = await apiClient.get(`/mantenimientos${params ? `?${params}` : ''}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Crear mantenimiento
+  crearMantenimiento: async (mantenimientoData) => {
+    try {
+      const { 
+        idVehiculo, 
+        tipMantenimiento, 
+        fecMantenimiento
+        // costoMantenimiento - removido ya que no se usa en la validación
+      } = mantenimientoData;
+
+      const missing = apiUtils.validateRequired({ 
+        idVehiculo, 
+        tipMantenimiento, 
+        fecMantenimiento 
+      });
+
+      if (missing.length > 0) {
+        throw new Error(`Campos requeridos: ${missing.join(', ')}`);
+      }
+
+      const response = await apiClient.post('/mantenimientos', mantenimientoData);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Actualizar mantenimiento
+  actualizarMantenimiento: async (id, mantenimientoData) => {
+    try {
+      if (!id) throw new Error('ID de mantenimiento requerido');
+      const response = await apiClient.put(`/mantenimientos/${id}`, mantenimientoData);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Eliminar mantenimiento
+  eliminarMantenimiento: async (id) => {
+    try {
+      if (!id) throw new Error('ID de mantenimiento requerido');
+      const response = await apiClient.delete(`/mantenimientos/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener próximos mantenimientos
+  getProximosMantenimientos: async (dias = 30) => {
+    try {
+      const response = await apiClient.get(`/mantenimientos/proximos?dias=${dias}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  }
+};
+
+// ================================
+// SERVICIOS DE DASHBOARD/ESTADÍSTICAS
+// ================================
+export const dashboardService = {
+  // Obtener estadísticas generales del dashboard
+  getEstadisticasGenerales: async () => {
+    try {
+      const response = await apiClient.get('/dashboard/estadisticas');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener datos para gráficos
+  getDatosGraficos: async (periodo = 'mes') => {
+    try {
+      const response = await apiClient.get(`/dashboard/graficos?periodo=${periodo}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener alertas activas
+  getAlertasActivas: async () => {
+    try {
+      const response = await apiClient.get('/dashboard/alertas');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Obtener actividad reciente
+  getActividadReciente: async (limite = 10) => {
+    try {
+      const response = await apiClient.get(`/dashboard/actividad?limite=${limite}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  }
+};
+
+// ================================
 // VERIFICACIÓN DE SALUD DEL API
 // ================================
 export const healthCheck = async () => {
@@ -881,6 +1322,10 @@ const apiService = {
   data: dataService,
   report: reportService,
   emergency: emergencyService,
+  empresa: empresaService,
+  notification: notificationService,
+  maintenance: maintenanceService,
+  dashboard: dashboardService,
   utils: apiUtils,
   healthCheck
 };
