@@ -1,10 +1,10 @@
-// services/apiService.js - Servicio unificado y completo para tu API
+// services/apiService.js - Servicio actualizado para tu backend TransSync
 import axios from "axios";
 
 // ================================
 // CONFIGURACIÓN BASE
 // ================================
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 const REQUEST_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT) || 10000;
 
 // Crear instancia de axios con configuración base
@@ -17,14 +17,14 @@ const apiClient = axios.create({
 });
 
 // ================================
-// INTERCEPTORES MEJORADOS
+// INTERCEPTORES
 // ================================
 
 // Request interceptor - agregar token y logging
 apiClient.interceptors.request.use(
   (config) => {
     // Agregar token si existe
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken') || localStorage.getItem('userToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -70,23 +70,16 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expirado o inválido
       localStorage.removeItem('authToken');
+      localStorage.removeItem('userToken');
       localStorage.removeItem('userData');
-      
-      // Notificar a la aplicación sobre el logout
-      window.dispatchEvent(new CustomEvent('auth:logout'));
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userRole');
       
       // Redirigir solo si no estamos ya en login
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
-    } else if (error.response?.status === 403) {
-      // Sin permisos
-      window.dispatchEvent(new CustomEvent('auth:forbidden'));
-    } else if (error.response?.status >= 500) {
-      // Error del servidor
-      window.dispatchEvent(new CustomEvent('api:server-error', {
-        detail: { message: error.response?.data?.message || 'Error del servidor' }
-      }));
     }
 
     return Promise.reject(error);
@@ -99,25 +92,6 @@ apiClient.interceptors.response.use(
 export const apiUtils = {
   // Verificar si hay conexión a internet
   isOnline: () => navigator.onLine,
-
-  // Reintentar solicitud
-  retryRequest: async (requestFn, maxRetries = 3, delay = 1000) => {
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        return await requestFn();
-      } catch (error) {
-        if (i === maxRetries - 1) throw error;
-        
-        // Solo reintentar en errores de red o 5xx
-        if (error.code === 'NETWORK_ERROR' || 
-            (error.response?.status >= 500 && error.response?.status < 600)) {
-          await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
-          continue;
-        }
-        throw error;
-      }
-    }
-  },
 
   // Formatear errores para mostrar al usuario
   formatError: (error) => {
@@ -152,24 +126,16 @@ export const authService = {
   // Registro de usuario
   register: async (userData) => {
     try {
-      const { name, email, password } = userData;
+      const { email, password } = userData;
       
-      if (!name || !email || !password) {
-        throw new Error('Todos los campos son requeridos');
+      if (!email || !password) {
+        throw new Error('Email y contraseña son requeridos');
       }
 
       const response = await apiClient.post('/auth/register', { 
-        name: name.trim(), 
         email: email.trim().toLowerCase(), 
         password 
       });
-
-      // Si viene token en el registro, guardarlo
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('userData', JSON.stringify(response.data.user));
-        window.dispatchEvent(new CustomEvent('auth:login', { detail: response.data.user }));
-      }
 
       return response.data;
     } catch (error) {
@@ -194,9 +160,59 @@ export const authService = {
       if (response.data.token) {
         localStorage.setItem('authToken', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data.user));
-        window.dispatchEvent(new CustomEvent('auth:login', { detail: response.data.user }));
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userName', response.data.user.name);
+        localStorage.setItem('userRole', response.data.user.role);
+        localStorage.setItem('userEmail', response.data.user.email);
+        localStorage.setItem('userId', response.data.user.id);
       }
 
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Verificar cuenta
+  verifyAccount: async (token) => {
+    try {
+      if (!token) {
+        throw new Error('Token de verificación requerido');
+      }
+
+      const response = await apiClient.get(`/auth/verify?token=${token}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Olvido de contraseña
+  forgotPassword: async (email) => {
+    try {
+      if (!email) {
+        throw new Error('Email es requerido');
+      }
+
+      const response = await apiClient.post('/auth/forgot-password', {
+        email: email.trim().toLowerCase()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Restablecer contraseña
+  resetPassword: async (token, newPassword) => {
+    try {
+      if (!token || !newPassword) {
+        throw new Error('Token y nueva contraseña son requeridos');
+      }
+
+      const response = await apiClient.post(`/auth/reset-password?token=${token}`, {
+        newPassword
+      });
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -206,461 +222,173 @@ export const authService = {
   // Logout
   logout: async () => {
     try {
-      // Intentar logout en el servidor si hay endpoint
-      try {
-        await apiClient.post('/auth/logout');
-      } catch (error) {
-        // Ignorar errores del servidor en logout
-        console.warn('Error en logout del servidor:', error.message);
-      }
-    } finally {
-      // Limpiar siempre el localStorage
+      // Limpiar localStorage
       localStorage.removeItem('authToken');
+      localStorage.removeItem('userToken');
       localStorage.removeItem('userData');
-      window.dispatchEvent(new CustomEvent('auth:logout'));
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userId');
       
       // Redirigir a login
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error en logout:', error);
+      // Limpiar de todas formas
+      localStorage.clear();
       window.location.href = '/login';
     }
   },
 
   // Verificar si está autenticado
   isAuthenticated: () => {
-    const token = localStorage.getItem('authToken');
-    const userData = localStorage.getItem('userData');
-    return !!(token && userData);
+    const token = localStorage.getItem('authToken') || localStorage.getItem('userToken');
+    const isAuth = localStorage.getItem('isAuthenticated');
+    return !!(token && isAuth === 'true');
   },
 
   // Obtener datos del usuario actual
   getCurrentUser: () => {
     try {
       const userData = localStorage.getItem('userData');
-      return userData ? JSON.parse(userData) : null;
+      if (userData) {
+        return JSON.parse(userData);
+      }
+      
+      // Fallback con datos separados
+      const userName = localStorage.getItem('userName');
+      const userRole = localStorage.getItem('userRole');
+      const userEmail = localStorage.getItem('userEmail');
+      const userId = localStorage.getItem('userId');
+      
+      if (userName || userRole || userEmail || userId) {
+        return {
+          id: userId,
+          name: userName,
+          email: userEmail,
+          role: userRole
+        };
+      }
+      
+      return null;
     } catch (error) {
       console.error('Error parseando userData:', error);
       return null;
     }
   },
 
-  // Refrescar token (si tu backend lo soporta)
-  refreshToken: async () => {
-    try {
-      const response = await apiClient.post('/auth/refresh');
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-        return response.data;
-      }
-      throw new Error('No se recibió nuevo token');
-    } catch (error) {
-      // Si falla el refresh, hacer logout
-      authService.logout();
-      throw new Error(apiUtils.formatError(error));
-    }
+  // Obtener role del usuario
+  getUserRole: () => {
+    return localStorage.getItem('userRole') || null;
   },
 
-  // Cambiar contraseña
-  changePassword: async (currentPassword, newPassword) => {
-    try {
-      const response = await apiClient.put('/auth/change-password', {
-        currentPassword,
-        newPassword
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
+  // Verificar si el usuario tiene un rol específico
+  hasRole: (role) => {
+    const userRole = authService.getUserRole();
+    return userRole === role;
   },
 
-  // Restablecer contraseña
-  resetPassword: async (email) => {
-    try {
-      const response = await apiClient.post('/auth/reset-password', {
-        email: email.trim().toLowerCase()
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
+  // Verificar si es superadmin
+  isSuperAdmin: () => {
+    return authService.hasRole('SUPERADMIN');
+  },
+
+  // Verificar si es administrador
+  isAdmin: () => {
+    return authService.hasRole('ADMINISTRADOR');
   }
 };
 
 // ================================
-// SERVICIOS DE USUARIOS
+// SERVICIOS DE ADMINISTRACIÓN
 // ================================
-export const userService = {
-  // Obtener todos los usuarios (con paginación)
-  getUsers: async (page = 1, limit = 10, filters = {}) => {
+export const adminService = {
+  // Acceso solo para SUPERADMIN
+  getSuperAdminPanel: async () => {
     try {
-      const params = {
-        page,
-        limit,
-        ...filters
-      };
-
-      const response = await apiClient.get('/users', { params });
+      const response = await apiClient.get('/admin/solo-superadmin');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
   },
 
-  // Obtener usuario por ID
-  getUserById: async (userId) => {
+  // Listar administradores
+  listarAdministradores: async () => {
     try {
-      if (!userId) throw new Error('ID de usuario requerido');
-      
-      const response = await apiClient.get(`/users/${userId}`);
+      const response = await apiClient.get('/admin/listar-administradores');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
   },
 
-  // Actualizar perfil del usuario actual
-  updateProfile: async (userData) => {
+  // Asignar rol
+  asignarRol: async (userData) => {
     try {
-      const response = await apiClient.put('/users/profile', userData);
-      
-      // Actualizar userData en localStorage
-      if (response.data.user) {
-        localStorage.setItem('userData', JSON.stringify(response.data.user));
-        window.dispatchEvent(new CustomEvent('user:profile-updated', { detail: response.data.user }));
+      const {
+        idUsuario,
+        nuevoRol,
+        nomAdministrador,
+        apeAdministrador,
+        numDocAdministrador,
+        idEmpresa
+      } = userData;
+
+      if (!idUsuario || !nuevoRol) {
+        throw new Error('ID de usuario y nuevo rol son requeridos');
       }
 
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Subir avatar
-  uploadAvatar: async (file) => {
-    try {
-      if (!file) throw new Error('Archivo requerido');
-      
-      const formData = new FormData();
-      formData.append('avatar', file);
-
-      const response = await apiClient.post('/users/avatar', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await apiClient.put('/admin/asignar-rol', {
+        idUsuario,
+        nuevoRol,
+        nomAdministrador,
+        apeAdministrador,
+        numDocAdministrador,
+        idEmpresa
       });
 
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
-  }
-};
+  },
 
-// ================================
-// SERVICIOS DE MAPAS (MEJORADOS)
-// ================================
-export const mapService = {
-  // Buscar lugares
-  searchPlaces: async (query, options = {}) => {
+  // Editar administrador
+  editarAdministrador: async (idUsuario, adminData) => {
     try {
-      if (!query || query.trim().length < 2) {
-        throw new Error('La búsqueda debe tener al menos 2 caracteres');
+      if (!idUsuario) {
+        throw new Error('ID de usuario requerido');
       }
 
-      const { limit = 5, countrycodes = 'co', timeout = 8000 } = options;
-      const params = new URLSearchParams({
-        limit: Math.min(limit, 20).toString(),
-        countrycodes
+      const { nomAdministrador, apeAdministrador, numDocAdministrador } = adminData;
+
+      if (!nomAdministrador || !apeAdministrador || !numDocAdministrador) {
+        throw new Error('Todos los campos son requeridos');
+      }
+
+      const response = await apiClient.put(`/admin/editar-administrador/${idUsuario}`, {
+        nomAdministrador,
+        apeAdministrador,
+        numDocAdministrador
       });
 
-      const response = await apiClient.get(
-        `/maps/search/${encodeURIComponent(query.trim())}?${params}`,
-        { timeout }
-      );
-
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
   },
 
-  // Geocoding inverso
-  reverseGeocode: async (lat, lon, zoom = 18) => {
+  // Eliminar administrador
+  eliminarAdministrador: async (idUsuario) => {
     try {
-      if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
-        throw new Error('Coordenadas válidas requeridas');
+      if (!idUsuario) {
+        throw new Error('ID de usuario requerido');
       }
 
-      const response = await apiClient.get(`/maps/reverse/${lat}/${lon}?zoom=${zoom}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Lugares cercanos
-  findNearbyPlaces: async (lat, lon, type, radius = 1000) => {
-    try {
-      if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
-        throw new Error('Coordenadas válidas requeridas');
-      }
-
-      if (!type) {
-        throw new Error('Tipo de lugar requerido');
-      }
-
-      const validRadius = Math.min(Math.max(radius, 100), 10000);
-      const response = await apiClient.get(
-        `/maps/nearby/${lat}/${lon}/${type}?radius=${validRadius}`
-      );
-
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Calcular ruta
-  calculateRoute: async (startLat, startLon, endLat, endLon, profile = 'driving') => {
-    try {
-      const coords = [
-        { name: 'startLat', value: startLat },
-        { name: 'startLon', value: startLon },
-        { name: 'endLat', value: endLat },
-        { name: 'endLon', value: endLon }
-      ];
-
-      // Validar coordenadas
-      for (const coord of coords) {
-        if (!coord.value || isNaN(coord.value)) {
-          throw new Error(`${coord.name} debe ser un número válido`);
-        }
-      }
-
-      const validProfiles = ['driving', 'walking', 'cycling'];
-      if (!validProfiles.includes(profile)) {
-        throw new Error(`Perfil inválido. Debe ser: ${validProfiles.join(', ')}`);
-      }
-
-      const response = await apiClient.get(
-        `/maps/route/${startLat}/${startLon}/${endLat}/${endLon}?profile=${profile}`,
-        { timeout: 15000 }
-      );
-
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Detalles de lugar
-  getPlaceDetails: async (placeId) => {
-    try {
-      if (!placeId) throw new Error('ID de lugar requerido');
-      
-      const response = await apiClient.get(`/maps/place/${placeId}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Obtener tipos de lugares disponibles
-  getPlaceTypes: async () => {
-    try {
-      const response = await apiClient.get('/maps/place-types');
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Status del servicio de mapas
-  getMapStatus: async () => {
-    try {
-      const response = await apiClient.get('/maps/status');
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // ================================
-  // UTILIDADES DE MAPAS (MEJORADAS)
-  // ================================
-
-  // Formatear distancia
-  formatDistance: (meters) => {
-    if (typeof meters !== 'number' || meters < 0) return '0 m';
-    
-    if (meters < 1000) {
-      return `${Math.round(meters)} m`;
-    } else if (meters < 100000) {
-      return `${(meters / 1000).toFixed(1)} km`;
-    } else {
-      return `${Math.round(meters / 1000)} km`;
-    }
-  },
-
-  // Formatear duración
-  formatDuration: (seconds) => {
-    if (typeof seconds !== 'number' || seconds < 0) return '0m';
-    
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else if (minutes > 0) {
-      return `${minutes}m`;
-    } else {
-      return '<1m';
-    }
-  },
-
-  // Calcular distancia entre dos puntos (Haversine)
-  calculateDistance: (lat1, lon1, lat2, lon2) => {
-    const toRad = (deg) => deg * (Math.PI / 180);
-    
-    const R = 6371000; // Radio de la Tierra en metros
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    
-    return R * c; // Distancia en metros
-  },
-
-  // Obtener ubicación actual con mejores opciones
-  getCurrentLocation: (options = {}) => {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Geolocalización no soportada en este navegador'));
-        return;
-      }
-
-      const defaultOptions = {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
-        ...options
-      };
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            timestamp: position.timestamp
-          });
-        },
-        (error) => {
-          let message = 'Error desconocido';
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              message = 'Permiso de ubicación denegado. Habilita la geolocalización.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              message = 'Ubicación no disponible. Intenta de nuevo.';
-              break;
-            case error.TIMEOUT:
-              message = 'Tiempo de espera agotado obteniendo ubicación.';
-              break;
-          }
-          reject(new Error(message));
-        },
-        defaultOptions
-      );
-    });
-  },
-
-  // Validar coordenadas
-  validateCoordinates: (lat, lon) => {
-    if (typeof lat !== 'number' || typeof lon !== 'number') {
-      return false;
-    }
-    return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
-  },
-
-  // Obtener bounds para múltiples puntos
-  getBounds: (points) => {
-    if (!Array.isArray(points) || points.length === 0) {
-      return null;
-    }
-
-    const validPoints = points.filter(p => 
-      p && typeof p.lat === 'number' && typeof p.lon === 'number'
-    );
-
-    if (validPoints.length === 0) return null;
-
-    const lats = validPoints.map(p => p.lat);
-    const lons = validPoints.map(p => p.lon);
-
-    return {
-      north: Math.max(...lats),
-      south: Math.min(...lats),
-      east: Math.max(...lons),
-      west: Math.min(...lons)
-    };
-  }
-};
-
-// ================================
-// SERVICIOS DE TRANSPORTE (NUEVOS)
-// ================================
-export const transportService = {
-  // Obtener todas las rutas
-  getRoutes: async () => {
-    try {
-      const response = await apiClient.get('/transport/routes');
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Obtener una ruta específica
-  getRouteById: async (routeId) => {
-    try {
-      if (!routeId) throw new Error('ID de ruta requerido');
-      
-      const response = await apiClient.get(`/transport/routes/${routeId}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Obtener todas las paradas
-  getStops: async () => {
-    try {
-      const response = await apiClient.get('/transport/stops');
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // Agregar una nueva parada
-  addStop: async (stopData) => {
-    try {
-      const { lat, lng, name } = stopData;
-      
-      if (!lat || !lng || !name) {
-        throw new Error('Se requieren latitud, longitud y nombre');
-      }
-
-      const response = await apiClient.post('/transport/stops', {
-        lat: parseFloat(lat),
-        lng: parseFloat(lng),
-        name: name.trim()
-      });
-
+      const response = await apiClient.delete(`/admin/eliminar-administrador/${idUsuario}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -673,11 +401,14 @@ export const transportService = {
 // ================================
 export const healthCheck = async () => {
   try {
+    const startTime = Date.now();
     const response = await apiClient.get('/health', { timeout: 5000 });
+    const responseTime = Date.now() - startTime;
+    
     return {
       ...response.data,
       connectivity: true,
-      responseTime: Date.now() - response.config.metadata?.startTime || 0
+      responseTime
     };
   } catch (error) {
     return {
@@ -695,9 +426,7 @@ export const healthCheck = async () => {
 export default {
   client: apiClient,
   auth: authService,
-  users: userService,
-  maps: mapService,
-  transport: transportService, // Nuevo servicio añadido
+  admin: adminService,
   utils: apiUtils,
   healthCheck
 };

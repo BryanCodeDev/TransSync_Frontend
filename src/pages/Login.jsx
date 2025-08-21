@@ -69,7 +69,8 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/auth/login", {
+      // Cambié la ruta para que coincida con tu backend
+      const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -87,18 +88,29 @@ const Login = () => {
           localStorage.setItem("rememberMe", "false");
         }
         
-        // Guardar información de autenticación
+        // Guardar información de autenticación actualizada para tu backend
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userName", data.user?.name || "");
         localStorage.setItem("userRole", data.user?.role || "");
+        localStorage.setItem("userEmail", data.user?.email || "");
+        localStorage.setItem("userId", data.user?.id || "");
         
-        // Guardar token solo si existe en la respuesta
+        // Guardar token
         if (data.token) {
-          localStorage.setItem("userToken", data.token);
+          localStorage.setItem("authToken", data.token);
+          localStorage.setItem("userToken", data.token); // Por compatibilidad
         }
         
-        // Redirigir a home en lugar de dashboard
-        navigate("/home");
+        // Redirigir según el rol
+        const userRole = data.user?.role;
+        if (userRole === "SUPERADMIN") {
+          navigate("/admin/dashboard");
+        } else if (userRole === "ADMINISTRADOR") {
+          navigate("/admin/dashboard");
+        } else {
+          // Para usuarios pendientes o sin rol específico
+          navigate("/dashboard");
+        }
       } else {
         setError(data.message || "Error de autenticación. Verifique sus credenciales.");
       }
@@ -112,7 +124,8 @@ const Login = () => {
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
-    alert("Funcionalidad de recuperación de contraseña en desarrollo.");
+    // Redirigir a la página de forgot password cuando la implementes
+    navigate("/forgot-password");
   };
 
   // Función para alternar visibilidad de contraseña
@@ -143,7 +156,7 @@ const Login = () => {
                 </div>
                 <div className="flex items-center text-blue-100 text-lg">
                   <FaUsers className="mr-4 text-blue-300 text-xl" />
-                  <span>Gestión de usuarios integrada</span>
+                  <span>Gestión de administradores</span>
                 </div>
                 <div className="flex items-center text-blue-100 text-lg">
                   <FaCogs className="mr-4 text-blue-300 text-xl" />
