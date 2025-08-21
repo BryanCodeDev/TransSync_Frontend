@@ -13,8 +13,8 @@ import {
   FaPlus,
   FaEye
 } from 'react-icons/fa';
-import { getCurrentUser, logout, getUserRole } from '../services/authService';
-import { adminService } from '../services/apiService';
+import { getCurrentUser, logout, getUserRole } from '../utilidades/authService';
+import adminAPI from '../utilidades/adminAPI';
 
 const AdminDashboard = () => {
   const [user, setUser] = useState(null);
@@ -62,7 +62,7 @@ const AdminDashboard = () => {
   const loadAdministradores = async () => {
     try {
       setLoading(true);
-      const response = await adminService.listarAdministradores();
+      const response = await adminAPI.getAdministrators(); // Fixed method call
       setAdministradores(response.administradores || []);
       setError('');
     } catch (error) {
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
   const handleDeleteAdmin = async (idUsuario) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este administrador?')) {
       try {
-        await adminService.eliminarAdministrador(idUsuario);
+        await adminAPI.deleteAdministrator(idUsuario); // Fixed method call
         await loadAdministradores();
         alert('Administrador eliminado exitosamente');
       } catch (error) {

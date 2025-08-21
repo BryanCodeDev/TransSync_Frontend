@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { isAuthenticated } from './services/authService';
+import { isAuthenticated } from './utilidades/authService';
 import Sidebar from "./components/Sidebar";
 import ChatBot from "./components/ChatBot";
 

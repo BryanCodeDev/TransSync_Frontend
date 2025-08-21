@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { isAuthenticated, getUserRole } from '../services/authService';
+import { isAuthenticated, getUserRole } from '../utilidades/authAPI';
 
 const ProtectedRoute = ({ children, requiredRoles = [], redirectTo = '/login' }) => {
   const location = useLocation();
