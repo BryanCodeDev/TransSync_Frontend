@@ -3,17 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FaUsers, 
   FaCog, 
-  FaSignOutAlt, 
   FaUserShield,
   FaChartBar,
-  FaBell,
   FaSearch,
   FaEdit,
   FaTrash,
   FaPlus,
   FaEye
 } from 'react-icons/fa';
-import { getCurrentUser, logout, getUserRole } from '../utilidades/authAPI';
+import { getCurrentUser, getUserRole } from '../utilidades/authAPI';
 import adminAPI from '../utilidades/adminAPI';
 
 const AdminDashboard = () => {
@@ -62,7 +60,7 @@ const AdminDashboard = () => {
   const loadAdministradores = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.getAdministrators(); // Fixed method call
+      const response = await adminAPI.getAdministrators();
       setAdministradores(response.administradores || []);
       setError('');
     } catch (error) {
@@ -73,21 +71,10 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Error en logout:', error);
-      localStorage.clear();
-      navigate('/login');
-    }
-  };
-
   const handleDeleteAdmin = async (idUsuario) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este administrador?')) {
       try {
-        await adminAPI.deleteAdministrator(idUsuario); // Fixed method call
+        await adminAPI.deleteAdministrator(idUsuario);
         await loadAdministradores();
         alert('Administrador eliminado exitosamente');
       } catch (error) {
@@ -131,7 +118,7 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center pt-16">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Cargando dashboard...</p>
@@ -143,50 +130,7 @@ const AdminDashboard = () => {
   const stats = getStats();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                TransSync
-              </h1>
-              <span className="ml-4 px-3 py-1 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 text-sm rounded-full font-medium">
-                {formatRole(userRole)}
-              </span>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <FaBell className="h-6 w-6 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" />
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse"></span>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
-                </div>
-                <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
-                    {user?.name?.charAt(0)?.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-              
-              <button
-                onClick={handleLogout}
-                className="flex items-center text-gray-500 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50"
-                title="Cerrar sesión"
-              >
-                <FaSignOutAlt className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -484,7 +428,6 @@ const AdminDashboard = () => {
                 </button>
                 <button
                   onClick={() => {
-                    // Implementar lógica de edición
                     setShowModal(false);
                   }}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-2 px-4 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all duration-200"
