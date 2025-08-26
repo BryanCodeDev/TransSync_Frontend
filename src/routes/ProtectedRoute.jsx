@@ -1,13 +1,13 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { isAuthenticated, getUserRole } from '../utilidades/authAPI';
 
-const ProtectedRoute = ({ children, requiredRoles = [], redirectTo = '/login' }) => {
+const ProtectedRoute = ({ children, requiredRoles = [], redirectTo = '/home' }) => {
   const location = useLocation();
   
   // Verificar si está autenticado
   if (!isAuthenticated()) {
     // Guardar la ruta actual para redirigir después del login
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Si se requieren roles específicos, verificar

@@ -1,10 +1,10 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { 
-  FaHome, FaChartLine, FaUserTie, FaRoute, FaBus, 
+  FaChartLine, FaUserTie, FaRoute, FaBus, 
   FaClock, FaExclamationTriangle, FaFileAlt, 
   FaSignOutAlt, FaChevronLeft, FaChevronRight,
-  FaUserShield, FaBars, FaTimes, FaCogs, FaUser
+  FaUserShield, FaCogs, FaUser
 } from "react-icons/fa";
 import { getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
 
@@ -69,11 +69,11 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
       try {
         await logout();
-        navigate("/login");
+        navigate("/home");
       } catch (error) {
         console.error('Error during logout:', error);
         localStorage.clear();
-        navigate("/login");
+        navigate("/home");
       }
     }
   };
@@ -88,14 +88,6 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     } else {
       toggleSidebar();
     }
-  };
-
-  const handleMenuButtonClick = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    toggleSidebar();
   };
 
   // Manejo mejorado del cierre del menú al hacer clic en links
@@ -169,13 +161,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     }
   };
 
-  // Determinar si mostrar el botón toggle
-  const shouldShowToggleButton = () => {
-    return isMobile || isTablet;
-  };
-
+  // Menú actualizado - sin Home, Dashboard como principal
   const menuItems = [
-    { path: "/home", icon: <FaHome />, label: "Inicio" },
     { path: "/dashboard", icon: <FaChartLine />, label: "Dashboard" },
     { path: "/admin/dashboard", icon: <FaCogs />, label: "Admin Dashboard" },
     { path: "/drivers", icon: <FaUserTie />, label: "Conductores" },
@@ -188,39 +175,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
 
   return (
     <>
-      {/* Botón de menú móvil/tablet */}
-      {shouldShowToggleButton() && (
-        <button 
-          className={`
-            fixed top-4 left-4 z-[1100] 
-            bg-gradient-to-r from-[#1a237e] to-[#3949ab]
-            text-white border-none rounded-lg 
-            w-12 h-12 flex justify-center items-center cursor-pointer 
-            shadow-lg hover:shadow-xl
-            transition-all duration-300 ease-in-out
-            hover:scale-105 active:scale-95
-            backdrop-blur-sm
-            ${isOpen ? 'bg-gradient-to-r from-[#283593] to-[#1a237e] hover:from-[#1a237e] hover:to-[#0d1642]' : ''}
-          `}
-          onClick={handleMenuButtonClick}
-          aria-label="Toggle menu"
-        >
-          <div className="relative w-5 h-5">
-            <FaBars 
-              className={`absolute inset-0 transition-all duration-300 transform ${
-                isOpen ? 'opacity-0 rotate-90 scale-75' : 'opacity-100 rotate-0 scale-100'
-              }`} 
-            />
-            <FaTimes 
-              className={`absolute inset-0 transition-all duration-300 transform ${
-                isOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-75'
-              }`} 
-            />
-          </div>
-        </button>
-      )}
-
-      {/* Overlay para cerrar el menú en móvil/tablet */}
+      {/* Overlay para móvil y tablet */}
       {isOpen && (isMobile || isTablet) && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-[998] backdrop-blur-sm"
@@ -234,7 +189,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
       {/* Sidebar */}
       <aside 
         className={`
-          fixed left-0 top-0 h-screen z-[999]
+          fixed left-0 top-16 h-[calc(100vh-64px)] z-[999]
           bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab]
           shadow-2xl text-white
           flex flex-col
