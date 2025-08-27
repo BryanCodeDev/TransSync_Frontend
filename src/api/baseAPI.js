@@ -12,8 +12,8 @@ export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: REQUEST_TIMEOUT,
   headers: {
-    'Content-Type': 'application/json',
-  }
+    "Content-Type": "application/json",
+  },
 });
 
 // ================================
@@ -23,24 +23,31 @@ export const apiClient = axios.create({
 // Request interceptor - agregar token y logging
 apiClient.interceptors.request.use(
   (config) => {
-    // Agregar token si existe
-    const token = localStorage.getItem('authToken') || localStorage.getItem('userToken');
+    // Agregar token si existe (acepta varias claves)
+    const token =
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("userToken") ||
+      localStorage.getItem("token"); // 🔥 añadido soporte
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     // Logging en desarrollo
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
-        params: config.params,
-        data: config.data
-      });
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`,
+        {
+          params: config.params,
+          data: config.data,
+        }
+      );
     }
 
     return config;
   },
   (error) => {
-    console.error('❌ Request Error:', error);
+    console.error("❌ Request Error:", error);
     return Promise.reject(error);
   }
 );
@@ -49,37 +56,51 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     // Logging en desarrollo
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-        status: response.status,
-        data: response.data
-      });
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `✅ API Response: ${response.config.method?.toUpperCase()} ${
+          response.config.url
+        }`,
+        {
+          status: response.status,
+          data: response.data,
+        }
+      );
     }
     return response;
   },
   (error) => {
     // Logging de errores
-    console.error('❌ API Error:', {
+    console.error("❌ API Error:", {
       url: error.config?.url,
       method: error.config?.method,
       status: error.response?.status,
       message: error.response?.data?.message || error.message,
-      fullURL: error.config ? `${API_BASE_URL}${error.config.url}` : 'Unknown'
+      fullURL: error.config
+        ? `${API_BASE_URL}${error.config.url}`
+        : "Unknown",
     });
 
     // Manejo específico de errores
     if (error.response?.status === 401) {
       // Token expirado o inválido
       const keysToRemove = [
-        'authToken', 'userToken', 'userData', 'isAuthenticated',
-        'userName', 'userRole', 'userEmail', 'userId'
+        "authToken",
+        "userToken",
+        "token", // 🔥 añadido
+        "userData",
+        "isAuthenticated",
+        "userName",
+        "userRole",
+        "userEmail",
+        "userId",
       ];
-      
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
+
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+
       // Redirigir solo si no estamos ya en login
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
       }
     }
 
@@ -97,11 +118,11 @@ export const apiUtils = {
   // Formatear errores para mostrar al usuario
   formatError: (error) => {
     if (!navigator.onLine) {
-      return 'Sin conexión a internet. Verifica tu conexión.';
+      return "Sin conexión a internet. Verifica tu conexión.";
     }
 
-    if (error.code === 'ECONNABORTED') {
-      return 'La solicitud tardó demasiado. Intenta de nuevo.';
+    if (error.code === "ECONNABORTED") {
+      return "La solicitud tardó demasiado. Intenta de nuevo.";
     }
 
     if (error.response?.data?.message) {
@@ -109,14 +130,14 @@ export const apiUtils = {
     }
 
     if (error.response?.status === 404) {
-      return 'Recurso no encontrado. Verifica la URL del servidor.';
+      return "Recurso no encontrado. Verifica la URL del servidor.";
     }
 
     if (error.response?.status >= 500) {
-      return 'Error del servidor. Intenta más tarde.';
+      return "Error del servidor. Intenta más tarde.";
     }
 
-    return error.message || 'Error desconocido';
+    return error.message || "Error desconocido";
   },
 
   // Validar email
@@ -129,7 +150,7 @@ export const apiUtils = {
   validateRequired: (fields) => {
     const missing = [];
     Object.entries(fields).forEach(([key, value]) => {
-      if (!value || (typeof value === 'string' && value.trim() === '')) {
+      if (!value || (typeof value === "string" && value.trim() === "")) {
         missing.push(key);
       }
     });
@@ -140,7 +161,7 @@ export const apiUtils = {
   createUrlParams: (filters) => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
+      if (value !== null && value !== undefined && value !== "") {
         params.append(key, value);
       }
     });
@@ -148,16 +169,16 @@ export const apiUtils = {
   },
 
   // Formatear fechas
-  formatDate: (date, format = 'YYYY-MM-DD') => {
+  formatDate: (date, format = "YYYY-MM-DD") => {
     const d = new Date(date);
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+
     switch (format) {
-      case 'YYYY-MM-DD':
+      case "YYYY-MM-DD":
         return `${year}-${month}-${day}`;
-      case 'DD/MM/YYYY':
+      case "DD/MM/YYYY":
         return `${day}/${month}/${year}`;
       default:
         return d.toLocaleDateString();
@@ -175,7 +196,7 @@ export const apiUtils = {
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
     };
-  }
+  },
 };
 
 // ================================
@@ -184,22 +205,22 @@ export const apiUtils = {
 export const healthCheck = async () => {
   try {
     const startTime = Date.now();
-    const response = await apiClient.get('/api/health', { timeout: 5000 });
+    const response = await apiClient.get("/api/health", { timeout: 5000 });
     const responseTime = Date.now() - startTime;
-    
+
     return {
       ...response.data,
       connectivity: true,
       responseTime,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   } catch (error) {
     return {
-      status: 'ERROR',
+      status: "ERROR",
       connectivity: false,
       message: apiUtils.formatError(error),
       timestamp: new Date().toISOString(),
-      responseTime: null
+      responseTime: null,
     };
   }
 };

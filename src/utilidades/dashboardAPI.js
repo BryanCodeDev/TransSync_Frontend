@@ -1,101 +1,136 @@
-// api/dashboardAPI.js - Servicio específico para dashboard
-export const dashboardAPI = {
-  // Obtener estadísticas generales del dashboard
-  getGeneralStatistics: async () => {
+// src/utilidades/driversAPI.js
+
+import api from '../api/baseAPI'; // usamos el api con interceptor que agrega el token
+
+const driversAPI = {
+  // ================================
+  // GESTIÓN BÁSICA DE CONDUCTORES
+  // ================================
+
+  // Obtener conductores con filtros
+  getAll: async (filters = {}) => {
     try {
-      const response = await apiClient.get('/dashboard/estadisticas');
+      const response = await api.get('/conductores', { params: filters });
       return response.data;
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      throw new Error(error.message);
     }
   },
 
-  // Obtener datos para gráficos
-  getChartsData: async (period = 'mes') => {
-    try {
-      const validPeriods = ['dia', 'semana', 'mes', 'trimestre', 'ano'];
-      if (!validPeriods.includes(period)) {
-        throw new Error('Período inválido');
-      }
-
-      const response = await apiClient.get(`/dashboard/graficos?periodo=${period}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
+  // Obtener conductor por ID
+  getById: async (id) => {
+    if (!id) throw new Error('ID de conductor requerido');
+    const response = await api.get(`/conductores/${id}`);
+    return response.data;
   },
 
-  // Obtener alertas activas
-  getActiveAlerts: async () => {
-    try {
-      const response = await apiClient.get('/dashboard/alertas');
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
+  // Crear nuevo conductor
+  create: async (driverData) => {
+    const response = await api.post('/conductores', driverData);
+    return response.data;
   },
 
-  // Obtener actividad reciente
-  getRecentActivity: async (limit = 10) => {
-    try {
-      const response = await apiClient.get(`/dashboard/actividad?limite=${limit}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
+  // Actualizar conductor
+  update: async (id, driverData) => {
+    if (!id) throw new Error('ID de conductor requerido');
+    const response = await api.put(`/conductores/${id}`, driverData);
+    return response.data;
   },
 
-  // Obtener indicadores clave (KPIs)
-  getKPIs: async (dateRange = {}) => {
-    try {
-      const params = apiUtils.createUrlParams(dateRange);
-      const response = await apiClient.get(`/dashboard/kpis${params ? `?${params}` : ''}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
+  // Eliminar conductor
+  delete: async (id) => {
+    if (!id) throw new Error('ID de conductor requerido');
+    const response = await api.delete(`/conductores/${id}`);
+    return response.data;
   },
 
-  // Obtener resumen ejecutivo
-  getExecutiveSummary: async (period = 'mes') => {
-    try {
-      const response = await apiClient.get(`/dashboard/resumen-ejecutivo?periodo=${period}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
+  // ================================
+  // GESTIÓN DE ESTADOS
+  // ================================
+
+  changeStatus: async (id, nuevoEstado) => {
+    if (!id || !nuevoEstado) throw new Error('ID de conductor y nuevo estado son requeridos');
+    const response = await api.patch(`/conductores/${id}/estado`, { estConductor: nuevoEstado });
+    return response.data;
   },
 
-  // Obtener datos en tiempo real
-  getRealTimeData: async () => {
-    try {
-      const response = await apiClient.get('/dashboard/tiempo-real');
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
+  activate: (id) => driversAPI.changeStatus(id, 'ACTIVO'),
+  deactivate: (id) => driversAPI.changeStatus(id, 'INACTIVO'),
+  setResting: (id) => driversAPI.changeStatus(id, 'DIA_DESCANSO'),
+  setIncapacitated: (id) => driversAPI.changeStatus(id, 'INCAPACITADO'),
+  setOnVacation: (id) => driversAPI.changeStatus(id, 'DE_VACACIONES'),
+
+  // ================================
+  // GESTIÓN DE VEHÍCULOS
+  // ================================
+
+  assignVehicle: async (idConductor, idVehiculo) => {
+    if (!idConductor || !idVehiculo) throw new Error('ID de conductor e ID de vehículo son requeridos');
+    const response = await api.patch(`/conductores/${idConductor}/asignar-vehiculo`, { idVehiculo });
+    return response.data;
   },
 
-  // Marcar alerta como vista
-  markAlertAsRead: async (alertId) => {
-    try {
-      if (!alertId) throw new Error('ID de alerta requerido');
-      const response = await apiClient.patch(`/dashboard/alertas/${alertId}/marcar-leida`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
+  unassignVehicle: async (idConductor) => {
+    if (!idConductor) throw new Error('ID de conductor requerido');
+    const response = await api.patch(`/conductores/${idConductor}/desasignar-vehiculo`);
+    return response.data;
   },
 
-  // Configurar preferencias del dashboard
-  updatePreferences: async (preferences) => {
-    try {
-      const response = await apiClient.put('/dashboard/preferencias', preferences);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  }
+  // ================================
+  // CONSULTAS ESPECIALIZADAS
+  // ================================
+
+  getAvailable: async () => {
+    const response = await api.get('/conductores/disponibles');
+    return response.data;
+  },
+
+  getActive: async () => {
+    const response = await api.get('/conductores', { params: { estConductor: 'ACTIVO' } });
+    return response.data;
+  },
+
+  getUnassigned: async () => {
+    const response = await api.get('/conductores', { params: { sinVehiculo: true } });
+    return response.data;
+  },
+
+  search: async (term) => {
+    if (!term || term.trim().length < 2) throw new Error('El término de búsqueda debe tener al menos 2 caracteres');
+    const response = await api.get(`/conductores/buscar`, { params: { q: term.trim() } });
+    return response.data;
+  },
+
+  // ================================
+  // REPORTES Y ESTADÍSTICAS
+  // ================================
+
+  getStatistics: async () => {
+    const response = await api.get('/conductores/estadisticas');
+    return response.data;
+  },
+
+  getStatusDistribution: async () => {
+    const response = await api.get('/conductores/distribucion-estados');
+    return response.data;
+  },
+
+  // ================================
+  // GESTIÓN DE LICENCIAS
+  // ================================
+
+  checkLicenseExpiration: async (days = 30) => {
+    const response = await api.get('/conductores/licencias/vencimiento', { params: { dias: days } });
+    return response.data;
+  },
+
+  renewLicense: async (id, nuevaFecha, tipoLicencia) => {
+    if (!id || !nuevaFecha) throw new Error('ID y fecha son requeridos');
+    const body = { fecVenLicConductor: nuevaFecha };
+    if (tipoLicencia) body.tipLicConductor = tipoLicencia;
+    const response = await api.patch(`/conductores/${id}/renovar-licencia`, body);
+    return response.data;
+  },
 };
 
-export default { horariosAPI, informesAPI, emergencyAPI, dashboardAPI };
+export default driversAPI;
