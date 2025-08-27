@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Bus, 
   Users, 
@@ -21,6 +21,7 @@ import {
   ArcElement,
   Filler
 } from 'chart.js';
+import { dashboardAPI } from '../utilidades/dashboardAPI';
 
 ChartJS.register(
   CategoryScale, 
@@ -37,80 +38,115 @@ ChartJS.register(
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [data] = useState({
-    buses: 0,
-    drivers: 0,
-    routes: 0,
-    schedules: 0,
-    alerts: 0
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    totalVehiculos: 0,
+    vehiculosDisponibles: 0,
+    vehiculosEnRuta: 0,
+    totalConductores: 0,
+    conductoresActivos: 0,
+    totalRutas: 0,
+    viajesEnCurso: 0
   });
   const [selectedPeriod, setSelectedPeriod] = useState('semana');
-  const [alerts] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [chartData, setChartData] = useState({
+    viajes: { labels: [], data: [] },
+    rutas: []
+  });
+  const [realTimeData, setRealTimeData] = useState(null);
+
+  // Envolver fetchRealTimeData en useCallback
+  const fetchRealTimeData = useCallback(async () => {
+    try {
+      const response = await dashboardAPI.getRealTimeData();
+      if (response.status === 'success') {
+        setRealTimeData(response.data);
+      }
+    } catch (error) {
+      console.error("Error al cargar datos en tiempo real:", error);
+    }
+  }, []);
+
+  // Envolver fetchChartsData en useCallback
+  const fetchChartsData = useCallback(async () => {
+    try {
+      const response = await dashboardAPI.getChartsData(selectedPeriod);
+      if (response.status === 'success') {
+        setChartData(response.data);
+      }
+    } catch (error) {
+      console.error("Error al cargar datos de gráficos:", error);
+    }
+  }, [selectedPeriod]); // Incluir selectedPeriod como dependencia
+
+  // Envolver fetchDashboardData en useCallback
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Obtener estadísticas generales
+      const statsResponse = await dashboardAPI.getGeneralStatistics();
+      if (statsResponse.status === 'success') {
+        setStats(statsResponse.data);
+      }
+
+      // Obtener alertas
+      const alertsResponse = await dashboardAPI.getActiveAlerts();
+      if (alertsResponse.status === 'success') {
+        setAlerts(alertsResponse.data || []);
+      }
+
+      // Obtener datos de gráficos
+      await fetchChartsData();
+
+      // Obtener datos en tiempo real
+      await fetchRealTimeData();
+
+    } catch (error) {
+      console.error("Error al cargar datos del dashboard:", error);
+      setError("Error al cargar los datos. Verifique su conexión.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchChartsData, fetchRealTimeData]); // Incluir las funciones como dependencias
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+    
+    // Actualizar datos en tiempo real cada 30 segundos
+    const interval = setInterval(fetchRealTimeData, 30000);
+    
+    return () => clearInterval(interval);
+  }, [fetchDashboardData, fetchRealTimeData]); // Incluir las funciones como dependencias
 
-  const fetchDashboardData = async () => {
-    try {
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 300);
-    } catch (error) {
-      console.error("Error al cargar datos del dashboard:", error);
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchChartsData();
+  }, [fetchChartsData]); // Incluir la función como dependencia
 
-  // Datos de ejemplo con colores unificados
-  const tripData = {
-    semana: {
-      labels: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
-      datasets: [
-        {
-          label: "Viajes diarios",
-          data: [0, 0, 0, 0, 0, 0, 0],
-          backgroundColor: "rgba(255, 204, 0, 0.5)",
-          borderColor: "#FFB800",
-          borderWidth: 2,
-          tension: 0.4
-        },
-      ],
-    },
-    mes: {
-      labels: ["Semana 1", "Semana 2", "Semana 3", "Semana 4"],
-      datasets: [
-        {
-          label: "Viajes semanales",
-          data: [0, 0, 0, 0],
-          backgroundColor: "rgba(255, 204, 0, 0.5)",
-          borderColor: "#FFB800",
-          borderWidth: 2,
-          tension: 0.4
-        },
-      ],
-    },
-    año: {
-      labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
-      datasets: [
-        {
-          label: "Viajes mensuales",
-          data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          backgroundColor: "rgba(255, 204, 0, 0.5)",
-          borderColor: "#FFB800",
-          borderWidth: 2,
-          tension: 0.4
-        },
-      ],
-    }
-  };
+  const prepareChartData = () => {
+    const { viajes, rutas } = chartData;
+    
+    // Preparar datos de viajes por período
+    const viajesData = {
+      labels: viajes.labels || [],
+      datasets: [{
+        label: "Viajes realizados",
+        data: viajes.data?.map(item => item.totalViajes) || [],
+        backgroundColor: "rgba(255, 204, 0, 0.5)",
+        borderColor: "#FFB800",
+        borderWidth: 2,
+        tension: 0.4
+      }]
+    };
 
-  const passengerData = {
-    labels: ["Ruta 101", "Ruta 202", "Ruta 303", "Ruta 404", "Ruta 505"],
-    datasets: [
-      {
-        label: "Pasajeros por ruta",
-        data: [0, 0, 0, 0, 0],
+    // Preparar datos de distribución por rutas
+    const rutasData = {
+      labels: rutas?.slice(0, 5).map(ruta => ruta.nomRuta) || [],
+      datasets: [{
+        label: "Viajes por ruta",
+        data: rutas?.slice(0, 5).map(ruta => ruta.totalViajes) || [],
         backgroundColor: [
           "rgba(54, 162, 235, 0.7)",
           "rgba(75, 192, 192, 0.7)",
@@ -119,22 +155,10 @@ const Dashboard = () => {
           "rgba(255, 99, 132, 0.7)",
         ],
         borderWidth: 1,
-      },
-    ],
-  };
+      }]
+    };
 
-  const fuelConsumptionData = {
-    labels: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
-    datasets: [
-      {
-        label: "Litros consumidos",
-        data: [0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: "rgba(34, 197, 94, 0.2)",
-        borderColor: "#22c55e",
-        borderWidth: 2,
-        fill: true,
-      },
-    ],
+    return { viajesData, rutasData };
   };
 
   const chartOptions = {
@@ -145,6 +169,14 @@ const Dashboard = () => {
         position: 'top',
       },
     },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1
+        }
+      }
+    }
   };
 
   const doughnutOptions = {
@@ -166,12 +198,72 @@ const Dashboard = () => {
     );
   }
 
-  const stats = [
-    { icon: <Bus />, label: "Buses en servicio", value: data.buses, colorClass: "border-blue-500", iconBg: "bg-blue-50", iconColor: "text-blue-500" },
-    { icon: <Users />, label: "Conductores", value: data.drivers, colorClass: "border-green-500", iconBg: "bg-green-50", iconColor: "text-green-500" },
-    { icon: <LayoutGrid />, label: "Rutas activas", value: data.routes, colorClass: "border-purple-500", iconBg: "bg-purple-50", iconColor: "text-purple-500" },
-    { icon: <Clock />, label: "Horarios", value: data.schedules, colorClass: "border-orange-500", iconBg: "bg-orange-50", iconColor: "text-orange-500" },
-    { icon: <AlertTriangle />, label: "Alertas activas", value: data.alerts, colorClass: "border-red-500", iconBg: "bg-red-50", iconColor: "text-red-500" }
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-xl font-semibold text-red-700 mb-2">Error al cargar el dashboard</h2>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button 
+          onClick={() => {
+            setError(null);
+            fetchDashboardData();
+          }}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  const { viajesData, rutasData } = prepareChartData();
+
+  const dashboardStats = [
+    { 
+      icon: <Bus />, 
+      label: "Buses en servicio", 
+      value: stats.vehiculosDisponibles || 0,
+      total: stats.totalVehiculos || 0,
+      subtitle: `de ${stats.totalVehiculos} total`,
+      colorClass: "border-blue-500", 
+      iconBg: "bg-blue-50", 
+      iconColor: "text-blue-500" 
+    },
+    { 
+      icon: <Users />, 
+      label: "Conductores activos", 
+      value: stats.conductoresActivos || 0,
+      total: stats.totalConductores || 0,
+      subtitle: `de ${stats.totalConductores} total`,
+      colorClass: "border-green-500", 
+      iconBg: "bg-green-50", 
+      iconColor: "text-green-500" 
+    },
+    { 
+      icon: <LayoutGrid />, 
+      label: "Rutas activas", 
+      value: stats.totalRutas || 0,
+      colorClass: "border-purple-500", 
+      iconBg: "bg-purple-50", 
+      iconColor: "text-purple-500" 
+    },
+    { 
+      icon: <Clock />, 
+      label: "Viajes en curso", 
+      value: realTimeData?.viajesEnCurso || stats.viajesEnCurso || 0,
+      colorClass: "border-orange-500", 
+      iconBg: "bg-orange-50", 
+      iconColor: "text-orange-500" 
+    },
+    { 
+      icon: <AlertTriangle />, 
+      label: "Alertas críticas", 
+      value: realTimeData?.alertasCriticas || alerts.filter(a => a.severity === 'critical').length,
+      colorClass: "border-red-500", 
+      iconBg: "bg-red-50", 
+      iconColor: "text-red-500" 
+    }
   ];
 
   return (
@@ -181,15 +273,22 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold text-blue-900 m-0">
           Panel de Control <span className="text-yellow-500">TransSync</span>
         </h1>
-        <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 px-4 py-2 rounded-md shadow-sm">
-          <Calendar size={18} />
-          <span>{new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        <div className="flex items-center gap-4">
+          {realTimeData && (
+            <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-md">
+              ● En vivo - {new Date(realTimeData.timestamp).toLocaleTimeString('es-CO')}
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 px-4 py-2 rounded-md shadow-sm">
+            <Calendar size={18} />
+            <span>{new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          </div>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
-        {stats.map((stat, index) => (
+        {dashboardStats.map((stat, index) => (
           <div 
             key={index} 
             className={`flex items-center p-5 rounded-xl shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white border-l-4 ${stat.colorClass}`}
@@ -200,6 +299,9 @@ const Dashboard = () => {
             <div>
               <h3 className="text-3xl font-bold text-slate-800 m-0 mb-1">{stat.value}</h3>
               <p className="text-sm text-slate-500 m-0">{stat.label}</p>
+              {stat.subtitle && (
+                <p className="text-xs text-slate-400 m-0 mt-1">{stat.subtitle}</p>
+              )}
             </div>
           </div>
         ))}
@@ -227,59 +329,105 @@ const Dashboard = () => {
                   Mes
                 </button>
                 <button 
-                  className={`px-3 py-1.5 text-sm rounded transition-all ${selectedPeriod === 'año' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                  onClick={() => setSelectedPeriod('año')}
+                  className={`px-3 py-1.5 text-sm rounded transition-all ${selectedPeriod === 'ano' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                  onClick={() => setSelectedPeriod('ano')}
                 >
                   Año
                 </button>
               </div>
             </div>
             <div className="flex-grow h-80 relative">
-              <Line data={tripData[selectedPeriod]} options={chartOptions} />
+              <Line data={viajesData} options={chartOptions} />
             </div>
           </div>
 
-          {/* Passenger Chart */}
+          {/* Routes Distribution Chart */}
           <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col">
-            <h3 className="text-lg font-semibold text-slate-700 m-0 mb-4">Distribución de Pasajeros</h3>
+            <h3 className="text-lg font-semibold text-slate-700 m-0 mb-4">Distribución por Rutas</h3>
             <div className="flex-grow h-80 relative">
-              <Doughnut data={passengerData} options={doughnutOptions} />
+              {rutasData.labels.length > 0 ? (
+                <Doughnut data={rutasData} options={doughnutOptions} />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  <div className="text-center">
+                    <LayoutGrid className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No hay datos de rutas</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Second Chart Row */}
+        {/* Second Row - Alerts */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-          {/* Fuel Chart */}
-          <div className="xl:col-span-2 bg-white rounded-xl shadow-sm p-5 flex flex-col">
-            <h3 className="text-lg font-semibold text-slate-700 m-0 mb-4">Consumo de Combustible</h3>
-            <div className="flex-grow h-80 relative">
-              <Line data={fuelConsumptionData} options={chartOptions} />
+          {/* Vehicle Status */}
+          <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col">
+            <h3 className="text-lg font-semibold text-slate-700 m-0 mb-4">Estado de la Flota</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm">Disponibles</span>
+                </div>
+                <span className="font-semibold text-green-700">{stats.vehiculosDisponibles}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm">En ruta</span>
+                </div>
+                <span className="font-semibold text-blue-700">{stats.vehiculosEnRuta}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <span className="text-sm">En mantenimiento</span>
+                </div>
+                <span className="font-semibold text-orange-700">{stats.vehiculosEnMantenimiento || 0}</span>
+              </div>
             </div>
           </div>
 
           {/* Alerts List */}
-          <div className="bg-white rounded-xl shadow-sm p-5 flex flex-col overflow-y-auto">
-            <h3 className="text-lg font-semibold text-slate-700 m-0 mb-4">Alertas Recientes</h3>
-            {alerts && alerts.length > 0 ? (
-              <ul className="list-none p-0 m-0 flex flex-col gap-3">
-                {alerts.map((alert, index) => (
-                  <li key={index} className={`flex items-start gap-3 p-3 rounded-md bg-slate-50 ${
-                    alert.severity === 'critical' ? 'border-l-4 border-red-500 text-red-500' :
-                    alert.severity === 'warning' ? 'border-l-4 border-orange-500 text-orange-500' :
-                    'border-l-4 border-blue-500 text-blue-500'
-                  }`}>
-                    <AlertTriangle size={16} />
-                    <div className="flex-1">
-                      <p className="m-0 mb-0.5 text-sm font-medium text-slate-800">{alert.title}</p>
-                      <p className="m-0 text-xs text-slate-500">{alert.time}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-slate-500 text-center py-12 italic">No hay alertas recientes</p>
-            )}
+          <div className="xl:col-span-2 bg-white rounded-xl shadow-sm p-5 flex flex-col overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-slate-700 m-0">Alertas del Sistema</h3>
+              {alerts.length > 0 && (
+                <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">
+                  {alerts.length} activas
+                </span>
+              )}
+            </div>
+            <div className="max-h-64 overflow-y-auto">
+              {alerts && alerts.length > 0 ? (
+                <ul className="list-none p-0 m-0 flex flex-col gap-3">
+                  {alerts.map((alert, index) => (
+                    <li key={index} className={`flex items-start gap-3 p-3 rounded-md border-l-4 ${
+                      alert.severity === 'critical' ? 'bg-red-50 border-red-500' :
+                      alert.severity === 'warning' ? 'bg-orange-50 border-orange-500' :
+                      'bg-blue-50 border-blue-500'
+                    }`}>
+                      <AlertTriangle size={16} className={
+                        alert.severity === 'critical' ? 'text-red-500' :
+                        alert.severity === 'warning' ? 'text-orange-500' :
+                        'text-blue-500'
+                      } />
+                      <div className="flex-1">
+                        <p className="m-0 mb-1 text-sm font-medium text-slate-800">{alert.title}</p>
+                        <p className="m-0 text-xs text-slate-500">{alert.time}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                  <AlertTriangle className="w-12 h-12 mb-3 opacity-30" />
+                  <p className="text-center italic">No hay alertas activas</p>
+                  <p className="text-xs text-center mt-1">Sistema funcionando correctamente</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
