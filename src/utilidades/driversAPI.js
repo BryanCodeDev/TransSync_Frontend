@@ -398,7 +398,7 @@ const driversAPI = {
       const fechaVencimiento = new Date(driverData.fecVenLicConductor);
       const hoy = new Date();
       if (fechaVencimiento <= hoy) {
-        errors.push('La fecha de vencimiento debe ser futura');
+        errors.push('La fecha de vencimiento debe ser futura a');
       }
     }
 

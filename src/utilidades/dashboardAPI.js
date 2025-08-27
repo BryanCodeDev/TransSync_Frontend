@@ -1,4 +1,10 @@
 // api/dashboardAPI.js - Servicio específico para dashboard
+import apiClient from './apiClient';
+import apiUtils from './apiUtils'; // Import apiUtils for error formatting
+import horariosAPI from './horariosAPI';
+import informesAPI from './informesAPI';
+import emergencyAPI from './emergencyAPI';
+
 export const dashboardAPI = {
   // Obtener estadísticas generales del dashboard
   getGeneralStatistics: async () => {
@@ -98,4 +104,5 @@ export const dashboardAPI = {
   }
 };
 
-export default { horariosAPI, informesAPI, emergencyAPI, dashboardAPI };
+const api = { horariosAPI, informesAPI, emergencyAPI, dashboardAPI };
+export default api;
