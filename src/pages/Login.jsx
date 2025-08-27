@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   FaUser, 
   FaLock, 
@@ -16,7 +16,8 @@ import {
 } from "react-icons/fa";
 
 const Login = () => {
-  const navigate = useNavigate(); // Hook de React Router para navegación
+  const navigate = useNavigate();
+  const location = useLocation();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -134,13 +135,21 @@ const Login = () => {
           localStorage.setItem("userToken", data.token);
         }
         
-        // Redirigir según el rol después de un momento
+        // Redirigir después de un momento
         setTimeout(() => {
           const userRole = data.user?.role;
-          if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
-            navigate("/admin/dashboard");
+          const from = location.state?.from?.pathname;
+          
+          // Si vino de una ruta protegida, redirigir allí
+          if (from && from !== '/login' && from !== '/register') {
+            navigate(from, { replace: true });
           } else {
-            navigate("/dashboard");
+            // Redirigir según el rol
+            if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
+              navigate("/admin/dashboard", { replace: true });
+            } else {
+              navigate("/dashboard", { replace: true });
+            }
           }
         }, 1500);
       } else {

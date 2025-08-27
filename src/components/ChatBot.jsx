@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import chatbotAPI from '../utilidades/chatbotAPI';
 
 // Componente Button con paleta uniforme
 const Button = ({ 
@@ -38,7 +39,7 @@ const Button = ({
 
 const ChatBot = ({ 
   title = "Asistente TransSync",
-  initialMessage = "¡Hola! Soy el asistente virtual de TransSync. ¿En qué puedo ayudarte hoy?",
+  initialMessage = "Hola! Soy el asistente virtual de TransSync. Puedo ayudarte con información actual sobre conductores, vehículos, rutas y mucho más. ¿En qué puedo ayudarte hoy?",
   position = "bottom-right",
   theme = "professional",
   agentAvatar = "🤖",
@@ -49,24 +50,51 @@ const ChatBot = ({
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('unknown');
+  const [userContext, setUserContext] = useState(null);
   const messagesEndRef = useRef(null);
   
   useEffect(() => {
-    if (initialMessage && messages.length === 0) {
+    // Obtener contexto del usuario al inicializar
+    const context = chatbotAPI.obtenerContextoUsuario();
+    setUserContext(context);
+    
+    // Mensaje inicial personalizado
+    if (messages.length === 0) {
+      const mensajeInicial = context.esUsuarioAutenticado 
+        ? `Hola ${context.nombreUsuario}! Soy el asistente de ${context.empresa}. Tengo acceso a datos actuales del sistema y puedo ayudarte con información sobre conductores, vehículos, rutas, horarios y más. ¿Qué necesitas consultar?`
+        : initialMessage;
+
       setMessages([
         {
           id: Date.now(),
-          text: initialMessage,
+          text: mensajeInicial,
           sender: 'bot',
-          timestamp: new Date()
+          timestamp: new Date(),
+          formatted: true
         }
       ]);
     }
-  }, [initialMessage, messages.length]);
+    
+  // Verificar estado del servicio al abrir
+  if (isOpen && connectionStatus === 'unknown') {
+    verificarConexion();
+  }
+}, [isOpen, connectionStatus, messages.length, initialMessage]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Verificar conexión con el servicio de chatbot
+  const verificarConexion = async () => {
+    try {
+      const resultado = await chatbotAPI.verificarEstado();
+      setConnectionStatus(resultado.success ? 'connected' : 'disconnected');
+    } catch (error) {
+      setConnectionStatus('disconnected');
+    }
+  };
 
   // Animaciones CSS mejoradas con paleta de colores uniforme
   useEffect(() => {
@@ -187,12 +215,19 @@ const ChatBot = ({
           background: rgba(26, 35, 126, 0.6);
         }
         
-        /* Gradiente de texto con paleta uniforme */
-        .gradient-text {
-          background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+        /* Estilos para mensajes formateados */
+        .formatted-message {
+          line-height: 1.6;
+        }
+        
+        .formatted-message strong {
+          font-weight: 600;
+          color: #1a237e;
+        }
+        
+        .formatted-message em {
+          font-style: italic;
+          opacity: 0.9;
         }
       `;
       document.head.appendChild(style);
@@ -212,6 +247,9 @@ const ChatBot = ({
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
+    if (!isOpen) {
+      verificarConexion();
+    }
   };
 
   const toggleMinimize = () => {
@@ -226,8 +264,23 @@ const ChatBot = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleSendMessage = () => {
-    if (inputText.trim() === '') return;
+  const handleSendMessage = async () => {
+    if (inputText.trim() === '' || isTyping) return;
+    
+    // Validar mensaje
+    const validacion = chatbotAPI.validarMensaje(inputText);
+    if (!validacion.esValido) {
+      // Mostrar error de validación
+      const errorMessage = {
+        id: Date.now(),
+        text: `Error: ${validacion.error}`,
+        sender: 'bot',
+        timestamp: new Date(),
+        isError: true
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
     
     const userMessage = {
       id: Date.now(),
@@ -237,65 +290,44 @@ const ChatBot = ({
     };
     
     setMessages(prev => [...prev, userMessage]);
+    const mensajeUsuario = inputText;
     setInputText('');
     setIsTyping(true);
     
-    setTimeout(() => {
-      handleBotResponse(inputText);
-      setIsTyping(false);
-    }, Math.random() * 1000 + 800);
-  };
+    try {
+      // Enviar consulta a la API real
+      const respuesta = await chatbotAPI.enviarConsulta(mensajeUsuario);
+      
+      setTimeout(() => {
+        const botMessage = {
+          id: Date.now() + 1,
+          text: respuesta.respuesta,
+          sender: 'bot',
+          timestamp: new Date(),
+          intencion: respuesta.intencion,
+          success: respuesta.success,
+          formatted: true
+        };
+        
+        setMessages(prev => [...prev, botMessage]);
+        setIsTyping(false);
+      }, 500); // Pequeño delay para mejor UX
 
-  const handleBotResponse = (userInput) => {
-    const responses = {
-      default: "Lo siento, no tengo información específica sobre eso. Te recomiendo contactar a nuestro equipo de soporte técnico para recibir asistencia personalizada.",
-      greeting: [
-        "¡Hola! Es un placer ayudarte hoy.", 
-        "¡Buen día! ¿En qué puedo asistirte?", 
-        "¡Saludos! Estoy aquí para resolver tus consultas."
-      ],
-      help: "Puedo ayudarte con información sobre:\n• Consulta de rutas y paradas\n• Estado de vehículos y conductores\n• Horarios y programación\n• Reportes de incidencias\n• Procedimientos administrativos",
-      routes: "📍 **Gestión de Rutas:**\nAccede al menú 'Rutas' para consultar todas las rutas disponibles, ver mapas interactivos y obtener información sobre paradas y tiempos estimados.",
-      schedules: "⏰ **Horarios Actualizados:**\nEn la sección 'Horarios' encontrarás programaciones en tiempo real, filtros por ruta o zona, y notificaciones de cambios de horario.",
-      drivers: "👨‍💼 **Gestión de Conductores:**\nLa información detallada de conductores está disponible para administradores en la sección correspondiente, incluyendo licencias y evaluaciones.",
-      vehicles: "🚌 **Estado de Vehículos:**\nConsulta el estado en tiempo real de toda la flota, mantenimientos programados y reportes de rendimiento en la sección 'Vehículos'.",
-      register: "📝 **Registro de Usuario:**\nPara crear una cuenta nueva, debes contactar al administrador del sistema quien te proporcionará las credenciales de acceso.",
-      thanks: ["¡De nada! ¿Hay algo más en lo que pueda ayudarte?", "¡Un placer ayudarte! ¿Necesitas información adicional?", "¡Perfecto! Estoy aquí si tienes más consultas."]
-    };
-    
-    let botResponse = "";
-    const input = userInput.toLowerCase();
-    
-    if (input.includes("hola") || input.includes("buenos") || input.includes("saludos")) {
-      const randomIndex = Math.floor(Math.random() * responses.greeting.length);
-      botResponse = responses.greeting[randomIndex];
-    } else if (input.includes("ayuda") || input.includes("puedes hacer") || input.includes("qué haces")) {
-      botResponse = responses.help;
-    } else if (input.includes("ruta") || input.includes("recorrido")) {
-      botResponse = responses.routes;
-    } else if (input.includes("horario") || input.includes("tiempo")) {
-      botResponse = responses.schedules;
-    } else if (input.includes("conductor") || input.includes("chofer")) {
-      botResponse = responses.drivers;
-    } else if (input.includes("vehículo") || input.includes("vehiculo") || input.includes("bus") || input.includes("autobús")) {
-      botResponse = responses.vehicles;
-    } else if (input.includes("registr") || input.includes("cuenta") || input.includes("usuario")) {
-      botResponse = responses.register;
-    } else if (input.includes("gracias") || input.includes("thanks")) {
-      const randomIndex = Math.floor(Math.random() * responses.thanks.length);
-      botResponse = responses.thanks[randomIndex];
-    } else {
-      botResponse = responses.default;
+    } catch (error) {
+      console.error('Error enviando mensaje:', error);
+      
+      const errorMessage = {
+        id: Date.now() + 1,
+        text: 'Lo siento, ocurrió un error procesando tu consulta. Por favor verifica tu conexión e intenta nuevamente.',
+        sender: 'bot',
+        timestamp: new Date(),
+        isError: true
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      setIsTyping(false);
+      setConnectionStatus('disconnected');
     }
-    
-    const botMessageObj = {
-      id: Date.now(),
-      text: botResponse,
-      sender: 'bot',
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, botMessageObj]);
   };
 
   const handleKeyPress = (e) => {
@@ -303,6 +335,12 @@ const ChatBot = ({
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleSuggestionClick = (sugerencia) => {
+    if (isTyping) return;
+    setInputText(sugerencia.texto);
+    setTimeout(() => handleSendMessage(), 100);
   };
 
   // Clases de posición responsivas
@@ -370,6 +408,9 @@ const ChatBot = ({
     };
   };
 
+  // Obtener sugerencias
+  const sugerencias = chatbotAPI.obtenerSugerencias().slice(0, 4);
+
   return (
     <div className={`fixed z-[9999] ${getPositionClasses()}`}>
       {!isOpen ? (
@@ -391,14 +432,19 @@ const ChatBot = ({
         >
           <span className="text-2xl max-sm:text-xl filter drop-shadow-sm">💬</span>
           
-          {/* Indicador de notificación */}
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-[#c62828] to-[#d32f2f] rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">1</span>
+          {/* Indicador de conexión */}
+          <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center ${
+            connectionStatus === 'connected' ? 'bg-green-500' : 
+            connectionStatus === 'disconnected' ? 'bg-red-500' : 'bg-yellow-500'
+          }`}>
+            <span className="text-white text-xs font-bold">
+              {connectionStatus === 'connected' ? '✓' : connectionStatus === 'disconnected' ? '✗' : '?'}
+            </span>
           </div>
           
           {/* Tooltip */}
           <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-[#1a237e] text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none border border-white/20">
-            Asistente Virtual
+            Asistente Virtual con Datos Reales
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-[#1a237e]"></div>
           </div>
         </button>
@@ -419,8 +465,14 @@ const ChatBot = ({
               </div>
               <div>
                 <div className="font-semibold text-base leading-tight">{title}</div>
-                <div className="text-xs opacity-90">
-                  {isTyping ? 'Escribiendo...' : 'En línea'}
+                <div className="text-xs opacity-90 flex items-center gap-1">
+                  <span className={`w-2 h-2 rounded-full ${
+                    connectionStatus === 'connected' ? 'bg-green-300' : 
+                    connectionStatus === 'disconnected' ? 'bg-red-300' : 'bg-yellow-300'
+                  }`}></span>
+                  {isTyping ? 'Escribiendo...' : 
+                   connectionStatus === 'connected' ? 'Conectado con datos reales' : 
+                   connectionStatus === 'disconnected' ? 'Sin conexión' : 'Verificando...'}
                 </div>
               </div>
             </div>
@@ -457,11 +509,13 @@ const ChatBot = ({
                     }`}
                   >
                     {msg.sender === 'bot' && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center text-white text-sm font-semibold shadow-sm">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-sm ${
+                        msg.isError ? 'bg-red-500' : 'bg-gradient-to-br from-[#1a237e] to-[#3949ab]'
+                      }`}>
                         {typeof agentAvatar === 'string' && agentAvatar.startsWith('http') ? (
                           <img src={agentAvatar} alt="Bot" className="w-full h-full object-cover rounded-full" />
                         ) : (
-                          <span>{agentAvatar}</span>
+                          <span>{msg.isError ? '⚠️' : agentAvatar}</span>
                         )}
                       </div>
                     )}
@@ -469,18 +523,31 @@ const ChatBot = ({
                     <div className={`
                       px-4 py-3 rounded-2xl max-w-[80%] break-words relative
                       ${msg.sender === 'bot' 
-                        ? `${currentTheme.botBubble} rounded-bl-md` 
+                        ? `${msg.isError ? 'bg-red-50 border-red-200 text-red-800' : currentTheme.botBubble} rounded-bl-md` 
                         : `${currentTheme.userBubble} rounded-br-md`
                       }
                     `}>
-                      <div className="leading-relaxed text-sm whitespace-pre-line">
-                        {msg.text}
+                      <div className={`leading-relaxed text-sm whitespace-pre-line ${
+                        msg.formatted ? 'formatted-message' : ''
+                      }`}>
+                        {msg.formatted ? (
+                          <div dangerouslySetInnerHTML={{ 
+                            __html: chatbotAPI.formatearMensaje(msg.text) 
+                          }} />
+                        ) : (
+                          msg.text
+                        )}
                       </div>
                       <div className={`
-                        text-xs opacity-75 text-right mt-2
+                        text-xs opacity-75 text-right mt-2 flex items-center justify-end gap-1
                         ${currentTheme.timestamp}
                       `}>
                         {formatTimestamp(msg.timestamp)}
+                        {msg.intencion && (
+                          <span className="text-xs bg-black bg-opacity-10 px-1 rounded">
+                            {msg.intencion}
+                          </span>
+                        )}
                       </div>
                     </div>
                     
@@ -526,19 +593,20 @@ const ChatBot = ({
                         placeholder-gray-400
                         ${currentTheme.input}
                       `}
-                      placeholder="Escribe tu mensaje aquí... (Enter para enviar)"
+                      placeholder="Pregúntame sobre conductores, vehículos, rutas... (Enter para enviar)"
                       value={inputText}
                       onChange={handleInputChange}
                       onKeyPress={handleKeyPress}
                       rows={inputText.split('\n').length || 1}
                       style={{ maxHeight: '120px' }}
+                      disabled={isTyping || connectionStatus === 'disconnected'}
                     />
                   </div>
                   <Button 
                     variant="primary"
                     size="medium"
                     onClick={handleSendMessage}
-                    disabled={!inputText.trim() || isTyping}
+                    disabled={!inputText.trim() || isTyping || connectionStatus === 'disconnected'}
                     className="px-4 py-3 rounded-xl font-semibold shadow-sm hover:shadow-md transition-all duration-200"
                   >
                     <span className="max-sm:hidden">Enviar</span>
@@ -546,21 +614,45 @@ const ChatBot = ({
                   </Button>
                 </div>
                 
-                {/* Sugerencias rápidas */}
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {['Rutas', 'Horarios', 'Vehículos', 'Ayuda'].map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      onClick={() => {
-                        setInputText(suggestion);
-                        setTimeout(handleSendMessage, 100);
-                      }}
-                      className="px-3 py-1 text-xs bg-gradient-to-r from-[#1a237e]/10 to-[#3949ab]/10 text-[#1a237e] rounded-full hover:from-[#1a237e]/20 hover:to-[#3949ab]/20 transition-colors duration-200 border border-[#3949ab]/30"
+                {/* Sugerencias dinámicas */}
+                {!isTyping && messages.length > 1 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {sugerencias.map((sugerencia, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(sugerencia)}
+                        disabled={connectionStatus === 'disconnected'}
+                        className="px-3 py-1 text-xs bg-gradient-to-r from-[#1a237e]/10 to-[#3949ab]/10 text-[#1a237e] rounded-full hover:from-[#1a237e]/20 hover:to-[#3949ab]/20 transition-colors duration-200 border border-[#3949ab]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      >
+                        <span>{sugerencia.icono}</span>
+                        <span className="truncate max-w-[120px]">{sugerencia.texto.split('?')[0]}?</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Indicador de estado de conexión */}
+                {connectionStatus === 'disconnected' && (
+                  <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                    <span className="text-red-500">⚠️</span>
+                    <span className="text-red-700 text-xs">
+                      Sin conexión al servidor. Verifica tu internet y reintenta.
+                    </span>
+                    <button 
+                      onClick={verificarConexion}
+                      className="text-red-600 text-xs underline hover:text-red-800"
                     >
-                      {suggestion}
+                      Reintentar
                     </button>
-                  ))}
-                </div>
+                  </div>
+                )}
+
+                {/* Información del usuario (opcional) */}
+                {userContext && userContext.esUsuarioAutenticado && (
+                  <div className="mt-2 text-xs text-center opacity-70">
+                    Conectado como {userContext.nombreUsuario} • {userContext.empresa}
+                  </div>
+                )}
               </div>
             </>
           )}

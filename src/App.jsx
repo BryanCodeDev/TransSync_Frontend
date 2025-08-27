@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { isAuthenticated } from './utilidades/authAPI';
+import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import ChatBot from "./components/ChatBot";
 
@@ -35,8 +36,7 @@ const useSidebar = () => {
     
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Dependencias intencionalmente vacías para ejecutar solo una vez
+  }, []);
 
   // Efecto separado para manejar cambios de sidebar basado en isMobile
   useEffect(() => {
@@ -56,7 +56,7 @@ const useSidebar = () => {
   return { sidebarOpen, isMobile, toggleSidebar, closeSidebar };
 };
 
-// Componente Protected Route básico (solo verifica autenticación)
+// Componente Protected Route básico
 const ProtectedRoute = ({ children }) => {
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
@@ -64,7 +64,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Layout principal para rutas protegidas SIN MÁRGENES PREDEFINIDOS
+// Layout principal para rutas protegidas CON Navbar y Sidebar
 const ProtectedLayout = ({ children }) => {
   const { sidebarOpen, isMobile, toggleSidebar, closeSidebar } = useSidebar();
 
@@ -79,7 +79,13 @@ const ProtectedLayout = ({ children }) => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Sidebar */}
+      {/* Navbar global */}
+      <Navbar 
+        toggleSidebar={toggleSidebar}
+        isMobile={isMobile}
+      />
+      
+      {/* Sidebar solo para usuarios autenticados */}
       <Sidebar 
         isOpen={sidebarOpen} 
         toggleSidebar={toggleSidebar}
@@ -87,9 +93,8 @@ const ProtectedLayout = ({ children }) => {
         isMobile={isMobile}
       />
       
-      {/* Contenido principal SIN padding predefinido */}
-      <main className={getContentClasses()}>
-        {/* Eliminé el div con padding interno para que tengas control total */}
+      {/* Contenido principal con margen superior para el navbar */}
+      <main className={`${getContentClasses()} pt-16`}>
         {children}
       </main>
       
@@ -103,12 +108,24 @@ const ProtectedLayout = ({ children }) => {
   );
 };
 
+// Layout público con solo Navbar
+const PublicLayout = ({ children }) => {
+  return (
+    <div className="relative min-h-screen">
+      {/* Navbar público */}
+      <Navbar isPublic={true} />
+      
+      {/* Contenido principal sin margen lateral pero con margen superior */}
+      <main className="min-h-screen pt-16">
+        {children}
+      </main>
+    </div>
+  );
+};
+
 // Componente de redirección automática para la ruta raíz
 const AutoRedirect = () => {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
-  }
-  
+  // Redirigir a Home por defecto (no requiere autenticación)
   return <Navigate to="/home" replace />;
 };
 
@@ -118,25 +135,36 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          {/* Rutas públicas - SIN Layout */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          {/* Ruta raíz con redirección automática */}
+          {/* Ruta raíz - siempre redirige a home */}
           <Route path="/" element={<AutoRedirect />} />
           
-          {/* Rutas protegidas - CON Layout - SIN RESTRICCIONES */}
+          {/* Rutas públicas - CON Layout público */}
           <Route 
             path="/home" 
             element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <Home />
-                </ProtectedLayout>
-              </ProtectedRoute>
+              <PublicLayout>
+                <Home />
+              </PublicLayout>
+            } 
+          />
+          <Route 
+            path="/login" 
+            element={
+              <PublicLayout>
+                <Login />
+              </PublicLayout>
+            } 
+          />
+          <Route 
+            path="/register" 
+            element={
+              <PublicLayout>
+                <Register />
+              </PublicLayout>
             } 
           />
           
+          {/* Rutas protegidas - CON Layout protegido */}
           <Route 
             path="/dashboard" 
             element={

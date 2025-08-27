@@ -1,4 +1,4 @@
-// api/baseAPI.js - Configuración base y utilidades compartidas
+// api/baseAPI.js - Configuración unificada para todos los servicios
 import axios from "axios";
 
 // ================================
@@ -7,9 +7,9 @@ import axios from "axios";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 const REQUEST_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT) || 10000;
 
-// Crear instancia de axios con configuración base
+// Crear instancia de axios con configuración base SIN /api
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE_URL, // Sin /api aquí - se maneja en cada servicio
   timeout: REQUEST_TIMEOUT,
   headers: {
     "Content-Type": "application/json",
