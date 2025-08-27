@@ -2,12 +2,13 @@
 import authAPI from '../utilidades/authAPI';
 import adminAPI from '../utilidades/adminAPI';
 import driversAPI from '../utilidades/driversAPI';
-import vehiculosAPI from '../utilidades/vehiculosAPI'; // Actualizado para usar el nuevo
+import vehiculosAPI from '../utilidades/vehiculosAPI';
 import rutasAPI from '../utilidades/rutasAPI';
 import horariosAPI from '../utilidades/horariosAPI';
 import informesAPI from '../utilidades/informesAPI';
 import emergencyAPI from '../utilidades/emergencyAPI';
 import dashboardAPI from '../utilidades/dashboardAPI';
+import chatbotAPI from '../utilidades/chatbotAPI';
 import { healthCheck, apiUtils } from './baseAPI';
 
 // Exportación principal con todos los servicios organizados

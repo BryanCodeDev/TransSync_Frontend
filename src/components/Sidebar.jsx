@@ -106,6 +106,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     const roles = {
       'SUPERADMIN': 'Super Administrador',
       'ADMINISTRADOR': 'Administrador',
+      'CONDUCTOR': 'Conductor',
       'USER': 'Usuario',
       'PENDIENTE': 'Usuario Pendiente'
     };
@@ -141,6 +142,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         return 'from-purple-500 to-purple-700';
       case 'ADMINISTRADOR':
         return 'from-[#3949ab] to-[#1a237e]';
+      case 'CONDUCTOR':
+        return 'from-green-500 to-green-700';
       case 'USER':
         return 'from-[#283593] to-[#1a237e]';
       case 'PENDIENTE':
@@ -156,22 +159,147 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         return <FaUserShield size={20} className="text-white" />;
       case 'ADMINISTRADOR':
         return <FaCogs size={20} className="text-white" />;
+      case 'CONDUCTOR':
+        return <FaUserTie size={20} className="text-white" />;
       default:
         return <FaUser size={20} className="text-white" />;
     }
   };
 
-  // Menú actualizado - sin Home, Dashboard como principal
-  const menuItems = [
-    { path: "/dashboard", icon: <FaChartLine />, label: "Dashboard" },
-    { path: "/admin/dashboard", icon: <FaCogs />, label: "Admin Dashboard" },
-    { path: "/drivers", icon: <FaUserTie />, label: "Conductores" },
-    { path: "/rutas", icon: <FaRoute />, label: "Rutas" },
-    { path: "/vehiculos", icon: <FaBus />, label: "Vehículos" }, 
-    { path: "/horarios", icon: <FaClock />, label: "Horarios" }, 
-    { path: "/emergency", icon: <FaExclamationTriangle />, label: "Emergencias" },
-    { path: "/informes", icon: <FaFileAlt />, label: "Informes" },
+  // FUNCIÓN PARA VERIFICAR PERMISOS POR ROL
+  const hasPermissionForRoute = (path) => {
+    if (!userRole) return false;
+
+    const rolePermissions = {
+      'SUPERADMIN': [
+        '/dashboard',
+        '/admin/dashboard', // Solo SUPERADMIN tiene acceso
+        '/drivers',
+        '/rutas',
+        '/vehiculos',
+        '/horarios',
+        '/emergency',
+        '/informes'
+      ],
+      'ADMINISTRADOR': [
+        '/dashboard',
+        // NO incluye '/admin/dashboard'
+        '/drivers',
+        '/rutas',
+        '/vehiculos',
+        '/horarios',
+        '/emergency',
+        '/informes'
+      ],
+      'CONDUCTOR': [
+        // Solo puede ver algunas secciones básicas
+      ],
+      'USER': [
+        // Sin acceso a las funciones principales
+      ],
+      'PENDIENTE': [
+        // Sin acceso hasta ser aprobado
+      ]
+    };
+
+    return rolePermissions[userRole]?.includes(path) || false;
+  };
+
+  // DEFINICIÓN DE MENÚ CON CONTROL DE ROLES
+  const allMenuItems = [
+    { 
+      path: "/dashboard", 
+      icon: <FaChartLine />, 
+      label: "Dashboard",
+      description: "Panel principal"
+    },
+    { 
+      path: "/admin/dashboard", 
+      icon: <FaCogs />, 
+      label: "Admin Dashboard",
+      description: "Panel de administración",
+      superAdminOnly: true
+    },
+    { 
+      path: "/drivers", 
+      icon: <FaUserTie />, 
+      label: "Conductores",
+      description: "Gestión de conductores"
+    },
+    { 
+      path: "/rutas", 
+      icon: <FaRoute />, 
+      label: "Rutas",
+      description: "Gestión de rutas"
+    },
+    { 
+      path: "/vehiculos", 
+      icon: <FaBus />, 
+      label: "Vehículos",
+      description: "Gestión de vehículos"
+    }, 
+    { 
+      path: "/horarios", 
+      icon: <FaClock />, 
+      label: "Horarios",
+      description: "Gestión de horarios"
+    }, 
+    { 
+      path: "/emergency", 
+      icon: <FaExclamationTriangle />, 
+      label: "Emergencias",
+      description: "Centro de emergencias"
+    },
+    { 
+      path: "/informes", 
+      icon: <FaFileAlt />, 
+      label: "Informes",
+      description: "Reportes y estadísticas"
+    },
   ];
+
+  // FILTRAR MENÚ SEGÚN PERMISOS
+  const menuItems = allMenuItems.filter(item => hasPermissionForRoute(item.path));
+
+  // COMPONENTE PARA MOSTRAR ACCESO RESTRINGIDO
+  const RestrictedAccessMessage = () => {
+    if (userRole === 'CONDUCTOR') {
+      return (
+        <div className="p-4 text-center">
+          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+            <FaUserTie className="mx-auto text-green-400 text-2xl mb-2" />
+            <p className="text-green-200 text-sm">
+              Acceso de Conductor
+            </p>
+            <p className="text-green-300/70 text-xs mt-1">
+              Panel en desarrollo
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (userRole === 'PENDIENTE' || userRole === 'USER') {
+      return (
+        <div className="p-4 text-center">
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+            <FaUser className="mx-auto text-yellow-400 text-2xl mb-2" />
+            <p className="text-yellow-200 text-sm">
+              {userRole === 'PENDIENTE' ? 'Cuenta Pendiente' : 'Usuario Sin Permisos'}
+            </p>
+            <p className="text-yellow-300/70 text-xs mt-1">
+              {userRole === 'PENDIENTE' 
+                ? 'Esperando aprobación del administrador'
+                : 'Contacte al administrador para obtener permisos'
+              }
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <>
@@ -281,55 +409,69 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
 
         {/* Menú de navegación */}
         <nav className="flex-1 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent" role="navigation">
-          <div className="px-2 space-y-1" role="menu">
-            {menuItems.map(({ path, icon, label }) => {
-              const isActive = location.pathname === path;
-              return (
-                <div key={path} className="relative group">
-                  <Link 
-                    to={path} 
-                    className={`
-                      flex items-center text-white no-underline rounded-xl
-                      transition-all duration-300 ease-in-out
-                      hover:bg-white/10 hover:scale-[1.02] hover:shadow-lg
-                      active:scale-[0.98]
-                      ${isActive 
-                        ? 'bg-white/20 shadow-lg backdrop-blur-sm text-blue-100 font-semibold' 
-                        : 'text-white/90 hover:text-white'
-                      }
-                      ${(isOpen || (!isMobile && !isTablet)) ? 'p-3 justify-start' : 'p-3 justify-center'}
-                    `}
-                    onClick={handleLinkClick}
-                    role="menuitem"
-                  >
-                    <div className={`
-                      flex items-center justify-center text-lg
-                      ${(isOpen || (!isMobile && !isTablet)) ? 'w-6 mr-4' : 'w-6'}
-                      ${isActive ? 'text-blue-200' : ''}
-                    `}>
-                      {icon}
-                    </div>
-                    {(isOpen || (!isMobile && !isTablet)) && (
-                      <span className={`text-sm font-medium truncate transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                        {label}
-                      </span>
+          {menuItems.length > 0 ? (
+            <div className="px-2 space-y-1" role="menu">
+              {menuItems.map(({ path, icon, label, description, superAdminOnly }) => {
+                const isActive = location.pathname === path;
+                
+                // Verificación adicional para Admin Dashboard
+                if (superAdminOnly && userRole !== 'SUPERADMIN') {
+                  return null;
+                }
+
+                return (
+                  <div key={path} className="relative group">
+                    <Link 
+                      to={path} 
+                      className={`
+                        flex items-center text-white no-underline rounded-xl
+                        transition-all duration-300 ease-in-out
+                        hover:bg-white/10 hover:scale-[1.02] hover:shadow-lg
+                        active:scale-[0.98]
+                        ${isActive 
+                          ? 'bg-white/20 shadow-lg backdrop-blur-sm text-blue-100 font-semibold' 
+                          : 'text-white/90 hover:text-white'
+                        }
+                        ${(isOpen || (!isMobile && !isTablet)) ? 'p-3 justify-start' : 'p-3 justify-center'}
+                      `}
+                      onClick={handleLinkClick}
+                      role="menuitem"
+                    >
+                      <div className={`
+                        flex items-center justify-center text-lg
+                        ${(isOpen || (!isMobile && !isTablet)) ? 'w-6 mr-4' : 'w-6'}
+                        ${isActive ? 'text-blue-200' : ''}
+                      `}>
+                        {icon}
+                      </div>
+                      {(isOpen || (!isMobile && !isTablet)) && (
+                        <span className={`text-sm font-medium truncate transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+                          {label}
+                        </span>
+                      )}
+                      {superAdminOnly && (isOpen || (!isMobile && !isTablet)) && (
+                        <div className="absolute right-2 w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+                      )}
+                      {isActive && !superAdminOnly && (isOpen || (!isMobile && !isTablet)) && (
+                        <div className="absolute right-2 w-2 h-2 bg-blue-300 rounded-full animate-pulse" />
+                      )}
+                    </Link>
+                    
+                    {/* Tooltip para sidebar colapsado (solo desktop) */}
+                    {!isOpen && !isMobile && !isTablet && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 bg-[#1a237e] text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/20">
+                        <div className="font-medium">{label}</div>
+                        {description && <div className="text-xs text-blue-200 mt-1">{description}</div>}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#1a237e]" />
+                      </div>
                     )}
-                    {isActive && (isOpen || (!isMobile && !isTablet)) && (
-                      <div className="absolute right-2 w-2 h-2 bg-blue-300 rounded-full animate-pulse" />
-                    )}
-                  </Link>
-                  
-                  {/* Tooltip para sidebar colapsado (solo desktop) */}
-                  {!isOpen && !isMobile && !isTablet && (
-                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 bg-[#1a237e] text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/20">
-                      {label}
-                      <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#1a237e]" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <RestrictedAccessMessage />
+          )}
         </nav>
 
         {/* Footer del sidebar */}
@@ -366,8 +508,18 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                 &copy; {new Date().getFullYear()} TransSync
               </p>
               <p className="text-xs text-blue-300 opacity-60">
-                v2.0.1 - Profesional
+                v2.0.1 - {formatUserRole(userRole)}
               </p>
+              {userRole && (
+                <div className={`mt-2 px-2 py-1 rounded-full text-xs ${
+                  userRole === 'SUPERADMIN' ? 'bg-purple-500/20 text-purple-200' :
+                  userRole === 'ADMINISTRADOR' ? 'bg-blue-500/20 text-blue-200' :
+                  userRole === 'CONDUCTOR' ? 'bg-green-500/20 text-green-200' :
+                  'bg-yellow-500/20 text-yellow-200'
+                }`}>
+                  {userRole}
+                </div>
+              )}
             </div>
           )}
         </div>
