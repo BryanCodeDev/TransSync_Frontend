@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { 
-  Search, Plus, Eye, Edit, MessageSquare, ChevronLeft, ChevronRight, 
-  AlertCircle, Loader, Trash2, Filter, Download, Upload, 
-  Phone, Calendar, MapPin, Car, FileText, UserCheck, 
-  MoreHorizontal, X, Check, AlertTriangle 
+  Search, Plus, Edit, MessageSquare, ChevronLeft, ChevronRight, 
+  AlertCircle, Loader, Trash2, Filter, Download,
+  Phone, Calendar, MapPin, Car, UserCheck, X, AlertTriangle 
 } from "lucide-react";
 import driversAPI from "../utilidades/driversAPI";
 
