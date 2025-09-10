@@ -5,10 +5,10 @@ import {
   Phone, Calendar, MapPin, Car, UserCheck, X, AlertTriangle
 } from "lucide-react";
 import driversAPI from "../utilidades/driversAPI";
-import { useTheme } from "../context/ThemeContext";
+// import { useTheme } from "../context/ThemeContext";
 const Drivers = () => {
   // Agregar el contexto del tema
-  const { theme } = useTheme();
+  // const { theme } = useTheme();  <-- comentar o borrar
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

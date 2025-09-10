@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { FaBus, FaCheckCircle, FaTimesCircle, FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaUser, FaExclamationTriangle, FaCogs, FaRoad } from "react-icons/fa";
 import vehiculosAPI from '../utilidades/vehiculosAPI';
 import { apiClient } from '../api/baseAPI';
-import { useTheme } from "../context/ThemeContext";
+// import { useTheme } from "../context/ThemeContext";
 
 const Vehiculos = () => {
-  const { theme } = useTheme();
+// const { theme } = useTheme();  <-- comentar o borrar
   const [vehiculos, setVehiculos] = useState([]);
   const [filteredVehiculos, setFilteredVehiculos] = useState([]);
   const [conductoresDisponibles, setConductoresDisponibles] = useState([]);
