@@ -54,7 +54,7 @@ const generateMockBuses = () => {
       direction: 45
     },
     {
-      id: 'bus-002', 
+      id: 'bus-002',
       route: 'Ruta 2: Sur - Occidente',
       driver: 'María González',
       lat: 4.6097,
@@ -109,7 +109,7 @@ const mockRoutes = [
     active: true
   },
   {
-    id: 'route-002', 
+    id: 'route-002',
     name: 'Ruta 2: Sur - Occidente',
     color: '#06b6d4', // Cyan
     coordinates: [
@@ -143,12 +143,12 @@ const mockRoutes = [
 const BusUpdater = ({ buses, setBuses }) => {
   useEffect(() => {
     const interval = setInterval(() => {
-      setBuses(prevBuses => 
+      setBuses(prevBuses =>
         prevBuses.map(bus => {
           if (bus.status === 'en_ruta' && bus.speed > 0) {
             const deltaLat = (Math.random() - 0.5) * 0.001;
             const deltaLng = (Math.random() - 0.5) * 0.001;
-            
+
             return {
               ...bus,
               lat: bus.lat + deltaLat,
@@ -182,13 +182,13 @@ const MapClickHandler = ({ onMapClick }) => {
 // Componente para controlar el mapa
 const MapControl = ({ center, zoom }) => {
   const map = useMap();
-  
+
   useEffect(() => {
     if (center) {
       map.setView(center, zoom || map.getZoom(), { animate: true });
     }
   }, [center, zoom, map]);
-  
+
   return null;
 };
 
@@ -234,7 +234,7 @@ const InteractiveMap = () => {
   const startTracking = (bus) => {
     setIsTracking(true);
     setSelectedBus(bus);
-    
+
     const trackingInterval = setInterval(() => {
       setBuses(currentBuses => {
         const trackedBus = currentBuses.find(b => b.id === bus.id);
@@ -296,14 +296,16 @@ const InteractiveMap = () => {
   return (
     <div className="w-full h-screen flex flex-col bg-gray-100">
       {/* Header de Control */}
-      <div className="bg-white shadow-sm border-b p-4">
+      <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 p-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Bus className="w-6 h-6 text-blue-600" />
-              <h1 className="text-xl font-bold text-gray-900">Sistema de Rutas TransSync</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                Sistema de Rutas TransSync</h1>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span>En tiempo real</span>
             </div>
@@ -312,17 +314,17 @@ const InteractiveMap = () => {
           <div className="flex items-center gap-3">
             {/* Filtros de visualización */}
             <div className="flex items-center gap-2">
-              <label className="flex items-center gap-1 text-sm">
+              <label className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={showBuses}
                   onChange={(e) => setShowBuses(e.target.checked)}
                   className="rounded"
                 />
-                <Bus className="w-4 h-4" />
+                <Bus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                 Buses
               </label>
-              <label className="flex items-center gap-1 text-sm">
+              <label className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={showRoutes}
@@ -332,7 +334,7 @@ const InteractiveMap = () => {
                 <Route className="w-4 h-4" />
                 Rutas
               </label>
-              <label className="flex items-center gap-1 text-sm">
+              <label className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={showStops}
@@ -347,11 +349,10 @@ const InteractiveMap = () => {
             {/* Botones de acción */}
             <button
               onClick={() => setIsAddingStop(!isAddingStop)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors flex items-center gap-1 ${
-                isAddingStop 
-                  ? 'bg-red-500 text-white hover:bg-red-600' 
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-              }`}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors flex items-center gap-1 ${isAddingStop
+                ? 'bg-red-500 text-white hover:bg-red-600'
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
             >
               {isAddingStop ? (
                 <>
@@ -391,7 +392,8 @@ const InteractiveMap = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Panel Lateral */}
-        <div className="w-80 bg-white shadow-lg overflow-y-auto flex-shrink-0">
+        <div className="w-80 bg-white dark:bg-gray-900 shadow-lg overflow-y-auto flex-shrink-0">
+
           {/* Información del bus seleccionado */}
           {selectedBus && (
             <div className="p-4 bg-blue-50 border-b">
@@ -407,9 +409,8 @@ const InteractiveMap = () => {
                 <div className="flex items-center gap-2">
                   {getStatusIcon(selectedBus.status)}
                   <span><strong>Estado:</strong></span>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    selectedBus.status === 'en_ruta' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${selectedBus.status === 'en_ruta' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
                     {getStatusText(selectedBus.status)}
                   </span>
                 </div>
@@ -447,43 +448,47 @@ const InteractiveMap = () => {
           )}
 
           {/* Lista de Buses */}
-          <div className="p-4 border-b">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2 mb-3">
-              <Bus className="w-5 h-5 text-gray-700" />
-              <h3 className="font-bold text-gray-900">Buses Activos ({buses.length})</h3>
+              <Bus className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <h3 className="font-bold text-gray-900 dark:text-gray-100">
+                Buses Activos ({buses.length})
+              </h3>
             </div>
             <div className="space-y-2">
               {buses.map(bus => (
                 <div
                   key={bus.id}
                   onClick={() => handleBusClick(bus)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedBus?.id === bus.id 
-                      ? 'bg-blue-100 border-2 border-blue-300' 
-                      : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
-                  }`}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedBus?.id === bus.id
+                    ? 'bg-blue-100 dark:bg-blue-900 border-2 border-blue-300 dark:border-blue-600'
+                    : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600'
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-sm">{bus.route}</h4>
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                        <Navigation className="w-3 h-3" />
+                      <h4 className="font-medium text-sm text-gray-800 dark:text-gray-100">
+                        {bus.route}
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                        <Navigation className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                         {bus.driver}
                       </p>
                     </div>
                     <div className="text-right flex flex-col items-end">
-                      <div className={`w-3 h-3 rounded-full ${
-                        bus.status === 'en_ruta' ? 'bg-green-400' : 'bg-red-400'
-                      }`}></div>
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <Zap className="w-3 h-3" />
+                      <div
+                        className={`w-3 h-3 rounded-full ${bus.status === 'en_ruta' ? 'bg-green-400' : 'bg-red-400'
+                          }`}
+                      ></div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                        <Zap className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                         {bus.speed} km/h
                       </span>
                     </div>
                   </div>
-                  <div className="mt-2 flex justify-between text-xs text-gray-600">
+                  <div className="mt-2 flex justify-between text-xs text-gray-600 dark:text-gray-400">
                     <span className="flex items-center gap-1">
-                      <Users className="w-3 h-3" />
+                      <Users className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                       {bus.passengers}/{bus.capacity}
                     </span>
                     <span className="flex items-center gap-1">
@@ -496,74 +501,78 @@ const InteractiveMap = () => {
             </div>
           </div>
 
+
           {/* Lista de Rutas */}
-          <div className="p-4 border-b">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2 mb-3">
-              <Route className="w-5 h-5 text-gray-700" />
-              <h3 className="font-bold text-gray-900">Rutas Disponibles</h3>
+              <Route className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <h3 className="font-bold text-gray-900 dark:text-gray-100">Rutas Disponibles</h3>
             </div>
             <div className="space-y-2">
               {mockRoutes.map(route => (
                 <div
                   key={route.id}
                   onClick={() => handleRouteSelect(route)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors border ${
-                    selectedRoute?.id === route.id 
-                      ? 'bg-purple-100 border-purple-300' 
-                      : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
-                  }`}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors border ${selectedRoute?.id === route.id
+                    ? 'bg-purple-100 dark:bg-purple-900 border-purple-300 dark:border-purple-600'
+                    : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'
+                    }`}
                 >
                   <div className="flex items-center gap-2">
-                    <div 
+                    <div
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: route.color }}
                     ></div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm">{route.name}</h4>
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <h4 className="font-medium text-sm text-gray-800 dark:text-gray-100">
+                        {route.name}
+                      </h4>
+                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                         <span className="flex items-center gap-1">
-                          <MapIcon className="w-3 h-3" />
+                          <MapIcon className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                           {route.distance}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
+                          <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                           {route.estimatedTime}
                         </span>
                       </div>
                     </div>
-                    <div className={`w-2 h-2 rounded-full ${
-                      route.active ? 'bg-green-400' : 'bg-gray-400'
-                    }`}></div>
+                    <div
+                      className={`w-2 h-2 rounded-full ${route.active ? 'bg-green-400' : 'bg-gray-400 dark:bg-gray-500'
+                        }`}
+                    ></div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
+
           {/* Estadísticas */}
           <div className="p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Activity className="w-5 h-5 text-gray-700" />
-              <h3 className="font-bold text-gray-900">Estadísticas en Tiempo Real</h3>
+              <Activity className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <h3 className="font-bold text-gray-900 dark:text-gray-100">Estadísticas en Tiempo Real</h3>
             </div>
             <div className="space-y-3">
-              <div className="bg-green-50 p-3 rounded-lg">
-                <div className="text-lg font-bold text-green-600">
+              <div className="bg-green-50 dark:bg-green-900 p-3 rounded-lg">
+                <div className="text-lg font-bold text-green-600 dark:text-green-400">
                   {buses.filter(b => b.status === 'en_ruta').length}
                 </div>
-                <div className="text-sm text-green-700">Buses en Ruta</div>
+                <div className="text-sm text-green-700 dark:text-green-300">Buses en Ruta</div>
               </div>
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <div className="text-lg font-bold text-blue-600">
+              <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-lg">
+                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
                   {buses.reduce((total, bus) => total + bus.passengers, 0)}
                 </div>
-                <div className="text-sm text-blue-700">Pasajeros Totales</div>
+                <div className="text-sm text-blue-700 dark:text-blue-300">Pasajeros Totales</div>
               </div>
-              <div className="bg-purple-50 p-3 rounded-lg">
-                <div className="text-lg font-bold text-purple-600">
-                  {Math.round(buses.reduce((total, bus) => total + bus.speed, 0) / buses.length)}
+              <div className="bg-purple-50 dark:bg-purple-900 p-3 rounded-lg">
+                <div className="bg-purple-50 dark:bg-purple-900 p-3 rounded-lg">
+
                 </div>
-                <div className="text-sm text-purple-700">Velocidad Promedio (km/h)</div>
+                <div className="text-sm text-purple-700 dark:text-purple-300">Velocidad Promedio (km/h)</div>
               </div>
             </div>
           </div>
@@ -713,42 +722,58 @@ const InteractiveMap = () => {
                 }}
               >
                 <Popup>
-                  <div className="min-w-[200px]">
+                  <div className="min-w-[200px] text-gray-800 dark:text-gray-200">
                     <div className="flex items-center gap-2 mb-2">
-                      <Bus className="w-5 h-5 text-blue-600" />
-                      <h3 className="font-bold text-blue-900">{bus.route}</h3>
+                      <Bus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <h3 className="font-bold text-blue-900 dark:text-blue-300">
+                        {bus.route}
+                      </h3>
                     </div>
                     <div className="mt-2 space-y-1 text-sm">
                       <div className="flex items-center gap-2">
-                        <Navigation className="w-4 h-4" />
-                        <span><strong>Conductor:</strong> {bus.driver}</span>
+                        <Navigation className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <span>
+                          <strong>Conductor:</strong> {bus.driver}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(bus.status)}
-                        <span><strong>Estado:</strong></span>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          bus.status === 'en_ruta' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span>
+                          <strong>Estado:</strong>
+                        </span>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${bus.status === "en_ruta"
+                            ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200"
+                            : "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
+                            }`}
+                        >
                           {getStatusText(bus.status)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4" />
-                        <span><strong>Velocidad:</strong> {bus.speed} km/h</span>
+                        <Zap className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <span>
+                          <strong>Velocidad:</strong> {bus.speed} km/h
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span><strong>Ocupación:</strong> {bus.passengers}/{bus.capacity}</span>
+                        <Users className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <span>
+                          <strong>Ocupación:</strong> {bus.passengers}/{bus.capacity}
+                        </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div 
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
+                        <div
                           className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${(bus.passengers / bus.capacity) * 100}%` }}
                         ></div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Clock className="w-3 h-3" />
-                        <span><strong>Última actualización:</strong> {bus.lastUpdate.toLocaleTimeString()}</span>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                        <span>
+                          <strong>Última actualización:</strong>{" "}
+                          {bus.lastUpdate.toLocaleTimeString()}
+                        </span>
                       </div>
                     </div>
                     <div className="mt-3 flex gap-2">
@@ -769,6 +794,7 @@ const InteractiveMap = () => {
                     </div>
                   </div>
                 </Popup>
+
               </Marker>
             ))}
           </MapContainer>
@@ -858,28 +884,28 @@ const InteractiveMap = () => {
       </div>
 
       {/* Footer con información adicional */}
-      <div className="bg-white border-t px-4 py-2">
-        <div className="flex justify-between items-center text-xs text-gray-500">
+      <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
+        <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
+            <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
             Última actualización: {new Date().toLocaleTimeString()}
           </div>
           <div className="flex gap-4">
             <span className="flex items-center gap-1">
-              <Bus className="w-3 h-3" />
+              <Bus className="w-3 h-3 text-gray-600 dark:text-gray-400" />
               {buses.length} buses activos
             </span>
             <span className="flex items-center gap-1">
-              <Route className="w-3 h-3" />
+              <Route className="w-3 h-3 text-gray-600 dark:text-gray-400" />
               {mockRoutes.filter(r => r.active).length} rutas operativas
             </span>
             <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
+              <MapPin className="w-3 h-3 text-gray-600 dark:text-gray-400" />
               {mockBusStops.length + newMarkers.length} paradas registradas
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <Activity className="w-3 h-3" />
+            <Activity className="w-3 h-3 text-gray-600 dark:text-gray-400" />
             Sistema en tiempo real
           </div>
         </div>

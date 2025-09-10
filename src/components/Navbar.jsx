@@ -11,9 +11,12 @@ import {
   FaCogs,
   FaSignInAlt,
   FaBell,
-  FaQuestionCircle
+  FaQuestionCircle,
+  FaMoon,
+  FaSun
 } from 'react-icons/fa';
 import { isAuthenticated, getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
+
 
 const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const navigate = useNavigate();
@@ -21,7 +24,9 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const [userRole, setUserRole] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [dark, setDark] = useState(localStorage.getItem("theme") === "dark"); // 👈 Estado modo oscuro
   const userMenuRef = useRef(null);
+
 
   // Detectar scroll para cambiar la apariencia del navbar
   useEffect(() => {
@@ -68,6 +73,17 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // 👇 Manejo de modo oscuro
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [dark]);
 
   const handleLogout = async () => {
     if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
@@ -157,196 +173,122 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const getRoleBadgeColor = () => {
     switch (userRole) {
       case 'SUPERADMIN':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
       case 'ADMINISTRADOR':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'USER':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
       case 'PENDIENTE':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-300 ${
       isScrolled 
-        ? 'bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-200/50' 
-        : 'bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-200/30'
+        ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg border-b border-gray-200/50 dark:border-gray-700' 
+        : 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200/30 dark:border-gray-700'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left section */}
           <div className="flex items-center gap-4">
-            {/* Menu button for mobile when authenticated */}
             {!isPublic && isMobile && (
               <button 
                 onClick={toggleSidebar}
-                className="p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 transition-all duration-200 group"
+                className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/50 transition-all duration-200 group"
                 aria-label="Toggle menu"
               >
                 <FaBars size={18} className="group-hover:scale-110 transition-transform duration-200" />
               </button>
             )}
             
-            {/* Logo and brand - Mejorado */}
+            {/* Logo */}
             <Link to="/home" className="flex items-center gap-3 no-underline group">
               <div className="relative">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1a237e] to-[#3949ab] flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                   <div className="text-white font-bold text-lg">T</div>
                 </div>
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#1a237e] to-[#3949ab] rounded-xl blur-sm opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold bg-gradient-to-r from-[#1a237e] to-[#3949ab] bg-clip-text text-transparent group-hover:from-[#283593] group-hover:to-[#1a237e] transition-all duration-300">
-                  TransSync
-                </span>
-                <span className="text-xs text-gray-500 -mt-1 opacity-80">
-                  Transport Management
-                </span>
+                <span className="text-xl font-bold bg-gradient-to-r from-[#1a237e] to-[#3949ab] bg-clip-text text-transparent">TransSync</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 -mt-1 opacity-80">Transport Management</span>
               </div>
             </Link>
           </div>
 
           {/* Right section */}
           <div className="flex items-center gap-3">
+
             {isPublic || !isAuthenticated() ? (
-              /* Public navigation buttons - Mejorados */
               <div className="flex items-center gap-3">
-                <button 
-                  onClick={handleLogin}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-[#1a237e] hover:text-[#3949ab] border border-[#1a237e]/20 hover:border-[#3949ab]/40 rounded-xl transition-all duration-200 hover:bg-[#1a237e]/5 hover:shadow-sm group"
-                >
-                  <FaSignInAlt size={14} className="group-hover:scale-110 transition-transform duration-200" />
+                <button onClick={handleLogin} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-[#1a237e] dark:text-gray-200 border border-[#1a237e]/20 dark:border-gray-600 rounded-xl transition-all duration-200 hover:bg-[#1a237e]/5 dark:hover:bg-gray-800">
+                  <FaSignInAlt size={14} />
                   <span className="hidden sm:inline">Iniciar Sesión</span>
                 </button>
-                <button 
-                  onClick={handleRegister}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#1a237e] to-[#3949ab] hover:from-[#283593] hover:to-[#1a237e] rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 group"
-                >
-                  <FaUserCircle size={14} className="group-hover:scale-110 transition-transform duration-200" />
+                <button onClick={handleRegister} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#1a237e] to-[#3949ab] rounded-xl shadow-md hover:scale-105">
+                  <FaUserCircle size={14} />
                   <span className="hidden sm:inline">Registrarse</span>
                 </button>
               </div>
             ) : (
-              /* Authenticated user section - Mejorado */
               <div className="flex items-center gap-3">
-                {/* Notification button */}
-                <button className="relative p-2.5 text-gray-600 hover:text-[#3949ab] hover:bg-gray-100/80 rounded-xl transition-all duration-200 group">
-                  <FaBell size={16} className="group-hover:scale-110 transition-transform duration-200" />
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-md">
-                    3
-                  </div>
+                <button className="relative p-2.5 text-gray-600 dark:text-gray-300 hover:text-[#3949ab] dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
+                  <FaBell size={16} />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-md">3</div>
                 </button>
 
-                {/* Help button */}
-                <button className="p-2.5 text-gray-600 hover:text-[#3949ab] hover:bg-gray-100/80 rounded-xl transition-all duration-200 group">
-                  <FaQuestionCircle size={16} className="group-hover:scale-110 transition-transform duration-200" />
+                <button className="p-2.5 text-gray-600 dark:text-gray-300 hover:text-[#3949ab] dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
+                  <FaQuestionCircle size={16} />
                 </button>
 
                 {/* User menu */}
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={toggleUserMenu}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50/80 transition-all duration-200 group border border-transparent hover:border-gray-200/50"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 group border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700"
                     aria-label="User menu"
                   >
-                    {/* Avatar mejorado */}
                     <div className="relative">
-                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-md ring-2 ring-white group-hover:shadow-lg group-hover:scale-105 transition-all duration-200`}>
-                        <span className="text-white font-bold text-sm">
-                          {getUserInitials()}
-                        </span>
+                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-md ring-2 ring-white`}>
+                        <span className="text-white font-bold text-sm">{getUserInitials()}</span>
                       </div>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white shadow-sm" />
                     </div>
-                    
-                    {/* User info - mejorada */}
                     <div className="hidden md:flex flex-col items-start min-w-0">
-                      <span className="text-sm font-semibold text-gray-900 truncate max-w-[120px] group-hover:text-[#1a237e] transition-colors duration-200" title={getDisplayName()}>
-                        {getDisplayName()}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${getRoleBadgeColor()}`}>
-                          {formatUserRole(userRole)}
-                        </span>
-                      </div>
+                      <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{getDisplayName()}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${getRoleBadgeColor()}`}>{formatUserRole(userRole)}</span>
                     </div>
-                    
-                    {/* Dropdown arrow */}
-                    <FaChevronDown 
-                      size={12} 
-                      className={`text-gray-400 transition-all duration-200 ${isUserMenuOpen ? 'rotate-180 text-[#3949ab]' : ''} group-hover:text-gray-600`} 
-                    />
+                    <FaChevronDown size={12} className={`text-gray-400 dark:text-gray-300 ${isUserMenuOpen ? 'rotate-180 text-[#3949ab]' : ''}`} />
                   </button>
 
-                  {/* Dropdown menu mejorado */}
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-200/60 py-2 z-50 backdrop-blur-sm">
-                      {/* User info header mejorado */}
-                      <div className="px-4 py-4 border-b border-gray-100">
+                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                      <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-700">
                         <div className="flex items-center gap-3">
                           <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-md`}>
                             {getUserRoleIcon()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate" title={getDisplayName()}>
-                              {getDisplayName()}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate" title={currentUser?.email}>
-                              {currentUser?.email}
-                            </p>
-                            <div className="flex items-center gap-1 mt-1">
-                              <div className={`text-xs px-2 py-0.5 rounded-md font-medium ${getRoleBadgeColor()}`}>
-                                {formatUserRole(userRole)}
-                              </div>
-                            </div>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{getDisplayName()}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{currentUser?.email}</p>
                           </div>
                         </div>
                       </div>
-
-                      {/* Menu items mejorados */}
                       <div className="py-2">
-                        <button 
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 hover:text-[#1a237e] transition-all duration-200 group"
-                          onClick={() => {
-                            setIsUserMenuOpen(false);
-                            console.log('Navigate to profile');
-                          }}
-                        >
-                          <FaUser className="text-gray-400 group-hover:text-[#3949ab] transition-colors duration-200" />
-                          <div className="flex flex-col items-start">
-                            <span className="font-medium">Mi Perfil</span>
-                            <span className="text-xs text-gray-500">Ver y editar información personal</span>
-                          </div>
+                        <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <FaUser />
+                          <span>Mi Perfil</span>
                         </button>
-                        
-                        <button 
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 hover:text-[#1a237e] transition-all duration-200 group"
-                          onClick={() => {
-                            setIsUserMenuOpen(false);
-                            console.log('Navigate to settings');
-                          }}
-                        >
-                          <FaCog className="text-gray-400 group-hover:text-[#3949ab] transition-colors duration-200" />
-                          <div className="flex flex-col items-start">
-                            <span className="font-medium">Configuración</span>
-                            <span className="text-xs text-gray-500">Preferencias y ajustes</span>
-                          </div>
+                        <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <FaCog />
+                          <span>Configuración</span>
                         </button>
-                        
-                        <div className="border-t border-gray-100 my-2" />
-                        
-                        <button 
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-700 transition-all duration-200 group"
-                        >
-                          <FaSignOutAlt className="text-red-500 group-hover:text-red-600 transition-colors duration-200" />
-                          <div className="flex flex-col items-start">
-                            <span className="font-medium">Cerrar Sesión</span>
-                            <span className="text-xs text-red-400">Salir de la cuenta</span>
-                          </div>
+                        <div className="border-t border-gray-100 dark:border-gray-700 my-2" />
+                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900">
+                          <FaSignOutAlt />
+                          <span>Cerrar Sesión</span>
                         </button>
                       </div>
                     </div>

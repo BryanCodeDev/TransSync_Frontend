@@ -4,6 +4,10 @@ import { isAuthenticated } from './utilidades/authAPI';
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import ChatBot from "./components/ChatBot";
+import LanguageSwitcher from "./components/LanguageSwitcher"; // ✅ nuevo
+
+// Importación de i18n y traducción
+import "./i18n";
 
 // Importaciones de páginas
 import Home from "./pages/Home";
@@ -29,7 +33,6 @@ const useSidebar = () => {
       setIsMobile(mobile);
     };
     
-    // Configuración inicial
     const initialMobile = window.innerWidth <= 768;
     setIsMobile(initialMobile);
     setSidebarOpen(!initialMobile);
@@ -38,7 +41,6 @@ const useSidebar = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Efecto separado para manejar cambios de sidebar basado en isMobile
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
@@ -48,10 +50,7 @@ const useSidebar = () => {
   }, [isMobile]);
 
   const toggleSidebar = () => setSidebarOpen(prev => !prev);
-
-  const closeSidebar = () => {
-    if (isMobile) setSidebarOpen(false);
-  };
+  const closeSidebar = () => { if (isMobile) setSidebarOpen(false); };
 
   return { sidebarOpen, isMobile, toggleSidebar, closeSidebar };
 };
@@ -64,7 +63,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Layout principal para rutas protegidas CON Navbar y Sidebar
+// Layout principal para rutas protegidas
 const ProtectedLayout = ({ children }) => {
   const { sidebarOpen, isMobile, toggleSidebar, closeSidebar } = useSidebar();
 
@@ -72,7 +71,6 @@ const ProtectedLayout = ({ children }) => {
     if (isMobile) {
       return "min-h-screen w-full transition-all duration-300 ease-in-out";
     }
-    
     const paddingLeft = sidebarOpen ? 'pl-[280px]' : 'pl-[70px]';
     return `min-h-screen w-full transition-all duration-300 ease-in-out ${paddingLeft}`;
   };
@@ -85,6 +83,11 @@ const ProtectedLayout = ({ children }) => {
         isMobile={isMobile}
       />
       
+      {/* Selector de idioma */}
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
+
       {/* Sidebar solo para usuarios autenticados */}
       <Sidebar 
         isOpen={sidebarOpen} 
@@ -93,7 +96,7 @@ const ProtectedLayout = ({ children }) => {
         isMobile={isMobile}
       />
       
-      {/* Contenido principal con margen superior para el navbar */}
+      {/* Contenido principal */}
       <main className={`${getContentClasses()} pt-16`}>
         {children}
       </main>
@@ -108,14 +111,17 @@ const ProtectedLayout = ({ children }) => {
   );
 };
 
-// Layout público con solo Navbar
+// Layout público
 const PublicLayout = ({ children }) => {
   return (
     <div className="relative min-h-screen">
-      {/* Navbar público */}
       <Navbar isPublic={true} />
-      
-      {/* Contenido principal sin margen lateral pero con margen superior */}
+
+      {/* Selector de idioma */}
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
+
       <main className="min-h-screen pt-16">
         {children}
       </main>
@@ -123,9 +129,8 @@ const PublicLayout = ({ children }) => {
   );
 };
 
-// Componente de redirección automática para la ruta raíz
+// Redirección automática para la ruta raíz
 const AutoRedirect = () => {
-  // Redirigir a Home por defecto (no requiere autenticación)
   return <Navigate to="/home" replace />;
 };
 
@@ -135,125 +140,24 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          {/* Ruta raíz - siempre redirige a home */}
           <Route path="/" element={<AutoRedirect />} />
           
-          {/* Rutas públicas - CON Layout público */}
-          <Route 
-            path="/home" 
-            element={
-              <PublicLayout>
-                <Home />
-              </PublicLayout>
-            } 
-          />
-          <Route 
-            path="/login" 
-            element={
-              <PublicLayout>
-                <Login />
-              </PublicLayout>
-            } 
-          />
-          <Route 
-            path="/register" 
-            element={
-              <PublicLayout>
-                <Register />
-              </PublicLayout>
-            } 
-          />
+          {/* Rutas públicas */}
+          <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
+          <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
+          <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
           
-          {/* Rutas protegidas - CON Layout protegido */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <Dashboard />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            } 
-          />
+          {/* Rutas protegidas */}
+          <Route path="/dashboard" element={<ProtectedRoute><ProtectedLayout><Dashboard /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute><ProtectedLayout><AdminDashboard /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/drivers" element={<ProtectedRoute><ProtectedLayout><Drivers /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/rutas" element={<ProtectedRoute><ProtectedLayout><Rutas /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/vehiculos" element={<ProtectedRoute><ProtectedLayout><Vehiculos /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/horarios" element={<ProtectedRoute><ProtectedLayout><Horarios /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/informes" element={<ProtectedRoute><ProtectedLayout><Informes /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/emergency" element={<ProtectedRoute><ProtectedLayout><Emergency /></ProtectedLayout></ProtectedRoute>} />
           
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <AdminDashboard />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/drivers" 
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <Drivers />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/rutas" 
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <Rutas />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/vehiculos" 
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <Vehiculos />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/horarios" 
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <Horarios />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/informes" 
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <Informes />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/emergency" 
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <Emergency />
-                </ProtectedLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Ruta catch-all para páginas no encontradas */}
+          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </div>

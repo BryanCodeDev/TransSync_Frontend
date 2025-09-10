@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  FaUser, 
-  FaLock, 
-  FaExclamationTriangle, 
-  FaEye, 
-  FaEyeSlash, 
+import {
+  FaUser,
+  FaLock,
+  FaExclamationTriangle,
+  FaEye,
+  FaEyeSlash,
   FaCheckCircle,
   FaShieldAlt,
   FaUsers,
@@ -18,7 +18,7 @@ import {
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -29,11 +29,24 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [serverStatus, setServerStatus] = useState(null);
 
+  // 👇 Estado de tema oscuro
+  const [dark, setDark] = useState(localStorage.getItem("theme") === "dark");
+
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [dark]);
+
   // Verificar si hay credenciales guardadas al cargar el componente
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     const savedRememberMe = localStorage.getItem("rememberMe") === "true";
-    
+
     if (savedEmail && savedRememberMe) {
       setEmail(savedEmail);
       setRememberMe(true);
@@ -50,16 +63,16 @@ const Login = () => {
         method: "GET",
         timeout: 5000
       });
-      
+
       if (response.ok) {
         setServerStatus({ status: 'connected', message: 'Servidor conectado' });
       } else {
         setServerStatus({ status: 'error', message: 'Servidor no responde' });
       }
     } catch (error) {
-      setServerStatus({ 
-        status: 'disconnected', 
-        message: 'No se puede conectar con el servidor' 
+      setServerStatus({
+        status: 'disconnected',
+        message: 'No se puede conectar con el servidor'
       });
     }
   };
@@ -85,13 +98,13 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setFormTouched(true);
-    
+
     // Validaciones
     if (!isEmailValid(email)) {
       setError("Por favor ingrese un correo electrónico válido");
       return;
     }
-    
+
     if (!isPasswordValid(password)) {
       setError("La contraseña debe tener al menos 6 caracteres");
       return;
@@ -112,7 +125,7 @@ const Login = () => {
 
       if (response.ok) {
         setSuccess("¡Inicio de sesión exitoso! Redirigiendo...");
-        
+
         // Guardar estado de "recordarme"
         if (rememberMe) {
           localStorage.setItem("rememberedEmail", email);
@@ -121,30 +134,28 @@ const Login = () => {
           localStorage.removeItem("rememberedEmail");
           localStorage.setItem("rememberMe", "false");
         }
-        
+
         // Guardar información de autenticación
         localStorage.setItem("isAuthenticated", "true");
         localStorage.setItem("userName", data.user?.name || "");
         localStorage.setItem("userRole", data.user?.role || "");
         localStorage.setItem("userEmail", data.user?.email || "");
         localStorage.setItem("userId", data.user?.id || "");
-        
+
         // Guardar token
         if (data.token) {
           localStorage.setItem("authToken", data.token);
           localStorage.setItem("userToken", data.token);
         }
-        
+
         // Redirigir después de un momento
         setTimeout(() => {
           const userRole = data.user?.role;
           const from = location.state?.from?.pathname;
-          
-          // Si vino de una ruta protegida, redirigir allí
+
           if (from && from !== '/login' && from !== '/register') {
             navigate(from, { replace: true });
           } else {
-            // Redirigir según el rol
             if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
               navigate("/admin/dashboard", { replace: true });
             } else {
@@ -153,7 +164,6 @@ const Login = () => {
           }
         }, 1500);
       } else {
-        // Manejo específico de errores
         if (response.status === 401) {
           setError("Credenciales incorrectas. Verifique su email y contraseña.");
         } else if (response.status === 403) {
@@ -164,8 +174,6 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Error de login:", err);
-      
-      // Manejo de errores de conexión
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
         setError("No se puede conectar con el servidor. Verifique su conexión a internet.");
         setServerStatus({ status: 'disconnected', message: 'Sin conexión al servidor' });
@@ -191,9 +199,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 lg:p-8 transition-colors duration-300">
       {/* Main container */}
-      <div className="w-full max-w-7xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-7xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden transition-colors duration-300">
         <div className="flex flex-col xl:flex-row min-h-[80vh]">
           {/* Left side - Brand section */}
           <div className="xl:w-2/5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 lg:p-12 xl:p-16 flex flex-col justify-center relative overflow-hidden">
@@ -227,18 +235,16 @@ const Login = () => {
           <div className="xl:w-3/5 p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
             {/* Header */}
             <div className="text-center mb-10">
-              <h2 className="text-3xl xl:text-4xl font-bold text-slate-800 mb-3">Iniciar Sesión</h2>
-              <p className="text-slate-600 text-lg">Acceda a su cuenta empresarial</p>
-              
-              {/* Server status indicator */}
+              <h2 className="text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white mb-3">Iniciar Sesión</h2>
+              <p className="text-slate-600 dark:text-slate-300 text-lg">Acceda a su cuenta empresarial</p>
+
               {serverStatus && (
-                <div className={`mt-4 p-3 rounded-lg text-sm flex items-center justify-center ${
-                  serverStatus.status === 'connected' 
-                    ? 'bg-green-50 text-green-700 border border-green-200'
+                <div className={`mt-4 p-3 rounded-lg text-sm flex items-center justify-center ${serverStatus.status === 'connected'
+                    ? 'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800'
                     : serverStatus.status === 'disconnected'
-                    ? 'bg-red-50 text-red-700 border border-red-200'
-                    : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                }`}>
+                      ? 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-800'
+                      : 'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-800'
+                  }`}>
                   {serverStatus.status === 'connected' && <FaWifi className="mr-2" />}
                   {serverStatus.status === 'disconnected' && <FaServer className="mr-2" />}
                   {serverStatus.status === 'error' && <FaExclamationTriangle className="mr-2" />}
@@ -247,25 +253,25 @@ const Login = () => {
               )}
             </div>
 
-            {/* Success message */}
+            {/* Success */}
             {success && (
-              <div className="flex items-center bg-green-50 text-green-700 p-4 rounded-xl mb-8 border border-green-200">
-                <FaCheckCircle className="mr-3 flex-shrink-0 text-green-500 text-lg" />
+              <div className="flex items-center bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-200 p-4 rounded-xl mb-8 border border-green-200 dark:border-green-800">
+                <FaCheckCircle className="mr-3 flex-shrink-0 text-green-500 dark:text-green-300 text-lg" />
                 <span className="text-sm">{success}</span>
               </div>
             )}
 
-            {/* Error message */}
+            {/* Error */}
             {error && (
-              <div className="flex items-center bg-red-50 text-red-700 p-4 rounded-xl mb-8 border border-red-200">
-                <FaExclamationTriangle className="mr-3 flex-shrink-0 text-red-500 text-lg" />
+              <div className="flex items-center bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-200 p-4 rounded-xl mb-8 border border-red-200 dark:border-red-800">
+                <FaExclamationTriangle className="mr-3 flex-shrink-0 text-red-500 dark:text-red-300 text-lg" />
                 <div className="text-sm">
                   <span>{error}</span>
                   {error.includes("servidor") && (
                     <div className="mt-2">
-                      <button 
+                      <button
                         onClick={checkServerConnection}
-                        className="text-blue-600 hover:text-blue-800 underline font-medium"
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-400 underline font-medium"
                         disabled={loading}
                       >
                         Verificar conexión nuevamente
@@ -280,11 +286,11 @@ const Login = () => {
             <div className="space-y-8">
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-3">
+                <label htmlFor="email" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
                   Correo electrónico
                 </label>
                 <div className="relative">
-                  <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-lg" />
+                  <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg" />
                   <input
                     id="email"
                     type="email"
@@ -292,30 +298,26 @@ const Login = () => {
                     value={email}
                     onChange={handleInputChange(setEmail)}
                     disabled={loading}
-                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg disabled:opacity-50 ${
-                      formTouched && !isEmailValid(email) && email 
-                        ? 'border-red-500 focus:ring-2 focus:ring-red-500' 
-                        : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                    }`}
+                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${formTouched && !isEmailValid(email) && email
+                        ? 'border-red-500 focus:ring-2 focus:ring-red-500'
+                        : 'border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                      }`}
                     required
                     autoComplete="email"
                   />
                 </div>
-                {formTouched && !isEmailValid(email) && email && (
-                  <p className="text-red-600 text-sm mt-2 flex items-center">
-                    <FaExclamationTriangle className="mr-2 text-red-500" />
-                    Por favor ingrese un correo válido
-                  </p>
-                )}
               </div>
 
               {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-3">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3"
+                >
                   Contraseña
                 </label>
                 <div className="relative">
-                  <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-lg" />
+                  <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg" />
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -323,59 +325,40 @@ const Login = () => {
                     value={password}
                     onChange={handleInputChange(setPassword)}
                     disabled={loading}
-                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:bg-white transition-all duration-200 text-lg disabled:opacity-50 ${
-                      formTouched && !isPasswordValid(password) && password 
-                        ? 'border-red-500 focus:ring-2 focus:ring-red-500' 
-                        : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                    }`}
+                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${formTouched && !password
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500"
+                        : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      }`}
                     required
                     autoComplete="current-password"
                   />
-                  <button 
-                    type="button" 
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200 disabled:opacity-50"
-                    onClick={togglePasswordVisibility}
-                    disabled={loading}
-                    tabIndex="-1"
-                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-600 dark:text-slate-300"
+                    aria-label="Mostrar contraseña"
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
-                {formTouched && !isPasswordValid(password) && password && (
-                  <p className="text-red-600 text-sm mt-2 flex items-center">
-                    <FaExclamationTriangle className="mr-2 text-red-500" />
-                    La contraseña debe tener al menos 6 caracteres
-                  </p>
-                )}
               </div>
 
-              {/* Remember me and Forgot password */}
+
+              {/* Remember + Forgot */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm">
-                <label className="flex items-center cursor-pointer text-slate-700">
-                  <div className="relative">
-                    <input 
-                      type="checkbox" 
-                      checked={rememberMe}
-                      onChange={() => setRememberMe(!rememberMe)}
-                      disabled={loading}
-                      className="sr-only"
-                    />
-                    <div className={`w-5 h-5 rounded border-2 transition-all duration-200 ${
-                      rememberMe 
-                        ? 'bg-blue-600 border-blue-600' 
-                        : 'bg-white border-slate-300 hover:border-slate-400'
-                    } ${loading ? 'opacity-50' : ''}`}>
-                      {rememberMe && (
-                        <FaCheckCircle className="w-full h-full text-white" />
-                      )}
-                    </div>
-                  </div>
-                  <span className="ml-3 font-medium">Recordarme</span>
+                <label className="flex items-center cursor-pointer text-slate-700 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={() => setRememberMe(!rememberMe)}
+                    disabled={loading}
+                    className="mr-2"
+                  />
+                  <span className="font-medium">Recordarme</span>
                 </label>
-                <button 
-                  type="button" 
-                  className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200 hover:underline disabled:opacity-50"
+                <button
+                  type="button"
+                  className="text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-400 font-semibold transition-colors duration-200 hover:underline disabled:opacity-50"
                   onClick={handleForgotPassword}
                   disabled={loading}
                 >
@@ -383,11 +366,11 @@ const Login = () => {
                 </button>
               </div>
 
-              {/* Submit button */}
+              {/* Submit */}
               <button
                 type="button"
                 onClick={handleLogin}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 text-lg"
                 disabled={loading || serverStatus?.status === 'disconnected'}
               >
                 {loading ? (
@@ -400,12 +383,12 @@ const Login = () => {
                 )}
               </button>
 
-              {/* Register link */}
-              <div className="text-center pt-6 border-t border-slate-200">
-                <p className="text-slate-600 text-base mb-4">¿No tienes una cuenta?</p>
-                <button 
-                  type="button" 
-                  className="w-full sm:w-auto bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base disabled:opacity-50"
+              {/* Register */}
+              <div className="text-center pt-6 border-t border-slate-200 dark:border-gray-700">
+                <p className="text-slate-600 dark:text-slate-300 text-base mb-4">¿No tienes una cuenta?</p>
+                <button
+                  type="button"
+                  className="w-full sm:w-auto bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-300 border-2 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-600 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base"
                   onClick={handleNavigateToRegister}
                   disabled={loading}
                 >

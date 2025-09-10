@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FaBus, FaCheckCircle, FaTimesCircle, FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaUser, FaExclamationTriangle, FaCogs, FaRoad } from "react-icons/fa";
 import vehiculosAPI from '../utilidades/vehiculosAPI';
-// Importar también el API para conductores
-import { apiClient } from '../api/baseAPI'; // O el API que uses para conductores
+import { apiClient } from '../api/baseAPI';
+import { useTheme } from "../context/ThemeContext";
 
 const Vehiculos = () => {
+  const { theme } = useTheme();
   const [vehiculos, setVehiculos] = useState([]);
   const [filteredVehiculos, setFilteredVehiculos] = useState([]);
   const [conductoresDisponibles, setConductoresDisponibles] = useState([]);
@@ -16,7 +17,7 @@ const Vehiculos = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [estadisticas, setEstadisticas] = useState({});
-  
+
   const [newVehiculo, setNewVehiculo] = useState({
     numVehiculo: '',
     plaVehiculo: '',
@@ -42,10 +43,10 @@ const Vehiculos = () => {
   // Filtrar vehículos - usando useCallback para evitar recreación en cada render
   const filterVehiculos = useCallback(() => {
     let results = vehiculos;
-    
+
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      results = results.filter(v => 
+      results = results.filter(v =>
         v.plaVehiculo?.toLowerCase().includes(search) ||
         v.marVehiculo?.toLowerCase().includes(search) ||
         v.modVehiculo?.toLowerCase().includes(search) ||
@@ -53,11 +54,11 @@ const Vehiculos = () => {
         v.conductor?.nombre?.toLowerCase().includes(search)
       );
     }
-    
+
     if (filterStatus !== 'all') {
       results = results.filter(v => v.estVehiculo === filterStatus);
     }
-    
+
     setFilteredVehiculos(results);
   }, [searchTerm, filterStatus, vehiculos]);
 
@@ -104,10 +105,10 @@ const Vehiculos = () => {
   const handleAddVehiculo = async () => {
     try {
       setError('');
-      
+
       // Validaciones básicas
-      if (!newVehiculo.numVehiculo || !newVehiculo.plaVehiculo || !newVehiculo.marVehiculo || 
-          !newVehiculo.modVehiculo || !newVehiculo.fecVenSOAT || !newVehiculo.fecVenTec) {
+      if (!newVehiculo.numVehiculo || !newVehiculo.plaVehiculo || !newVehiculo.marVehiculo ||
+        !newVehiculo.modVehiculo || !newVehiculo.fecVenSOAT || !newVehiculo.fecVenTec) {
         setError('Por favor, completa todos los campos requeridos.');
         return;
       }
@@ -118,14 +119,14 @@ const Vehiculos = () => {
       };
 
       await vehiculosAPI.create(vehiculoData);
-      
+
       // Recargar datos
       await loadInitialData();
-      
+
       // Cerrar modal y resetear formulario
       setShowAddModal(false);
       resetNewVehiculo();
-      
+
     } catch (error) {
       console.error('Error al crear vehículo:', error);
       setError(error.message || 'Error al crear el vehículo');
@@ -135,17 +136,17 @@ const Vehiculos = () => {
   const handleEditVehiculo = async () => {
     try {
       setError('');
-      
+
       await vehiculosAPI.update(selectedVehiculo.idVehiculo, editVehiculo);
-      
+
       // Recargar datos
       await loadInitialData();
-      
+
       // Cerrar modal
       setShowEditModal(false);
       setSelectedVehiculo(null);
       setEditVehiculo({});
-      
+
     } catch (error) {
       console.error('Error al actualizar vehículo:', error);
       setError(error.message || 'Error al actualizar el vehículo');
@@ -160,10 +161,10 @@ const Vehiculos = () => {
     try {
       setError('');
       await vehiculosAPI.delete(vehiculo.idVehiculo);
-      
+
       // Recargar datos
       await loadInitialData();
-      
+
     } catch (error) {
       console.error('Error al eliminar vehículo:', error);
       setError(error.message || 'Error al eliminar el vehículo');
@@ -175,10 +176,10 @@ const Vehiculos = () => {
     try {
       setError('');
       await vehiculosAPI.changeStatus(vehiculo.idVehiculo, nuevoEstado);
-      
+
       // Recargar datos
       await loadInitialData();
-      
+
     } catch (error) {
       console.error('Error al cambiar estado:', error);
       setError(error.message || 'Error al cambiar el estado del vehículo');
@@ -216,8 +217,8 @@ const Vehiculos = () => {
   };
 
   const getEstadoInfo = (estado) => {
-    return estadosVehiculo.find(e => e.value === estado) || 
-           { value: estado, label: estado, color: 'text-gray-600 bg-gray-50' };
+    return estadosVehiculo.find(e => e.value === estado) ||
+      { value: estado, label: estado, color: 'text-gray-600 bg-gray-50' };
   };
 
   const formatDate = (dateString) => {
@@ -250,56 +251,58 @@ const Vehiculos = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 dark:bg-slate-900 min-h-screen text-slate-800 dark:text-slate-200">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-6 bg-white p-5 rounded-xl shadow-sm">
-        <h2 className="text-2xl font-semibold text-slate-800 flex items-center gap-3 m-0">
+      {/* Header con estadísticas */}
+      <div className="flex justify-between items-center mb-6 bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm">
+        <h2 className="text-2xl font-semibold flex items-center gap-3 m-0">
           <FaBus className="text-blue-500 text-3xl" />
           Flota de Vehículos
         </h2>
         <div className="flex gap-5">
-          <div className="flex flex-col items-center bg-gray-50 py-2 px-5 rounded-lg min-w-24">
+          <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
             <span className="text-2xl font-bold text-blue-500">{estadisticas.total || 0}</span>
-            <span className="text-sm text-slate-500">Total</span>
+            <span className="text-sm text-slate-500 dark:text-slate-300">Total</span>
           </div>
-          <div className="flex flex-col items-center bg-gray-50 py-2 px-5 rounded-lg min-w-24">
+          <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
             <span className="text-2xl font-bold text-green-500">{estadisticas.disponibles || 0}</span>
-            <span className="text-sm text-slate-500">Disponibles</span>
+            <span className="text-sm text-slate-500 dark:text-slate-300">Disponibles</span>
           </div>
-          <div className="flex flex-col items-center bg-gray-50 py-2 px-5 rounded-lg min-w-24">
+          <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
             <span className="text-2xl font-bold text-blue-500">{estadisticas.enRuta || 0}</span>
-            <span className="text-sm text-slate-500">En Ruta</span>
+            <span className="text-sm text-slate-500 dark:text-slate-300">En Ruta</span>
           </div>
-          <div className="flex flex-col items-center bg-gray-50 py-2 px-5 rounded-lg min-w-24">
+          <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
             <span className="text-2xl font-bold text-orange-500">{estadisticas.enMantenimiento || 0}</span>
-            <span className="text-sm text-slate-500">Mantenimiento</span>
+            <span className="text-sm text-slate-500 dark:text-slate-300">Mantenimiento</span>
           </div>
         </div>
       </div>
 
+      {/* Filtros */}
       <div className="flex gap-4 mb-6 flex-wrap">
         <div className="flex-grow-2 relative min-w-64">
           <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Buscar por placa, marca, modelo o conductor..." 
+          <input
+            type="text"
+            placeholder="Buscar por placa, marca, modelo o conductor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+            className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-slate-600 text-base bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
           />
         </div>
-        
+
         <div className="flex-1 relative min-w-48">
           <FaFilter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" />
-          <select 
+          <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 text-base bg-white cursor-pointer transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none appearance-none"
+            className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-slate-600 text-base bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 cursor-pointer transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none appearance-none"
           >
             <option value="all">Todos los vehículos</option>
             {estadosVehiculo.map(estado => (
@@ -308,14 +311,15 @@ const Vehiculos = () => {
           </select>
         </div>
 
-        <button 
-          className="bg-green-500 text-white border-none rounded-lg px-6 text-base font-semibold cursor-pointer flex items-center gap-2 transition-all duration-300 hover:bg-green-600 hover:-translate-y-0.5"
+        <button
+          className="bg-blue-500 text-white border-none rounded-lg px-6 text-base font-semibold cursor-pointer flex items-center gap-2 transition-all duration-300 hover:bg-blue-600 hover:-translate-y-0.5"
           onClick={() => setShowAddModal(true)}
         >
           <FaPlus /> Agregar Vehículo
         </button>
       </div>
 
+      {/* Cards */}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-5">
         {filteredVehiculos.map((vehiculo) => {
           const estadoInfo = getEstadoInfo(vehiculo.estVehiculo);
@@ -323,11 +327,11 @@ const Vehiculos = () => {
           const tecnicaProximaVencer = isVencimientoProximo(vehiculo.fecVenTec);
           const soatVencido = isVencido(vehiculo.fecVenSOAT);
           const tecnicaVencida = isVencido(vehiculo.fecVenTec);
-          
+
           return (
-            <div key={vehiculo.idVehiculo} className="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-              <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 className="m-0 text-lg text-slate-800 font-semibold">
+            <div key={vehiculo.idVehiculo} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <div className="p-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
+                <h3 className="m-0 text-lg text-slate-800 dark:text-slate-200 font-semibold">
                   {vehiculo.marVehiculo} {vehiculo.modVehiculo}
                 </h3>
                 <div className="flex items-center gap-2">
@@ -338,11 +342,10 @@ const Vehiculos = () => {
                     {vehiculo.estVehiculo === 'FUERA_DE_SERVICIO' && <FaTimesCircle />}
                     {estadoInfo.label}
                   </span>
-                  {/* Dropdown para cambiar estado */}
-                  <select 
+                  <select
                     value={vehiculo.estVehiculo}
                     onChange={(e) => handleChangeStatus(vehiculo, e.target.value)}
-                    className="text-xs border border-gray-300 rounded px-2 py-1"
+                    className="text-xs border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded px-2 py-1"
                     title="Cambiar estado"
                   >
                     {estadosVehiculo.map(estado => (
@@ -353,68 +356,68 @@ const Vehiculos = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className="p-4">
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="font-semibold text-slate-500 text-sm">Placa:</span>
-                  <span className="text-slate-800 text-sm font-mono">{vehiculo.plaVehiculo}</span>
+                {/* detalles */}
+                <div className="flex justify-between py-2 border-b border-gray-100 dark:border-slate-700">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-sm">Placa:</span>
+                  <span className="text-slate-800 dark:text-slate-200 text-sm font-mono">{vehiculo.plaVehiculo}</span>
                 </div>
-                
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="font-semibold text-slate-500 text-sm">Número interno:</span>
-                  <span className="text-slate-800 text-sm">{vehiculo.numVehiculo}</span>
+
+                <div className="flex justify-between py-2 border-b border-gray-100 dark:border-slate-700">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-sm">Número interno:</span>
+                  <span className="text-slate-800 dark:text-slate-200 text-sm">{vehiculo.numVehiculo}</span>
                 </div>
-                
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="font-semibold text-slate-500 text-sm">Año:</span>
-                  <span className="text-slate-800 text-sm">{vehiculo.anioVehiculo}</span>
+
+                <div className="flex justify-between py-2 border-b border-gray-100 dark:border-slate-700">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-sm">Año:</span>
+                  <span className="text-slate-800 dark:text-slate-200 text-sm">{vehiculo.anioVehiculo}</span>
                 </div>
-                
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="font-semibold text-slate-500 text-sm">Conductor:</span>
-                  <span className="text-slate-800 text-sm flex items-center gap-1">
+
+                <div className="flex justify-between py-2 border-b border-gray-100 dark:border-slate-700">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-sm">Conductor:</span>
+                  <span className="text-slate-800 dark:text-slate-200 text-sm flex items-center gap-1">
                     {vehiculo.conductor ? (
                       <>
                         <FaUser className="text-green-500" />
                         {vehiculo.conductor.nombre}
                       </>
                     ) : (
-                      <span className="text-gray-400">Sin asignar</span>
+                      <span className="text-gray-400 dark:text-slate-500">Sin asignar</span>
                     )}
                   </span>
                 </div>
-                
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="font-semibold text-slate-500 text-sm">SOAT:</span>
-                  <span className={`text-sm flex items-center gap-1 ${
-                    soatVencido ? 'text-red-600 font-semibold' : 
-                    soatProximoVencer ? 'text-orange-600 font-semibold' : 'text-slate-800'
-                  }`}>
+
+                {/* fechas */}
+                <div className="flex justify-between py-2 border-b border-gray-100 dark:border-slate-700">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-sm">SOAT:</span>
+                  <span className={`text-sm flex items-center gap-1 ${soatVencido ? 'text-red-600 font-semibold' :
+                    soatProximoVencer ? 'text-orange-600 font-semibold' : 'text-slate-800 dark:text-slate-200'
+                    }`}>
                     {(soatVencido || soatProximoVencer) && <FaExclamationTriangle />}
                     {formatDate(vehiculo.fecVenSOAT)}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between py-2">
-                  <span className="font-semibold text-slate-500 text-sm">Técnica:</span>
-                  <span className={`text-sm flex items-center gap-1 ${
-                    tecnicaVencida ? 'text-red-600 font-semibold' : 
-                    tecnicaProximaVencer ? 'text-orange-600 font-semibold' : 'text-slate-800'
-                  }`}>
+                  <span className="font-semibold text-slate-500 dark:text-slate-400 text-sm">Técnica:</span>
+                  <span className={`text-sm flex items-center gap-1 ${tecnicaVencida ? 'text-red-600 font-semibold' :
+                    tecnicaProximaVencer ? 'text-orange-600 font-semibold' : 'text-slate-800 dark:text-slate-200'
+                    }`}>
                     {(tecnicaVencida || tecnicaProximaVencer) && <FaExclamationTriangle />}
                     {formatDate(vehiculo.fecVenTec)}
                   </span>
                 </div>
               </div>
-              
-              <div className="flex gap-2 p-4 bg-gray-50">
-                <button 
+
+              <div className="flex gap-2 p-4 bg-gray-50 dark:bg-slate-700">
+                <button
                   onClick={() => openEditModal(vehiculo)}
                   className="flex-1 py-2 px-4 rounded-md text-sm font-semibold cursor-pointer transition-all duration-300 border-none bg-blue-500 text-white hover:bg-blue-600 flex items-center justify-center gap-1"
                 >
                   <FaEdit /> Editar
                 </button>
-                <button 
+                <button
                   onClick={() => handleDeleteVehiculo(vehiculo)}
                   className="flex-1 py-2 px-4 rounded-md text-sm font-semibold cursor-pointer transition-all duration-300 border-none bg-red-500 text-white hover:bg-red-600 flex items-center justify-center gap-1"
                 >
@@ -426,12 +429,13 @@ const Vehiculos = () => {
         })}
       </div>
 
+      {/* vacío */}
       {filteredVehiculos.length === 0 && !loading && (
         <div className="text-center py-12">
-          <FaBus className="text-gray-400 text-6xl mb-4 mx-auto" />
-          <p className="text-gray-500 text-lg">No se encontraron vehículos</p>
+          <FaBus className="text-gray-400 dark:text-slate-600 text-6xl mb-4 mx-auto" />
+          <p className="text-gray-500 dark:text-slate-400 text-lg">No se encontraron vehículos</p>
           {searchTerm && (
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 dark:text-slate-500 text-sm">
               Intenta con otros términos de búsqueda o cambia los filtros
             </p>
           )}
@@ -441,78 +445,78 @@ const Vehiculos = () => {
       {/* Modal para agregar vehículo */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto">
-            <h3 className="mt-0 text-xl font-semibold text-slate-800 border-b border-gray-100 pb-4 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto text-slate-800 dark:text-slate-200">
+            <h3 className="mt-0 text-xl font-semibold border-b border-gray-100 dark:border-slate-700 pb-4 mb-4">
               Agregar Nuevo Vehículo
             </h3>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Número Interno *</label>
-                <input 
-                  type="text" 
-                  value={newVehiculo.numVehiculo} 
-                  onChange={(e) => setNewVehiculo({...newVehiculo, numVehiculo: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Número Interno *</label>
+                <input
+                  type="text"
+                  value={newVehiculo.numVehiculo}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, numVehiculo: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   placeholder="Ej: V001"
                 />
               </div>
-              
+
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Placa *</label>
-                <input 
-                  type="text" 
-                  value={newVehiculo.plaVehiculo} 
-                  onChange={(e) => setNewVehiculo({...newVehiculo, plaVehiculo: e.target.value.toUpperCase()})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-mono"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Placa *</label>
+                <input
+                  type="text"
+                  value={newVehiculo.plaVehiculo}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, plaVehiculo: e.target.value.toUpperCase() })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-mono"
                   placeholder="ABC-123"
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Marca *</label>
-                <input 
-                  type="text" 
-                  value={newVehiculo.marVehiculo} 
-                  onChange={(e) => setNewVehiculo({...newVehiculo, marVehiculo: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Marca *</label>
+                <input
+                  type="text"
+                  value={newVehiculo.marVehiculo}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, marVehiculo: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   placeholder="Ej: Mercedes-Benz"
                 />
               </div>
-              
+
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Modelo *</label>
-                <input 
-                  type="text" 
-                  value={newVehiculo.modVehiculo} 
-                  onChange={(e) => setNewVehiculo({...newVehiculo, modVehiculo: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Modelo *</label>
+                <input
+                  type="text"
+                  value={newVehiculo.modVehiculo}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, modVehiculo: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   placeholder="Ej: O500"
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Año *</label>
-                <input 
-                  type="number" 
-                  value={newVehiculo.anioVehiculo} 
-                  onChange={(e) => setNewVehiculo({...newVehiculo, anioVehiculo: parseInt(e.target.value)})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Año *</label>
+                <input
+                  type="number"
+                  value={newVehiculo.anioVehiculo}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, anioVehiculo: parseInt(e.target.value) })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   min="1950"
                   max={new Date().getFullYear() + 1}
                 />
               </div>
-              
+
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Estado</label>
-                <select 
-                  value={newVehiculo.estVehiculo} 
-                  onChange={(e) => setNewVehiculo({...newVehiculo, estVehiculo: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Estado</label>
+                <select
+                  value={newVehiculo.estVehiculo}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, estVehiculo: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 >
                   {estadosVehiculo.map(estado => (
                     <option key={estado.value} value={estado.value}>{estado.label}</option>
@@ -520,37 +524,37 @@ const Vehiculos = () => {
                 </select>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Vencimiento SOAT *</label>
-                <input 
-                  type="date" 
-                  value={newVehiculo.fecVenSOAT} 
-                  onChange={(e) => setNewVehiculo({...newVehiculo, fecVenSOAT: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Vencimiento SOAT *</label>
+                <input
+                  type="date"
+                  value={newVehiculo.fecVenSOAT}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, fecVenSOAT: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
-              
+
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Vencimiento Técnica *</label>
-                <input 
-                  type="date" 
-                  value={newVehiculo.fecVenTec} 
-                  onChange={(e) => setNewVehiculo({...newVehiculo, fecVenTec: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Vencimiento Técnica *</label>
+                <input
+                  type="date"
+                  value={newVehiculo.fecVenTec}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, fecVenTec: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
             </div>
-            
+
             <div className="flex flex-col mb-6">
-              <label className="text-sm font-semibold text-slate-500 mb-2">Conductor Asignado</label>
-              <select 
-                value={newVehiculo.idConductorAsignado} 
-                onChange={(e) => setNewVehiculo({...newVehiculo, idConductorAsignado: e.target.value})}
-                className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+              <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Conductor Asignado</label>
+              <select
+                value={newVehiculo.idConductorAsignado}
+                onChange={(e) => setNewVehiculo({ ...newVehiculo, idConductorAsignado: e.target.value })}
+                className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
               >
                 <option value="">Sin conductor asignado</option>
                 {conductoresDisponibles.map(conductor => (
@@ -560,10 +564,10 @@ const Vehiculos = () => {
                 ))}
               </select>
             </div>
-            
+
             <div className="flex justify-end gap-4">
-              <button 
-                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-gray-200 text-slate-800 border-none hover:bg-gray-300" 
+              <button
+                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-gray-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border-none hover:bg-gray-300 dark:hover:bg-slate-600"
                 onClick={() => {
                   setShowAddModal(false);
                   resetNewVehiculo();
@@ -572,8 +576,8 @@ const Vehiculos = () => {
               >
                 Cancelar
               </button>
-              <button 
-                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-green-500 text-white border-none hover:bg-green-600" 
+              <button
+                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-blue-500 text-white border-none hover:bg-blue-600"
                 onClick={handleAddVehiculo}
               >
                 Guardar Vehículo
@@ -586,74 +590,74 @@ const Vehiculos = () => {
       {/* Modal para editar vehículo */}
       {showEditModal && selectedVehiculo && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto">
-            <h3 className="mt-0 text-xl font-semibold text-slate-800 border-b border-gray-100 pb-4 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto text-slate-800 dark:text-slate-200">
+            <h3 className="mt-0 text-xl font-semibold border-b border-gray-100 dark:border-slate-700 pb-4 mb-4">
               Editar Vehículo - {selectedVehiculo.plaVehiculo}
             </h3>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Número Interno *</label>
-                <input 
-                  type="text" 
-                  value={editVehiculo.numVehiculo || ''} 
-                  onChange={(e) => setEditVehiculo({...editVehiculo, numVehiculo: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Número Interno *</label>
+                <input
+                  type="text"
+                  value={editVehiculo.numVehiculo || ''}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, numVehiculo: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 />
               </div>
-              
+
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Placa *</label>
-                <input 
-                  type="text" 
-                  value={editVehiculo.plaVehiculo || ''} 
-                  onChange={(e) => setEditVehiculo({...editVehiculo, plaVehiculo: e.target.value.toUpperCase()})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-mono"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Placa *</label>
+                <input
+                  type="text"
+                  value={editVehiculo.plaVehiculo || ''}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, plaVehiculo: e.target.value.toUpperCase() })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-mono"
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Marca *</label>
-                <input 
-                  type="text" 
-                  value={editVehiculo.marVehiculo || ''} 
-                  onChange={(e) => setEditVehiculo({...editVehiculo, marVehiculo: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Marca *</label>
+                <input
+                  type="text"
+                  value={editVehiculo.marVehiculo || ''}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, marVehiculo: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 />
               </div>
-              
+
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Modelo *</label>
-                <input 
-                  type="text" 
-                  value={editVehiculo.modVehiculo || ''} 
-                  onChange={(e) => setEditVehiculo({...editVehiculo, modVehiculo: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Modelo *</label>
+                <input
+                  type="text"
+                  value={editVehiculo.modVehiculo || ''}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, modVehiculo: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Año *</label>
-                <input 
-                  type="number" 
-                  value={editVehiculo.anioVehiculo || ''} 
-                  onChange={(e) => setEditVehiculo({...editVehiculo, anioVehiculo: parseInt(e.target.value)})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Año *</label>
+                <input
+                  type="number"
+                  value={editVehiculo.anioVehiculo || ''}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, anioVehiculo: parseInt(e.target.value) })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   min="1950"
                   max={new Date().getFullYear() + 1}
                 />
               </div>
-              
+
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Estado</label>
-                <select 
-                  value={editVehiculo.estVehiculo || ''} 
-                  onChange={(e) => setEditVehiculo({...editVehiculo, estVehiculo: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Estado</label>
+                <select
+                  value={editVehiculo.estVehiculo || ''}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, estVehiculo: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 >
                   {estadosVehiculo.map(estado => (
                     <option key={estado.value} value={estado.value}>{estado.label}</option>
@@ -661,35 +665,35 @@ const Vehiculos = () => {
                 </select>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Vencimiento SOAT *</label>
-                <input 
-                  type="date" 
-                  value={editVehiculo.fecVenSOAT || ''} 
-                  onChange={(e) => setEditVehiculo({...editVehiculo, fecVenSOAT: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Vencimiento SOAT *</label>
+                <input
+                  type="date"
+                  value={editVehiculo.fecVenSOAT || ''}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, fecVenSOAT: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 />
               </div>
-              
+
               <div className="flex flex-col">
-                <label className="text-sm font-semibold text-slate-500 mb-2">Vencimiento Técnica *</label>
-                <input 
-                  type="date" 
-                  value={editVehiculo.fecVenTec || ''} 
-                  onChange={(e) => setEditVehiculo({...editVehiculo, fecVenTec: e.target.value})}
-                  className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Vencimiento Técnica *</label>
+                <input
+                  type="date"
+                  value={editVehiculo.fecVenTec || ''}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, fecVenTec: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 />
               </div>
             </div>
-            
+
             <div className="flex flex-col mb-6">
-              <label className="text-sm font-semibold text-slate-500 mb-2">Conductor Asignado</label>
-              <select 
-                value={editVehiculo.idConductorAsignado || ''} 
-                onChange={(e) => setEditVehiculo({...editVehiculo, idConductorAsignado: e.target.value})}
-                className="py-3 px-3 rounded-md border border-gray-300 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+              <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Conductor Asignado</label>
+              <select
+                value={editVehiculo.idConductorAsignado || ''}
+                onChange={(e) => setEditVehiculo({ ...editVehiculo, idConductorAsignado: e.target.value })}
+                className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
               >
                 <option value="">Sin conductor asignado</option>
                 {selectedVehiculo.conductor && (
@@ -706,10 +710,10 @@ const Vehiculos = () => {
                   ))}
               </select>
             </div>
-            
+
             <div className="flex justify-end gap-4">
-              <button 
-                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-gray-200 text-slate-800 border-none hover:bg-gray-300" 
+              <button
+                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-gray-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border-none hover:bg-gray-300 dark:hover:bg-slate-600"
                 onClick={() => {
                   setShowEditModal(false);
                   setSelectedVehiculo(null);
@@ -719,8 +723,8 @@ const Vehiculos = () => {
               >
                 Cancelar
               </button>
-              <button 
-                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-blue-500 text-white border-none hover:bg-blue-600" 
+              <button
+                className="py-3 px-6 rounded-md text-base font-semibold cursor-pointer transition-all duration-300 bg-blue-500 text-white border-none hover:bg-blue-600"
                 onClick={handleEditVehiculo}
               >
                 Actualizar Vehículo
@@ -729,6 +733,7 @@ const Vehiculos = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };
