@@ -17,16 +17,14 @@ import {
 } from 'react-icons/fa';
 import { isAuthenticated, getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
 
-
 const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [dark, setDark] = useState(localStorage.getItem("theme") === "dark"); // 👈 Estado modo oscuro
+  const [dark, setDark] = useState(localStorage.getItem("theme") === "dark");
   const userMenuRef = useRef(null);
-
 
   // Detectar scroll para cambiar la apariencia del navbar
   useEffect(() => {
@@ -74,7 +72,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     };
   }, []);
 
-  // 👇 Manejo de modo oscuro
+  // Manejo de modo oscuro
   useEffect(() => {
     if (dark) {
       document.documentElement.classList.add("dark");
@@ -109,6 +107,10 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
   const toggleUserMenu = () => {
     setIsUserMenuOpen(prev => !prev);
+  };
+
+  const toggleTheme = () => {
+    setDark(prev => !prev);
   };
 
   const getUserInitials = () => {
@@ -221,6 +223,18 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
           {/* Right section */}
           <div className="flex items-center gap-3">
+            {/* Theme toggle button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 text-gray-600 dark:text-gray-300 hover:text-[#3949ab] dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group"
+              title={dark ? "Activar modo claro" : "Activar modo oscuro"}
+            >
+              {dark ? (
+                <FaSun size={16} className="text-yellow-500" />
+              ) : (
+                <FaMoon size={16} className="text-blue-600" />
+              )}
+            </button>
 
             {isPublic || !isAuthenticated() ? (
               <div className="flex items-center gap-3">

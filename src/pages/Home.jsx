@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Bus, Clock, Shield, Map, BarChart, CalendarClock, User, Check, Star, Award, TrendingUp, Users, Globe, Zap } from 'lucide-react';
-
+import { Bus, Clock, Shield, Map, BarChart, CalendarClock, User, Check, Award } from 'lucide-react';
 const Home = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [dark, setDark] = useState(localStorage.getItem("theme") === "dark");
-
-  const estadisticas = [
-    { valor: "2,500+", texto: "Rutas activas", icono: Bus, color: "from-blue-500 to-blue-600" },
-    { valor: "92%", texto: "Puntualidad", icono: Clock, color: "from-green-500 to-green-600" },
-    { valor: "5.2M", texto: "Pasajeros mensuales", icono: Users, color: "from-purple-500 to-purple-600" },
-    { valor: "98%", texto: "Satisfacción", icono: Star, color: "from-yellow-500 to-yellow-600" }
-  ];
+  const [, setDark] = useState(localStorage.getItem("theme") === "dark");
 
   const caracteristicas = [
     {
@@ -109,7 +101,7 @@ const Home = () => {
     const observer = () => setDark(localStorage.getItem("theme") === "dark");
     window.addEventListener("storage", observer);
     return () => window.removeEventListener("storage", observer);
-  }, []);
+  }, [setDark]); // Agregar setDark a las dependencias
 
   return (
     <div className="font-['Inter',system-ui] text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-900 transition-colors duration-300">

@@ -1,5 +1,5 @@
 // src/pages/Horarios.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Clock,
   Search,
@@ -199,7 +199,53 @@ const Horarios = () => {
     }, 5000);
   };
 
-  const fetchAll = async () => {
+  const fetchViajes = useCallback(async () => {
+    try {
+      const res = await apiClient.get("/api/viajes");
+      const data = Array.isArray(res.data) ? res.data : (res.data?.viajes ?? res.data);
+      setViajes(data || []);
+      return data || [];
+    } catch (err) {
+      console.error("Error cargando viajes", err);
+      setViajes([]);
+      throw err;
+    }
+  }, []);
+
+  const fetchVehiculos = useCallback(async () => {
+    try {
+      const res = await apiClient.get("/api/vehiculos");
+      setVehiculos(Array.isArray(res.data) ? res.data : (res.data?.vehiculos ?? []));
+    } catch (err) {
+      console.error("Error cargando vehículos", err);
+      setVehiculos([]);
+      throw err;
+    }
+  }, []);
+
+  const fetchConductores = useCallback(async () => {
+    try {
+      const res = await apiClient.get("/api/conductores");
+      setConductores(Array.isArray(res.data) ? res.data : (res.data?.conductores ?? []));
+    } catch (err) {
+      console.error("Error cargando conductores", err);
+      setConductores([]);
+      throw err;
+    }
+  }, []);
+
+  const fetchRutas = useCallback(async () => {
+    try {
+      const res = await apiClient.get("/api/rutas/utils/select");
+      setRutas(Array.isArray(res.data) ? res.data : (res.data?.rutas ?? []));
+    } catch (err) {
+      console.error("Error cargando rutas", err);
+      setRutas([]);
+      throw err;
+    }
+  }, []);
+
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     setError("");
     
@@ -216,57 +262,11 @@ const Horarios = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchViajes = async () => {
-    try {
-      const res = await apiClient.get("/api/viajes");
-      const data = Array.isArray(res.data) ? res.data : (res.data?.viajes ?? res.data);
-      setViajes(data || []);
-      return data || [];
-    } catch (err) {
-      console.error("Error cargando viajes", err);
-      setViajes([]);
-      throw err;
-    }
-  };
-
-  const fetchVehiculos = async () => {
-    try {
-      const res = await apiClient.get("/api/vehiculos");
-      setVehiculos(Array.isArray(res.data) ? res.data : (res.data?.vehiculos ?? []));
-    } catch (err) {
-      console.error("Error cargando vehículos", err);
-      setVehiculos([]);
-      throw err;
-    }
-  };
-
-  const fetchConductores = async () => {
-    try {
-      const res = await apiClient.get("/api/conductores");
-      setConductores(Array.isArray(res.data) ? res.data : (res.data?.conductores ?? []));
-    } catch (err) {
-      console.error("Error cargando conductores", err);
-      setConductores([]);
-      throw err;
-    }
-  };
-
-  const fetchRutas = async () => {
-    try {
-      const res = await apiClient.get("/api/rutas/utils/select");
-      setRutas(Array.isArray(res.data) ? res.data : (res.data?.rutas ?? []));
-    } catch (err) {
-      console.error("Error cargando rutas", err);
-      setRutas([]);
-      throw err;
-    }
-  };
+  }, [fetchViajes, fetchVehiculos, fetchConductores, fetchRutas]);
 
   useEffect(() => {
     fetchAll();
-  }, []);
+  }, [fetchAll]);
 
   // ============================
   // CRUD de viajes

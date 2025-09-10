@@ -8,7 +8,7 @@ import driversAPI from "../utilidades/driversAPI";
 import { useTheme } from "../context/ThemeContext";
 const Drivers = () => {
   // Agregar el contexto del tema
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

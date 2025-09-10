@@ -12,7 +12,9 @@ import {
   FaCogs,
   FaSpinner,
   FaWifi,
-  FaServer
+  FaServer,
+  FaMoon,
+  FaSun
 } from "react-icons/fa";
 
 const Login = () => {
@@ -28,8 +30,8 @@ const Login = () => {
   const [formTouched, setFormTouched] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [serverStatus, setServerStatus] = useState(null);
-
-  // 👇 Estado de tema oscuro
+  
+  // Estado de tema oscuro
   const [dark, setDark] = useState(localStorage.getItem("theme") === "dark");
 
   useEffect(() => {
@@ -75,6 +77,16 @@ const Login = () => {
         message: 'No se puede conectar con el servidor'
       });
     }
+  };
+
+  // Toggle para cambiar tema
+  const toggleTheme = () => {
+    setDark(prev => !prev);
+  };
+
+  // Función para alternar visibilidad de contraseña
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   // Validación de email
@@ -194,12 +206,21 @@ const Login = () => {
     navigate("/register");
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 lg:p-8 transition-colors duration-300">
+      {/* Theme toggle button - fixed position */}
+      <button
+        onClick={toggleTheme}
+        className="fixed top-4 right-4 z-10 p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
+        title={dark ? "Activar modo claro" : "Activar modo oscuro"}
+      >
+        {dark ? (
+          <FaSun className="w-5 h-5 text-yellow-500" />
+        ) : (
+          <FaMoon className="w-5 h-5 text-blue-600" />
+        )}
+      </button>
+
       {/* Main container */}
       <div className="w-full max-w-7xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden transition-colors duration-300">
         <div className="flex flex-col xl:flex-row min-h-[80vh]">
@@ -334,15 +355,14 @@ const Login = () => {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-600 dark:text-slate-300"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100"
                     aria-label="Mostrar contraseña"
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
               </div>
-
 
               {/* Remember + Forgot */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm">

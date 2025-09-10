@@ -1,70 +1,198 @@
-# Getting Started with Create React App
+# TranSync
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> Sistema integral de gestión y optimización del transporte público moderno
 
-## Available Scripts
+## Descripción
 
-In the project directory, you can run:
+TranSync es una plataforma web completa diseñada para la administración y optimización de sistemas de transporte público. Ofrece herramientas avanzadas para la gestión de flotas, conductores, rutas y programación de horarios con tecnologías modernas.
 
-### `npm start`
+## Características principales
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Gestión de flota integral**: Monitoreo en tiempo real de vehículos
+- **Administración de conductores**: Sistema CRUD completo con validaciones
+- **Programación inteligente**: Algoritmos de optimización de horarios
+- **Seguridad avanzada**: Protocolos de nivel empresarial
+- **Geolocalización precisa**: Sistema GPS optimizado
+- **Análisis de datos**: Dashboard con métricas avanzadas
+- **Interfaz responsive**: Compatible con dispositivos móviles y desktop
+- **Modo oscuro**: Tema adaptable para mejor experiencia de usuario
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Tecnologías utilizadas
 
-### `npm test`
+### Frontend
+- **React** 19.0.0 - Framework principal
+- **Tailwind CSS** 3.4.0 - Framework de estilos
+- **Lucide React** - Biblioteca de iconos
+- **Chart.js** / **Recharts** - Visualización de datos
+- **Axios** - Cliente HTTP
+- **React Router DOM** - Enrutamiento
+- **React Helmet** - Gestión de metadatos
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Herramientas de desarrollo
+- **ESLint** - Linting de código
+- **PostCSS** / **Autoprefixer** - Procesamiento CSS
+- **React Scripts** - Herramientas de build
+- **Testing Library** - Testing utilities
 
-### `npm run build`
+## Estructura del proyecto
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+TransSync_Frontend/
+├── public/
+│   ├── index.html
+│   └── favicon.ico
+├── src/
+│   ├── components/       # Componentes reutilizables
+│   ├── pages/           # Páginas principales
+│   │   ├── Home.jsx
+│   │   ├── Drivers.jsx
+│   │   └── Vehiculos.jsx
+│   ├── context/         # Contextos de React
+│   ├── api/            # Configuración de APIs
+│   ├── utilidades/     # Utilidades y helpers
+│   ├── styles/         # Estilos globales
+│   └── App.js          # Componente principal
+├── package.json
+├── tailwind.config.js
+└── README.md
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Instalación y configuración
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Prerrequisitos
+- Node.js >= 16.0.0
+- npm >= 8.0.0
 
-### `npm run eject`
+### Pasos de instalación
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. **Clonar el repositorio**
+   ```bash
+   git clone <url-del-repositorio>
+   cd TransSync_Frontend
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. **Instalar dependencias**
+   ```bash
+   npm install
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+3. **Configurar variables de entorno**
+   ```bash
+   cp .env.example .env
+   # Editar .env con tus configuraciones
+   ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+4. **Iniciar el servidor de desarrollo**
+   ```bash
+   npm start
+   ```
 
-## Learn More
+5. **Abrir en el navegador**
+   ```
+   http://localhost:3000
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Scripts disponibles
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+| Script | Descripción |
+|--------|-------------|
+| `npm start` | Inicia el servidor de desarrollo |
+| `npm run build` | Crea build optimizado para producción |
+| `npm test` | Ejecuta las pruebas |
+| `npm run lint` | Ejecuta ESLint y corrige errores automáticamente |
+| `npm run lint:check` | Verifica código sin corregir |
+| `npm run format` | Formatea código con Prettier |
+| `npm run analyze` | Analiza el bundle de producción |
+| `npm run clean` | Limpia e reinstala dependencias |
 
-### Code Splitting
+## Módulos principales
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### 1. Gestión de Conductores (`Drivers.jsx`)
+- CRUD completo de conductores
+- Validación de licencias y documentos
+- Filtrado y búsqueda avanzada
+- Exportación de datos
+- Alertas de vencimientos
 
-### Analyzing the Bundle Size
+### 2. Gestión de Vehículos (`Vehiculos.jsx`)
+- Administración de flota
+- Control de estados (Disponible, En ruta, Mantenimiento)
+- Asignación de conductores
+- Seguimiento de documentación (SOAT, Técnica)
+- Estadísticas en tiempo real
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### 3. Dashboard Principal (`Home.jsx`)
+- Visión general del sistema
+- Métricas y estadísticas
+- Testimonios y reconocimientos
+- Información corporativa
 
-### Making a Progressive Web App
+## Configuración de desarrollo
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### ESLint
+El proyecto incluye configuración de ESLint con reglas específicas:
+- Advertencias para variables no utilizadas
+- Validación de hooks de React
+- Estándares de código React
 
-### Advanced Configuration
+### Tailwind CSS
+Configuración optimizada con:
+- Plugins para formularios y tipografía
+- Soporte para modo oscuro
+- Utilidades personalizadas
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Build para producción
 
-### Deployment
+```bash
+npm run build
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Esto generará una versión optimizada en la carpeta `build/` lista para despliegue.
 
-### `npm run build` fails to minify
+## Testing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+npm test
+```
+
+Ejecuta las pruebas usando React Testing Library.
+
+## Navegadores soportados
+
+### Producción
+- Navegadores modernos con >0.2% de uso
+- Excluye navegadores obsoletos
+
+### Desarrollo  
+- Últimas versiones de Chrome, Firefox, Safari
+
+## Contribución
+
+1. Fork del proyecto
+2. Crear rama para nueva característica (`git checkout -b feature/nueva-caracteristica`)
+3. Commit de cambios (`git commit -am 'Añadir nueva característica'`)
+4. Push a la rama (`git push origin feature/nueva-caracteristica`)
+5. Crear Pull Request
+
+## Licencia
+
+Este proyecto está bajo licencia privada. Todos los derechos reservados.
+
+## Soporte
+
+Para soporte técnico o consultas:
+- Crear issue en el repositorio
+- Contactar al equipo de desarrollo
+
+## Roadmap
+
+- [ ] Implementación de PWA
+- [ ] Integración con APIs de mapas
+- [ ] Sistema de notificaciones push
+- [ ] Módulo de reportes avanzados
+- [ ] Integración con sistemas de pago
+- [ ] App móvil nativa
+
+---
+
+**TranSync** - Transformando el transporte público del futuro
