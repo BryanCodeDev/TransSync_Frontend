@@ -101,7 +101,7 @@ const Home = () => {
     const observer = () => setDark(localStorage.getItem("theme") === "dark");
     window.addEventListener("storage", observer);
     return () => window.removeEventListener("storage", observer);
-  }, [setDark]); // Agregar setDark a las dependencias
+  }, [setDark]);
 
   return (
     <div className="font-['Inter',system-ui] text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-900 transition-colors duration-300">
