@@ -12,6 +12,7 @@ import { UserProvider } from './context/UserContext';
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import ChatBot from "./components/ChatBot";
+import Tutorial from "./components/Tutorial";
 import "./i18n";
 
 // Páginas cargadas bajo demanda (lazy loading)
@@ -81,6 +82,7 @@ const ProtectedLayout = ({ children }) => {
         </div>
       </main>
       <ChatBot className="fixed bottom-6 right-6 z-50" />
+      <Tutorial />
     </div>
   );
 };

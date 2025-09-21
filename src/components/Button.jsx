@@ -107,7 +107,6 @@ const Button = ({
         disabled={disabled}
         aria-label={icon ? `${children} ${iconPosition === "left" ? "con icono a la izquierda" : "con icono a la derecha"}` : children}
         aria-disabled={disabled}
-        role="button"
         tabIndex={disabled ? -1 : 0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {

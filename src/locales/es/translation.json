@@ -11,5 +11,52 @@
   "login": "Iniciar sesión",
   "register": "Registrarse",
   "logout": "Cerrar sesión",
-  "home": "Inicio"
+  "home": "Inicio",
+  "tutorial": {
+    "welcome": {
+      "title": "¡Bienvenido a TransSync!",
+      "description": "Te guiaremos a través de las funciones principales de nuestro sistema de gestión de transporte.",
+      "start": "Comenzar tutorial",
+      "skip": "Omitir tutorial"
+    },
+    "step1": {
+      "title": "Panel de Control",
+      "description": "Aquí encontrarás un resumen completo de todas tus operaciones de transporte, incluyendo rutas activas, vehículos disponibles y estadísticas importantes."
+    },
+    "step2": {
+      "title": "Gestión de Conductores",
+      "description": "Administra toda la información de tus conductores, incluyendo sus perfiles, licencias, historial de viajes y rendimiento."
+    },
+    "step3": {
+      "title": "Gestión de Rutas",
+      "description": "Crea, modifica y supervisa todas tus rutas de transporte. Optimiza trayectos y gestiona horarios de manera eficiente."
+    },
+    "step4": {
+      "title": "Gestión de Vehículos",
+      "description": "Mantén un control completo de tu flota vehicular, incluyendo mantenimiento, ubicación en tiempo real y estado operativo."
+    },
+    "step5": {
+      "title": "Horarios y Programación",
+      "description": "Organiza y gestiona los horarios de tus rutas, asigna conductores y vehículos, y mantén todo sincronizado."
+    },
+    "step6": {
+      "title": "Informes y Analytics",
+      "description": "Accede a reportes detallados sobre el rendimiento de tu operación, análisis de costos y métricas de eficiencia."
+    },
+    "step7": {
+      "title": "Configuración de Perfil",
+      "description": "Personaliza tu experiencia configurando tus preferencias, notificaciones y datos personales."
+    },
+    "navigation": {
+      "next": "Siguiente",
+      "previous": "Anterior",
+      "finish": "Finalizar tutorial",
+      "skip": "Omitir",
+      "step": "Paso {{current}} de {{total}}"
+    },
+    "tooltips": {
+      "click_to_continue": "Haz clic para continuar",
+      "explore_feature": "Explora esta función"
+    }
+  }
 }

@@ -43,6 +43,24 @@ TransSync es una plataforma integral diseñada para empresas de transporte que c
 - **Notificaciones en Tiempo Real** - Alertas y actualizaciones automáticas
 - **Internacionalización** - Soporte para múltiples idiomas
 
+### 🎓 Tutorial Interactivo para Nuevos Usuarios
+- **Detección Automática** - Se muestra solo para usuarios nuevos
+- **Guía Paso a Paso** - Recorrido completo por las funciones principales
+- **Botón de Omisión** - Los usuarios pueden saltar el tutorial en cualquier momento
+- **Persistencia** - Una vez completado, no se muestra nuevamente
+- **Responsive** - Funciona en dispositivos móviles y de escritorio
+- **Multi-idioma** - Soporte completo para español e inglés
+
+#### Pasos del Tutorial
+1. **Bienvenida** - Introducción al sistema TransSync
+2. **Panel de Control** - Vista general de operaciones
+3. **Gestión de Conductores** - Administración de personal
+4. **Gestión de Rutas** - Control de trayectos
+5. **Gestión de Vehículos** - Control de flota
+6. **Horarios y Programación** - Organización de tiempos
+7. **Informes y Analytics** - Reportes y estadísticas
+8. **Configuración de Perfil** - Personalización de usuario
+
 ## 🏗️ Arquitectura del Sistema
 
 ```
@@ -132,7 +150,8 @@ src/
 │   ├── LanguageSwitcher.jsx # Selector de idioma
 │   ├── Navbar.jsx          # Barra de navegación principal
 │   ├── Sidebar.jsx         # Navegación lateral
-│   └── Tooltip.jsx         # Componente tooltip
+│   ├── Tooltip.jsx         # Componente tooltip
+│   └── Tutorial.jsx        # Tutorial interactivo para nuevos usuarios
 ├── pages/                  # Páginas principales
 │   ├── AdminDashboard.jsx  # Dashboard de administrador
 │   ├── Dashboard.jsx       # Dashboard principal
@@ -149,7 +168,8 @@ src/
 │   ├── AuthContext.jsx     # Contexto de autenticación
 │   └── ThemeContext.jsx    # Contexto de tema
 ├── hooks/                  # Hooks personalizados
-│   └── useAuth.js          # Hook de autenticación
+│   ├── useAuth.js          # Hook de autenticación
+│   └── useTutorial.js      # Hook para el tutorial interactivo
 ├── utilidades/             # Utilidades y servicios
 │   ├── adminAPI.js         # API de administración
 │   ├── authAPI.js          # API de autenticación

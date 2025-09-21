@@ -292,21 +292,21 @@ const InteractiveMap = () => {
   return (
     <div className="w-full h-screen flex flex-col bg-gray-100">
       {/* Header de Control */}
-      <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+      <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 p-2 md:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 md:gap-4">
             <div className="flex items-center gap-2">
-              <Bus className="w-6 h-6 text-blue-600" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              <Bus className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
+              <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">
                 Sistema de Rutas TransSync</h1>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600 dark:text-gray-400">
               <div className={`w-2 h-2 rounded-full ${refreshing ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
               <span>{refreshing ? 'Actualizando...' : 'En tiempo real'}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3 flex-wrap">
             {/* Botón de menú móvil */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -315,37 +315,37 @@ const InteractiveMap = () => {
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Filtros de visualización - ocultos en móvil */}
-            <div className="hidden md:flex items-center gap-2">
-              <label key="filter-buses" className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
+            {/* Filtros de visualización - responsive */}
+            <div className="flex flex-wrap items-center gap-1 md:gap-2">
+              <label key="filter-buses" className="flex items-center gap-1 text-xs md:text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={showBuses}
                   onChange={(e) => setShowBuses(e.target.checked)}
-                  className="rounded"
+                  className="rounded w-3 h-3 md:w-4 md:h-4"
                 />
-                <Bus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
-                Buses
+                <Bus className="w-3 h-3 md:w-4 md:h-4 text-gray-700 dark:text-gray-300" />
+                <span className="hidden sm:inline">Buses</span>
               </label>
-              <label key="filter-routes" className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
+              <label key="filter-routes" className="flex items-center gap-1 text-xs md:text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={showRoutes}
                   onChange={(e) => setShowRoutes(e.target.checked)}
-                  className="rounded"
+                  className="rounded w-3 h-3 md:w-4 md:h-4"
                 />
-                <Route className="w-4 h-4" />
-                Rutas
+                <Route className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Rutas</span>
               </label>
-              <label key="filter-stops" className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
+              <label key="filter-stops" className="flex items-center gap-1 text-xs md:text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={showStops}
                   onChange={(e) => setShowStops(e.target.checked)}
-                  className="rounded"
+                  className="rounded w-3 h-3 md:w-4 md:h-4"
                 />
-                <MapPin className="w-4 h-4" />
-                Paradas
+                <MapPin className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Paradas</span>
               </label>
             </div>
 
@@ -353,10 +353,10 @@ const InteractiveMap = () => {
             <button
               onClick={refreshRealTimeData}
               disabled={refreshing}
-              className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 disabled:opacity-50 transition-colors flex items-center gap-1"
+              className="bg-green-500 text-white px-2 py-1 md:px-3 md:py-1 rounded text-xs md:text-sm hover:bg-green-600 disabled:opacity-50 transition-colors flex items-center gap-1"
             >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              <RefreshCw className={`w-3 h-3 md:w-4 md:h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Actualizar</span>
             </button>
 
             <button
@@ -366,18 +366,19 @@ const InteractiveMap = () => {
                 setSelectedRoute(null);
                 setSelectedBus(null);
               }}
-              className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors flex items-center gap-1"
+              className="bg-gray-500 text-white px-2 py-1 md:px-3 md:py-1 rounded text-xs md:text-sm hover:bg-gray-600 transition-colors flex items-center gap-1"
             >
-              <Home className="w-4 h-4" />
-              Vista General
+              <Home className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Vista General</span>
             </button>
           </div>
         </div>
 
         {isAddingStop && (
-          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 flex items-center gap-2">
-            <Info className="w-4 h-4" />
-            Haz clic en el mapa donde quieres agregar una nueva parada
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs md:text-sm text-blue-700 flex items-center gap-2">
+            <Info className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">Haz clic en el mapa donde quieres agregar una nueva parada</span>
+            <span className="sm:hidden">Toca el mapa para agregar parada</span>
           </div>
         )}
       </div>
@@ -386,7 +387,7 @@ const InteractiveMap = () => {
         {/* Panel Lateral - Responsive */}
         <div className={`${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 fixed md:relative z-50 md:z-auto w-80 md:w-80 bg-white dark:bg-gray-900 shadow-lg overflow-y-auto flex-shrink-0 h-full transition-transform duration-300 ease-in-out`}>
+        } md:translate-x-0 fixed md:relative z-50 md:z-auto w-72 sm:w-80 md:w-80 lg:w-96 bg-white dark:bg-gray-900 shadow-lg overflow-y-auto flex-shrink-0 h-full transition-transform duration-300 ease-in-out`}>
           {/* Botón para cerrar sidebar en móvil */}
           <div className="md:hidden p-4 border-b border-gray-200 dark:border-gray-700">
             <button
@@ -818,32 +819,33 @@ const InteractiveMap = () => {
 
           {/* Indicador de tracking */}
           {isTracking && selectedBus && (
-            <div className="absolute top-4 left-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-[1000]">
+            <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-green-500 text-white px-2 py-1 md:px-4 md:py-2 rounded-lg shadow-lg z-[1000]">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                <Target className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  Siguiendo: {selectedBus.route}
+                <Target className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="text-xs md:text-sm font-medium">
+                  <span className="hidden sm:inline">Siguiendo: {selectedBus.route}</span>
+                  <span className="sm:hidden">Siguiendo</span>
                 </span>
               </div>
             </div>
           )}
 
           {/* Controles de zoom y ubicación - Responsive */}
-          <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-[1000] md:bottom-4 md:right-4">
+          <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 flex flex-col gap-1 md:gap-2 z-[1000]">
             <button
               key="zoom-in"
               onClick={() => setMapZoom(prev => Math.min(prev + 1, 18))}
-              className="bg-white shadow-lg rounded-full w-10 h-10 md:w-10 md:h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="bg-white shadow-lg rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
             >
-              <ZoomIn className="w-5 h-5" />
+              <ZoomIn className="w-4 h-4 md:w-5 md:h-5" />
             </button>
             <button
               key="zoom-out"
               onClick={() => setMapZoom(prev => Math.max(prev - 1, 3))}
-              className="bg-white shadow-lg rounded-full w-10 h-10 md:w-10 md:h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="bg-white shadow-lg rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
             >
-              <ZoomOut className="w-5 h-5" />
+              <ZoomOut className="w-4 h-4 md:w-5 md:h-5" />
             </button>
             <button
               key="locate"
@@ -859,43 +861,43 @@ const InteractiveMap = () => {
                   }
                 );
               }}
-              className="bg-blue-500 text-white shadow-lg rounded-full w-10 h-10 md:w-10 md:h-10 flex items-center justify-center hover:bg-blue-600 transition-colors"
+              className="bg-blue-500 text-white shadow-lg rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-blue-600 transition-colors"
             >
-              <Locate className="w-5 h-5" />
+              <Locate className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
 
           {/* Leyenda del mapa - Responsive */}
-          <div className="absolute bottom-20 left-4 md:bottom-4 bg-white rounded-lg shadow-lg p-3 z-[1000] max-w-xs md:max-w-xs">
+          <div className="absolute bottom-16 left-2 md:bottom-4 md:left-4 bg-white rounded-lg shadow-lg p-2 md:p-3 z-[1000] max-w-xs">
             <div className="flex items-center gap-2 mb-2">
-              <MapIcon className="w-4 h-4 text-gray-700" />
-              <h4 className="font-bold text-sm">Leyenda</h4>
+              <MapIcon className="w-3 h-3 md:w-4 md:h-4 text-gray-700" />
+              <h4 className="font-bold text-xs md:text-sm">Leyenda</h4>
             </div>
-            <div className="space-y-1 text-xs">
+            <div className="grid grid-cols-1 gap-1 text-xs">
               <div key="legend-en-ruta" className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white">
-                  <Bus className="w-3 h-3" />
+                <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-green-500 flex items-center justify-center text-white">
+                  <Bus className="w-2 h-2 md:w-3 md:h-3" />
                 </div>
                 <span>En ruta</span>
               </div>
               <div key="legend-disponible" className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                  <Bus className="w-3 h-3" />
+                <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                  <Bus className="w-2 h-2 md:w-3 md:h-3" />
                 </div>
                 <span>Disponible</span>
               </div>
               <div key="legend-parada" className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white">
-                  <MapPin className="w-3 h-3" />
+                <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-red-500 flex items-center justify-center text-white">
+                  <MapPin className="w-2 h-2 md:w-3 md:h-3" />
                 </div>
                 <span>Parada</span>
               </div>
               <div key="legend-ruta-activa" className="flex items-center gap-2">
-                <div className="w-4 h-1" style={{ backgroundColor: '#6366f1' }}></div>
+                <div className="w-3 h-1 md:w-4 md:h-1" style={{ backgroundColor: '#6366f1' }}></div>
                 <span>Ruta activa</span>
               </div>
               <div key="legend-ruta-inactiva" className="flex items-center gap-2">
-                <div className="w-4 h-1 border-b border-gray-400 border-dashed"></div>
+                <div className="w-3 h-1 md:w-4 md:h-1 border-b border-gray-400 border-dashed"></div>
                 <span>Ruta inactiva</span>
               </div>
             </div>
@@ -904,29 +906,34 @@ const InteractiveMap = () => {
       </div>
 
       {/* Footer con información adicional */}
-      <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
-        <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+      <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-2 md:px-4 py-2">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
           <div key="footer-time" className="flex items-center gap-1">
             <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-            Última actualización: {new Date().toLocaleTimeString()}
+            <span className="hidden sm:inline">Última actualización:</span>
+            {new Date().toLocaleTimeString()}
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-2 md:gap-4 justify-center sm:justify-end">
             <span key="footer-vehicles" className="flex items-center gap-1">
               <Bus className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-              {buses.length} vehículos registrados
+              <span className="hidden sm:inline">{buses.length} vehículos</span>
+              <span className="sm:hidden">{buses.length}</span>
             </span>
             <span key="footer-routes" className="flex items-center gap-1">
               <Route className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-              {routes.filter(r => r.estRuta === 'ACTIVA').length} rutas activas
+              <span className="hidden sm:inline">{routes.filter(r => r.estRuta === 'ACTIVA').length} rutas</span>
+              <span className="sm:hidden">{routes.filter(r => r.estRuta === 'ACTIVA').length}</span>
             </span>
             <span key="footer-stops" className="flex items-center gap-1">
               <MapPin className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-              {stops.length + newMarkers.length} paradas registradas
+              <span className="hidden sm:inline">{stops.length + newMarkers.length} paradas</span>
+              <span className="sm:hidden">{stops.length + newMarkers.length}</span>
             </span>
           </div>
-          <div key="footer-status" className="flex items-center gap-1">
+          <div key="footer-status" className="flex items-center gap-1 justify-center sm:justify-end">
             <Activity className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-            Sistema en tiempo real
+            <span className="hidden sm:inline">Sistema en tiempo real</span>
+            <span className="sm:hidden">En línea</span>
           </div>
         </div>
       </div>

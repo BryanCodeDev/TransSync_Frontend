@@ -285,7 +285,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         <div className={`p-4 border-b backdrop-blur-sm ${theme === "dark" ? "border-gray-700" : "border-white/20"}`}>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-lg ring-2 ${theme === "dark" ? "ring-gray-700" : "ring-white/20"}`}>
+              <div
+                className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-lg ring-2 ${theme === "dark" ? "ring-gray-700" : "ring-white/20"}`}
+                data-tutorial="profile"
+              >
                 {currentUser ? (
                   <span className="text-white font-bold text-sm">
                     {getUserInitials()}
@@ -331,8 +334,17 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
 
                 return (
                   <div key={path} className="relative group">
-                    <Link 
-                      to={path} 
+                    <Link
+                      to={path}
+                      data-tutorial={
+                        path === "/dashboard" ? "dashboard" :
+                        path === "/drivers" ? "drivers" :
+                        path === "/rutas" ? "routes" :
+                        path === "/vehiculos" ? "vehicles" :
+                        path === "/horarios" ? "schedules" :
+                        path === "/informes" ? "reports" :
+                        null
+                      }
                       className={`
                         flex items-center no-underline rounded-xl
                         transition-all duration-300 ease-in-out
