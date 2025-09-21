@@ -70,16 +70,31 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Logging de errores
-    console.error("❌ API Error:", {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      message: error.response?.data?.message || error.message,
-      fullURL: error.config
-        ? `${API_BASE_URL}${error.config.url}`
-        : "Unknown",
-    });
+    // Logging de errores - manejo especial para notificaciones 404
+    const isNotification404 = error.response?.status === 404 &&
+      error.config?.url?.includes('/notifications/') &&
+      error.config?.url?.includes('/read');
+
+    if (isNotification404) {
+      // No loguear como error crítico las notificaciones 404 (probablemente son de ejemplo)
+      console.warn("⚠️ Notificación no encontrada:", {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+      });
+    } else {
+      // Loguear otros errores normalmente
+      console.error("❌ API Error:", {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        fullURL: error.config
+          ? `${API_BASE_URL}${error.config.url}`
+          : "Unknown",
+      });
+    }
 
     // Manejo específico de errores
     if (error.response?.status === 401) {

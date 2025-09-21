@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
   FaBars,
@@ -17,13 +17,15 @@ import {
   FaCheckCircle,
   FaTimes,
   FaBus,
-  FaUserTie,
   FaHome,
   FaChartLine
 } from 'react-icons/fa';
 import { getUserRole } from '../utilidades/authAPI';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
+import { useNotification } from '../utilidades/notificationService';
+import { useSocket } from '../utilidades/socketService';
+import { dashboardAPI } from '../utilidades/dashboardAPI';
 import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
@@ -31,13 +33,71 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const location = useLocation();
   const { isLoggedIn, user, userRole, logout: handleLogoutAuth, loading: authLoading } = useAuth();
   const { theme, toggleTheme: toggleThemeContext } = useTheme();
+
+  // Obtener datos de autenticación para WebSocket (definido primero)
+  const getAuthData = useCallback(() => {
+    const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+    if (!token) {
+      return null;
+    }
+    return {
+      token,
+      userId: user?.id || null,
+      empresaId: user?.empresaId || null,
+      rol: userRole || null
+    };
+  }, [user?.id, user?.empresaId, userRole]);
+
+  // Memoizar solo los valores que cambian
+  const authData = useMemo(() => getAuthData(), [getAuthData]);
+
+  // Hooks que se llaman directamente en el componente
+  const notificationService = useNotification();
+  const socket = useSocket();
+
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [servicesInitialized, setServicesInitialized] = useState(false);
   const userMenuRef = useRef(null);
   const notificationsRef = useRef(null);
+
+
+  // Cargar notificaciones iniciales desde la API
+  const loadNotifications = useCallback(async () => {
+    try {
+      // Cargar historial de notificaciones desde la API
+      const notificationsData = await dashboardAPI.getNotificationHistory(10);
+
+      if (notificationsData && notificationsData.notifications) {
+        // Transformar las notificaciones de la API al formato del navbar
+        const transformedNotifications = notificationsData.notifications.map(notification => ({
+          id: notification.id,
+          type: notification.type || 'info',
+          title: notification.title || 'Notificación',
+          message: notification.message || notification.body || 'Nueva actualización del sistema',
+          time: new Date(notification.timestamp || notification.createdAt),
+          read: notification.read || false,
+          acknowledged: notification.acknowledged || false,
+          icon: getNotificationIcon(notification.type || 'info')
+        }));
+
+        setNotifications(transformedNotifications);
+        setUnreadCount(transformedNotifications.filter(n => !n.read).length);
+      } else {
+        // Si no hay notificaciones de la API, no cargar notificaciones de ejemplo
+        setNotifications([]);
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      console.error('Error cargando notificaciones:', error);
+      // No cargar notificaciones de ejemplo si falla la API
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }, []);
 
   // Detectar scroll para cambiar la apariencia del navbar
   useEffect(() => {
@@ -68,59 +128,90 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     };
   }, []);
 
-  // Cargar notificaciones iniciales
+  // Inicializar servicios de notificaciones (solo una vez por sesión)
   useEffect(() => {
-    if (!isPublic && isLoggedIn) {
-      loadNotifications();
-    }
-  }, [isPublic, isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
+    const initializeNotifications = async () => {
+      if (!isPublic && isLoggedIn && !servicesInitialized) {
+        try {
+          // Inicializar servicio de notificaciones
+          await notificationService.initialize();
 
-  // Simular notificaciones en tiempo real (cada 30 segundos)
-  useEffect(() => {
-    if (!isPublic && isLoggedIn) {
-      const interval = setInterval(() => {
-        // Simular nuevas notificaciones
-        const randomNotifications = [
-          {
-            id: Date.now() + Math.random(),
-            type: 'alert',
-            title: 'Vehículo requiere mantenimiento',
-            message: 'El vehículo ABC-123 necesita revisión técnica',
-            time: new Date(),
-            read: false,
-            icon: <FaBus className="text-blue-500" />
-          },
-          {
-            id: Date.now() + Math.random() + 1,
-            type: 'warning',
-            title: 'Licencia por vencer',
-            message: 'La licencia del conductor Juan Pérez vence en 15 días',
-            time: new Date(),
-            read: false,
-            icon: <FaExclamationTriangle className="text-orange-500" />
-          },
-          {
-            id: Date.now() + Math.random() + 2,
-            type: 'success',
-            title: 'Viaje completado',
-            message: 'El viaje de la ruta Norte-Sur ha sido completado exitosamente',
-            time: new Date(),
-            read: false,
-            icon: <FaCheckCircle className="text-green-500" />
-          }
-        ];
+          // Conectar WebSocket
+          await socket.connect();
 
-        // Agregar una notificación aleatoria cada cierto tiempo
-        if (Math.random() > 0.7) {
-          const randomNotif = randomNotifications[Math.floor(Math.random() * randomNotifications.length)];
-          setNotifications(prev => [randomNotif, ...prev.slice(0, 9)]);
-          setUnreadCount(prev => prev + 1);
+          // Cargar notificaciones iniciales desde la API
+          await loadNotifications();
+
+          // Marcar servicios como inicializados
+          setServicesInitialized(true);
+
+          console.log('✅ Servicios de notificaciones inicializados en navbar');
+        } catch (error) {
+          console.error('❌ Error inicializando servicios de notificaciones:', error);
         }
-      }, 30000);
+      }
+    };
 
-      return () => clearInterval(interval);
+    initializeNotifications();
+
+    // Cleanup al desmontar el componente
+    return () => {
+      if (servicesInitialized) {
+        socket.disconnect();
+      }
+    };
+  }, [isPublic, isLoggedIn, servicesInitialized, loadNotifications, notificationService, socket]);
+
+  // Conectar socket con datos de autenticación cuando cambien
+  useEffect(() => {
+    if (authData && authData.token && socket) {
+      socket.connect(authData);
     }
-  }, [isPublic, isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [authData, socket]);
+
+  // Resetear estado de inicialización cuando cambie el usuario
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setServicesInitialized(false);
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }, [isLoggedIn]);
+
+  // Configurar listeners para notificaciones en tiempo real
+  useEffect(() => {
+    if (!isPublic && isLoggedIn) {
+      const handleNewNotification = async (data) => {
+        console.log('📱 Nueva notificación en navbar:', data);
+
+        // Crear objeto de notificación para el navbar
+        const newNotification = {
+          id: data.id || Date.now(),
+          type: data.type || 'info',
+          title: data.title || 'Nueva notificación',
+          message: data.message || data.body || 'Tienes una nueva actualización',
+          time: new Date(data.timestamp || Date.now()),
+          read: false,
+          icon: getNotificationIcon(data.type || 'info')
+        };
+
+        // Agregar a la lista de notificaciones
+        setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
+        setUnreadCount(prev => prev + 1);
+
+        // Mostrar notificación push si está habilitado
+        await notificationService.showFromSocket(data);
+      };
+
+      // Registrar listener para notificaciones del dashboard
+      socket.on('dashboard:notification', handleNewNotification);
+
+      // Cleanup
+      return () => {
+        socket.off('dashboard:notification', handleNewNotification);
+      };
+    }
+  }, [isPublic, isLoggedIn, socket, notificationService]);
 
 
   const handleLogout = async () => {
@@ -176,66 +267,71 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   };
 
 
-  // Cargar notificaciones iniciales
-  const loadNotifications = () => {
-    // Notificaciones de ejemplo
-    const sampleNotifications = [
-      {
-        id: 1,
-        type: 'alert',
-        title: 'Sistema actualizado',
-        message: 'TransSync ha sido actualizado a la versión 2.1.0',
-        time: new Date(Date.now() - 1000 * 60 * 30), // 30 minutos atrás
-        read: false,
-        icon: <FaCheckCircle className="text-green-500" />
-      },
-      {
-        id: 2,
-        type: 'warning',
-        title: 'Mantenimiento programado',
-        message: 'Mantenimiento del sistema programado para mañana a las 2:00 AM',
-        time: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 horas atrás
-        read: false,
-        icon: <FaExclamationTriangle className="text-orange-500" />
-      },
-      {
-        id: 3,
-        type: 'info',
-        title: 'Nuevo conductor registrado',
-        message: 'Carlos Rodríguez se ha registrado como conductor',
-        time: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 horas atrás
-        read: true,
-        icon: <FaUserTie className="text-blue-500" />
-      },
-      {
-        id: 4,
-        type: 'success',
-        title: 'Backup completado',
-        message: 'El backup automático de la base de datos se completó exitosamente',
-        time: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 horas atrás
-        read: true,
-        icon: <FaCheckCircle className="text-green-500" />
-      }
-    ];
-
-    setNotifications(sampleNotifications);
-    setUnreadCount(sampleNotifications.filter(n => !n.read).length);
-  };
 
   // Marcar notificación como leída
-  const markAsRead = (notificationId) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === notificationId ? { ...notif, read: true } : notif
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
+  const markAsRead = async (notificationId) => {
+    try {
+      // Actualizar en la API
+      await dashboardAPI.markNotificationAsRead(notificationId);
+
+      // Actualizar estado local
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif.id === notificationId ? { ...notif, read: true } : notif
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      // Solo loguear como warning si es error 404 (notificación no existe)
+      if (error.response?.status === 404) {
+        console.warn(`⚠️ Notificación ${notificationId} no encontrada en el backend (probablemente es de ejemplo)`);
+      } else {
+        console.error('Error marcando notificación como leída:', error);
+      }
+
+      // Fallback: actualizar solo el estado local
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif.id === notificationId ? { ...notif, read: true } : notif
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    }
   };
 
   // Marcar todas como leídas
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
-    setUnreadCount(0);
+  const markAllAsRead = async () => {
+    try {
+      // Obtener IDs de notificaciones no leídas
+      const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+
+      // Marcar todas como leídas en la API
+      const results = await Promise.allSettled(unreadIds.map(id => dashboardAPI.markNotificationAsRead(id)));
+
+      // Contar errores 404 (notificaciones no encontradas)
+      const notFoundErrors = results.filter(result =>
+        result.status === 'rejected' && result.reason?.response?.status === 404
+      ).length;
+
+      if (notFoundErrors > 0) {
+        console.warn(`⚠️ ${notFoundErrors} notificaciones no encontradas en el backend (probablemente son de ejemplo)`);
+      }
+
+      // Actualizar estado local
+      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      // Solo loguear como warning si todos son errores 404
+      if (error.response?.status === 404) {
+        console.warn('⚠️ Notificaciones no encontradas en el backend (probablemente son de ejemplo)');
+      } else {
+        console.error('Error marcando todas las notificaciones como leídas:', error);
+      }
+
+      // Fallback: actualizar solo el estado local
+      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+      setUnreadCount(0);
+    }
   };
 
   // Eliminar notificación
@@ -245,6 +341,29 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
       setUnreadCount(updated.filter(n => !n.read).length);
       return updated;
     });
+  };
+
+  // Obtener icono según el tipo de notificación
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'success':
+      case 'completado':
+        return <FaCheckCircle className="text-green-500" />;
+      case 'warning':
+      case 'advertencia':
+        return <FaExclamationTriangle className="text-orange-500" />;
+      case 'error':
+      case 'critico':
+        return <FaExclamationTriangle className="text-red-500" />;
+      case 'info':
+      case 'informacion':
+        return <FaBell className="text-blue-500" />;
+      case 'alert':
+      case 'alerta':
+        return <FaBus className="text-blue-500" />;
+      default:
+        return <FaBell className="text-blue-500" />;
+    }
   };
 
   // Formatear tiempo relativo
