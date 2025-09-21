@@ -36,6 +36,13 @@ TransSync es una plataforma integral diseñada para empresas de transporte que c
 - **Auditoría Completa** - Registro detallado de todas las operaciones
 - **Backup Automático** - Recuperación de datos garantizada
 
+### 🎨 Interfaz de Usuario
+- **Diseño Responsivo** - Compatible con todos los dispositivos
+- **Tema Oscuro/Claro** - Adaptable a preferencias del usuario
+- **Navegación Intuitiva** - Sidebar y navbar optimizados
+- **Notificaciones en Tiempo Real** - Alertas y actualizaciones automáticas
+- **Internacionalización** - Soporte para múltiples idiomas
+
 ## 🏗️ Arquitectura del Sistema
 
 ```
@@ -58,6 +65,14 @@ TransSync es una plataforma integral diseñada para empresas de transporte que c
 - **MySQL** 8.0 o superior
 - **npm** o **yarn**
 - **Git**
+
+### Tecnologías del Frontend
+- **React** 18.2.0 - Framework principal
+- **React Router** - Enrutamiento SPA
+- **Tailwind CSS** - Framework de estilos
+- **React Icons** - Iconografía
+- **React Hot Toast** - Notificaciones
+- **Lucide React** - Iconos adicionales
 
 ### Instalación
 
@@ -105,27 +120,63 @@ TransSync es una plataforma integral diseñada para empresas de transporte que c
 
 ## 📁 Estructura del Proyecto
 
+### Frontend (React)
 ```
-transsync/
-├── src/
-│   ├── components/          # Componentes React reutilizables
-│   │   ├── ChatBot.jsx     # ChatBot inteligente con IA
-│   │   ├── Sidebar.jsx     # Navegación lateral
-│   │   └── ...
-│   ├── pages/              # Páginas principales
-│   │   ├── Dashboard.jsx   # Dashboard ejecutivo
-│   │   ├── Drivers.jsx     # Gestión de conductores
-│   │   ├── Vehicles.jsx    # Gestión de vehículos
-│   │   └── ...
-│   ├── utilidades/         # Utilidades y servicios
-│   │   ├── chatbotAPI.js   # API del chatbot inteligente
-│   │   ├── nlpProcessor.js # Procesador de lenguaje natural
-│   │   ├── conversationMemory.js # Memoria conversacional
-│   │   ├── queryEngine.js  # Motor de consultas inteligentes
-│   │   └── cacheService.js # Servicio de cache inteligente
-│   ├── context/            # Contextos React
-│   ├── routes/             # Configuración de rutas
-│   └── api/                # Configuración de API
+src/
+├── components/              # Componentes React reutilizables
+│   ├── AuthStatus.jsx      # Estado de autenticación
+│   ├── BreadcrumbNav.jsx   # Navegación breadcrumb
+│   ├── Button.jsx          # Componente botón personalizado
+│   ├── ChatBot.jsx         # ChatBot inteligente con IA
+│   ├── DashboardSkeleton.jsx # Esqueleto de carga del dashboard
+│   ├── LanguageSwitcher.jsx # Selector de idioma
+│   ├── Navbar.jsx          # Barra de navegación principal
+│   ├── Sidebar.jsx         # Navegación lateral
+│   └── Tooltip.jsx         # Componente tooltip
+├── pages/                  # Páginas principales
+│   ├── AdminDashboard.jsx  # Dashboard de administrador
+│   ├── Dashboard.jsx       # Dashboard principal
+│   ├── Drivers.jsx         # Gestión de conductores
+│   ├── Emergency.jsx       # Panel de emergencias
+│   ├── Home.jsx            # Página de inicio
+│   ├── Horarios.jsx        # Gestión de horarios
+│   ├── Informes.jsx        # Reportes y análisis
+│   ├── Login.jsx           # Página de inicio de sesión
+│   ├── Register.jsx        # Página de registro
+│   ├── Rutas.jsx           # Gestión de rutas
+│   └── Vehiculos.jsx       # Gestión de vehículos
+├── context/                # Contextos React
+│   ├── AuthContext.jsx     # Contexto de autenticación
+│   └── ThemeContext.jsx    # Contexto de tema
+├── hooks/                  # Hooks personalizados
+│   └── useAuth.js          # Hook de autenticación
+├── utilidades/             # Utilidades y servicios
+│   ├── adminAPI.js         # API de administración
+│   ├── authAPI.js          # API de autenticación
+│   ├── chatbotAPI.js       # API del chatbot
+│   ├── dashboardAPI.js     # API del dashboard
+│   ├── driversAPI.js       # API de conductores
+│   ├── emergencyAPI.js     # API de emergencias
+│   ├── informesAPI.js      # API de reportes
+│   ├── rutasAPI.js         # API de rutas
+│   ├── vehiculosAPI.js     # API de vehículos
+│   └── viajesAPI.js        # API de viajes
+├── locales/                # Archivos de internacionalización
+│   ├── en/                 # Traducciones en inglés
+│   └── es/                 # Traducciones en español
+├── routes/                 # Configuración de rutas
+│   └── ProtectedRoute.jsx  # Ruta protegida
+├── api/                    # Configuración de API
+│   ├── baseAPI.js          # Cliente API base
+│   └── index.js            # Exportaciones de API
+├── i18n.js                 # Configuración de internacionalización
+├── App.jsx                 # Componente principal
+├── App.css                 # Estilos globales
+└── index.jsx               # Punto de entrada
+```
+
+### Backend y Base de Datos
+```
 ├── backend/                # Servidor backend
 │   ├── controllers/        # Controladores de la API
 │   ├── routes/            # Definición de rutas

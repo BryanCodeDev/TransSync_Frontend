@@ -433,7 +433,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
               </div>
             )}
 
-            {isPublic || !isLoggedIn ? (
+            {!isLoggedIn ? (
               <div className="flex items-center gap-3">
                 <button onClick={handleLogin} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-indigo-700 dark:text-gray-200 border border-indigo-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:border-indigo-300">
                   <FaSignInAlt size={14} />
