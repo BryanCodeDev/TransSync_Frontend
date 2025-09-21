@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import i18n from '../i18n';
 import { useAuth } from '../hooks/useAuth';
 import {
   getUserProfile,
@@ -98,7 +99,6 @@ export const UserProvider = ({ children }) => {
       setUserProfile(profile);
     } catch (err) {
       setErrorMessage('profile', err.message);
-      console.error('Error loading user profile:', err);
     } finally {
       setLoading(prev => ({ ...prev, profile: false }));
     }
@@ -210,6 +210,41 @@ export const UserProvider = ({ children }) => {
     }
   }, [clearError, setErrorMessage]);
 
+  // Cambiar idioma del usuario
+  const changeLanguage = useCallback(async (language) => {
+    try {
+      // Cambiar idioma en i18n
+      await i18n.changeLanguage(language);
+
+      // Actualizar preferencias locales inmediatamente
+      setUserPreferences(prev => ({
+        ...prev,
+        language: language
+      }));
+
+      // Si el usuario está logueado, persistir en el servidor
+      if (isLoggedIn) {
+        setLoading(prev => ({ ...prev, preferences: true }));
+        clearError('preferences');
+
+        const updatedPreferences = await updateUserPreferences({
+          ...userPreferences,
+          language: language
+        });
+
+        setUserPreferences(prev => ({ ...prev, ...updatedPreferences }));
+      }
+    } catch (err) {
+      setErrorMessage('preferences', err.message);
+      console.error('Error changing language:', err);
+      throw err;
+    } finally {
+      if (isLoggedIn) {
+        setLoading(prev => ({ ...prev, preferences: false }));
+      }
+    }
+  }, [isLoggedIn, userPreferences, clearError, setErrorMessage]);
+
   // Cargar información de la empresa
   const loadCompanyInfo = useCallback(async () => {
     if (!isLoggedIn) return;
@@ -317,6 +352,13 @@ export const UserProvider = ({ children }) => {
     }
   }, [isLoggedIn, user, loadAllUserData]);
 
+  // Sincronizar idioma de i18n con las preferencias del usuario
+  useEffect(() => {
+    if (userPreferences.language && userPreferences.language !== i18n.language) {
+      i18n.changeLanguage(userPreferences.language);
+    }
+  }, [userPreferences.language]);
+
   // Funciones de utilidad
   const getUserDisplayName = useCallback(() => {
     if (userProfile?.nomUsuario && userProfile?.apeUsuario) {
@@ -391,6 +433,7 @@ export const UserProvider = ({ children }) => {
     changePassword,
     updatePreferences,
     updateNotificationSettings,
+    changeLanguage,
 
     // Funciones de utilidad
     getUserDisplayName,

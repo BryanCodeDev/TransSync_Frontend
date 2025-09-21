@@ -24,6 +24,7 @@ import {
 import { getUserRole } from '../utilidades/authAPI';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const navigate = useNavigate();
@@ -404,6 +405,9 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                 <FaMoon size={16} className="text-indigo-600 group-hover:text-indigo-700" />
               )}
             </button>
+
+            {/* Language switcher */}
+            <LanguageSwitcher />
 
             {/* Botones de navegación inteligente */}
             {isLoggedIn && (

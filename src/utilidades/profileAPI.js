@@ -17,7 +17,11 @@ const profileAPI = {
   getUserProfile: async () => {
     try {
       const response = await apiClient.get('/api/user/profile');
-      return response.data;
+
+      // El backend devuelve los datos en response.data.data
+      const profileData = response.data.data || response.data;
+
+      return profileData;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
