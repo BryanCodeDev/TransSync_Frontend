@@ -22,7 +22,7 @@ const Rutas = lazy(() => import("./pages/Rutas"));
 const Vehiculos = lazy(() => import("./pages/Vehiculos"));
 const Horarios = lazy(() => import("./pages/Horarios"));
 const Informes = lazy(() => import("./pages/Informes"));
-const Emergency = lazy(() => import("./pages/Emergency"));
+const Profile = lazy(() => import("./pages/Profile"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 
@@ -129,7 +129,7 @@ function App() {
               <Route path="/vehiculos" element={<ProtectedRoute><ProtectedLayout><Vehiculos /></ProtectedLayout></ProtectedRoute>} />
               <Route path="/horarios" element={<ProtectedRoute><ProtectedLayout><Horarios /></ProtectedLayout></ProtectedRoute>} />
               <Route path="/informes" element={<ProtectedRoute><ProtectedLayout><Informes /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/emergency" element={<ProtectedRoute><ProtectedLayout><Emergency /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProtectedLayout><Profile /></ProtectedLayout></ProtectedRoute>} />
 
               {/* Catch-all */}
               <Route path="*" element={<Navigate to="/home" replace />} />

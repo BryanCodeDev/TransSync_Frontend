@@ -174,12 +174,12 @@ const Home = () => {
         <div className="w-full max-w-7xl mx-auto text-center relative z-10">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 mb-8 hover:bg-white/15 transition-all duration-300">
-            <Award className="w-5 h-5 text-yellow-400" />
+            <Award className="w-5 h-5 text-primary-500" />
             <span className="text-sm font-medium">🚀 Startup Innovadora en Transporte Inteligente</span>
           </div>
 
           {/* Main Title */}
-          <h1 className={`text-7xl font-extrabold mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 dark:from-yellow-300 dark:via-yellow-100 dark:to-orange-200 bg-clip-text text-transparent transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+          <h1 className={`text-7xl font-extrabold mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 dark:from-primary-300 dark:via-primary-100 dark:to-secondary-200 bg-clip-text text-transparent transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             TranSync
           </h1>
 
@@ -189,14 +189,6 @@ const Home = () => {
 
           {/* CTA Buttons */}
           <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <button className="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black font-bold py-4 px-8 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-2 hover:scale-105">
-              <Play className="w-5 h-5" />
-              Ver Demo Interactiva
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-semibold py-4 px-8 rounded-2xl border border-white/30 transition-all duration-300 hover:scale-105">
-              Descargar Brochure
-            </button>
           </div>
         </div>
       </header>
@@ -216,8 +208,8 @@ const Home = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {estadisticas.map((stat, index) => (
               <div key={index} className={`text-center p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 transform transition-all duration-500 hover:scale-105 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`} style={{ transitionDelay: `${index * 100}ms` }}>
-                <stat.icono className="w-12 h-12 text-[#3949ab] dark:text-yellow-400 mx-auto mb-4" />
-                <div className="text-4xl font-bold text-[#1a237e] dark:text-yellow-400 mb-2">{stat.numero}</div>
+                <stat.icono className="w-12 h-12 text-[#3949ab] dark:text-primary-500 mx-auto mb-4" />
+                <div className="text-4xl font-bold text-[#1a237e] dark:text-primary-500 mb-2">{stat.numero}</div>
                 <div className="text-gray-600 dark:text-gray-300 font-medium">{stat.etiqueta}</div>
               </div>
             ))}
@@ -266,7 +258,7 @@ const Home = () => {
                   </div>
                 </div>
 
-                <h3 className="font-bold text-xl mb-3 text-gray-800 dark:text-gray-100 group-hover:text-[#3949ab] dark:group-hover:text-yellow-400 transition-colors">
+                <h3 className="font-bold text-xl mb-3 text-gray-800 dark:text-gray-100 group-hover:text-[#3949ab] dark:group-hover:text-primary-500 transition-colors">
                   {caracteristica.titulo}
                 </h3>
 
@@ -344,7 +336,7 @@ const Home = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     {[...Array(testimonios[currentTestimonial].rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                      <Star key={i} className="w-5 h-5 text-primary-500 fill-current" />
                     ))}
                   </div>
                   <h4 className="font-bold text-xl text-gray-800 dark:text-gray-100">
@@ -371,7 +363,7 @@ const Home = () => {
                     onClick={() => setCurrentTestimonial(i)}
                     className={`w-3 h-3 rounded-full transition-all duration-300 ${
                       i === currentTestimonial
-                        ? 'bg-[#3949ab] dark:bg-yellow-400 w-8'
+                        ? 'bg-[#3949ab] dark:bg-primary-500 w-8'
                         : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
                     }`}
                   />
@@ -397,12 +389,12 @@ const Home = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {premios.map((premio, i) => (
               <div key={i} className={`group bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-600 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`} style={{ transitionDelay: `${i * 100}ms` }}>
-                <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                   <premio.icono className="w-8 h-8 text-white" />
                 </div>
                 <h4 className="font-bold text-lg mb-2 text-gray-800 dark:text-gray-100">{premio.titulo}</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">{premio.organizacion}</p>
-                <p className="text-sm font-semibold text-[#3949ab] dark:text-yellow-400">{premio.año}</p>
+                <p className="text-sm font-semibold text-[#3949ab] dark:text-primary-500">{premio.año}</p>
               </div>
             ))}
           </div>
@@ -424,7 +416,7 @@ const Home = () => {
           </p>
 
           <div className={`flex flex-col sm:flex-row gap-6 justify-center items-center transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <button className="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black font-bold py-5 px-10 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-3 hover:scale-105 text-lg">
+            <button className="group bg-gradient-to-r from-primary-500 to-secondary-600 hover:from-primary-600 hover:to-secondary-700 text-black font-bold py-5 px-10 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-3 hover:scale-105 text-lg">
               <Play className="w-6 h-6" />
               Solicitar Demo Gratuita
               <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
