@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { isAuthenticated } from './utilidades/authAPI';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { UserProvider } from './context/UserContext';
 
 // Componentes principales (no lazy para mejor UX)
 import Navbar from "./components/Navbar";
@@ -111,7 +112,8 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
+        <UserProvider>
+          <Router>
           <Suspense fallback={<LazyLoadingFallback />}>
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
@@ -136,6 +138,7 @@ function App() {
             </Routes>
           </Suspense>
         </Router>
+        </UserProvider>
       </AuthProvider>
     </ThemeProvider>
   );
