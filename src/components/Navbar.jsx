@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { 
-  FaBars, 
-  FaUser, 
-  FaSignOutAlt, 
-  FaCog, 
+import {
+  FaBars,
+  FaUser,
+  FaSignOutAlt,
+  FaCog,
   FaUserCircle,
   FaChevronDown,
   FaUserShield,
@@ -13,7 +13,12 @@ import {
   FaBell,
   FaQuestionCircle,
   FaMoon,
-  FaSun
+  FaSun,
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaTimes,
+  FaBus,
+  FaUserTie
 } from 'react-icons/fa';
 import { isAuthenticated, getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
 
@@ -22,9 +27,13 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [dark, setDark] = useState(localStorage.getItem("theme") === "dark");
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const userMenuRef = useRef(null);
+  const notificationsRef = useRef(null);
 
   // Detectar scroll para cambiar la apariencia del navbar
   useEffect(() => {
@@ -58,11 +67,14 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   }, [isPublic]);
 
-  // Cerrar menú de usuario cuando se hace clic fuera
+  // Cerrar menús cuando se hace clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
       }
     };
 
@@ -72,7 +84,73 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     };
   }, []);
 
-  // Manejo de modo oscuro
+  // Cargar notificaciones iniciales
+  useEffect(() => {
+    if (!isPublic && isAuthenticated()) {
+      loadNotifications();
+    }
+  }, [isPublic]);
+
+  // Simular notificaciones en tiempo real (cada 30 segundos)
+  useEffect(() => {
+    if (!isPublic && isAuthenticated()) {
+      const interval = setInterval(() => {
+        // Simular nuevas notificaciones
+        const randomNotifications = [
+          {
+            id: Date.now() + Math.random(),
+            type: 'alert',
+            title: 'Vehículo requiere mantenimiento',
+            message: 'El vehículo ABC-123 necesita revisión técnica',
+            time: new Date(),
+            read: false,
+            icon: <FaBus className="text-blue-500" />
+          },
+          {
+            id: Date.now() + Math.random() + 1,
+            type: 'warning',
+            title: 'Licencia por vencer',
+            message: 'La licencia del conductor Juan Pérez vence en 15 días',
+            time: new Date(),
+            read: false,
+            icon: <FaExclamationTriangle className="text-orange-500" />
+          },
+          {
+            id: Date.now() + Math.random() + 2,
+            type: 'success',
+            title: 'Viaje completado',
+            message: 'El viaje de la ruta Norte-Sur ha sido completado exitosamente',
+            time: new Date(),
+            read: false,
+            icon: <FaCheckCircle className="text-green-500" />
+          }
+        ];
+
+        // Agregar una notificación aleatoria cada cierto tiempo
+        if (Math.random() > 0.7) {
+          const randomNotif = randomNotifications[Math.floor(Math.random() * randomNotifications.length)];
+          setNotifications(prev => [randomNotif, ...prev.slice(0, 9)]);
+          setUnreadCount(prev => prev + 1);
+        }
+      }, 30000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isPublic]);
+
+  // Manejo de modo oscuro con mejor detección inicial
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // Si no hay tema guardado, usar preferencia del sistema
+    if (!savedTheme) {
+      setDark(prefersDark);
+    } else {
+      setDark(savedTheme === "dark");
+    }
+  }, []);
+
   useEffect(() => {
     if (dark) {
       document.documentElement.classList.add("dark");
@@ -89,6 +167,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         await logout();
         navigate("/home");
         setIsUserMenuOpen(false);
+        setIsNotificationsOpen(false);
       } catch (error) {
         console.error('Error during logout:', error);
         localStorage.clear();
@@ -107,10 +186,98 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
   const toggleUserMenu = () => {
     setIsUserMenuOpen(prev => !prev);
+    setIsNotificationsOpen(false); // Cerrar notificaciones si están abiertas
   };
 
   const toggleTheme = () => {
     setDark(prev => !prev);
+  };
+
+  const toggleNotifications = () => {
+    setIsNotificationsOpen(prev => !prev);
+    setIsUserMenuOpen(false); // Cerrar menú de usuario si está abierto
+  };
+
+  // Cargar notificaciones iniciales
+  const loadNotifications = () => {
+    // Notificaciones de ejemplo
+    const sampleNotifications = [
+      {
+        id: 1,
+        type: 'alert',
+        title: 'Sistema actualizado',
+        message: 'TransSync ha sido actualizado a la versión 2.1.0',
+        time: new Date(Date.now() - 1000 * 60 * 30), // 30 minutos atrás
+        read: false,
+        icon: <FaCheckCircle className="text-green-500" />
+      },
+      {
+        id: 2,
+        type: 'warning',
+        title: 'Mantenimiento programado',
+        message: 'Mantenimiento del sistema programado para mañana a las 2:00 AM',
+        time: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 horas atrás
+        read: false,
+        icon: <FaExclamationTriangle className="text-orange-500" />
+      },
+      {
+        id: 3,
+        type: 'info',
+        title: 'Nuevo conductor registrado',
+        message: 'Carlos Rodríguez se ha registrado como conductor',
+        time: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 horas atrás
+        read: true,
+        icon: <FaUserTie className="text-blue-500" />
+      },
+      {
+        id: 4,
+        type: 'success',
+        title: 'Backup completado',
+        message: 'El backup automático de la base de datos se completó exitosamente',
+        time: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 horas atrás
+        read: true,
+        icon: <FaCheckCircle className="text-green-500" />
+      }
+    ];
+
+    setNotifications(sampleNotifications);
+    setUnreadCount(sampleNotifications.filter(n => !n.read).length);
+  };
+
+  // Marcar notificación como leída
+  const markAsRead = (notificationId) => {
+    setNotifications(prev =>
+      prev.map(notif =>
+        notif.id === notificationId ? { ...notif, read: true } : notif
+      )
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
+  // Marcar todas como leídas
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+    setUnreadCount(0);
+  };
+
+  // Eliminar notificación
+  const deleteNotification = (notificationId) => {
+    setNotifications(prev => {
+      const updated = prev.filter(n => n.id !== notificationId);
+      setUnreadCount(updated.filter(n => !n.read).length);
+      return updated;
+    });
+  };
+
+  // Formatear tiempo relativo
+  const formatTimeAgo = (date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return 'Ahora mismo';
+    if (diffInSeconds < 3600) return `Hace ${Math.floor(diffInSeconds / 60)} min`;
+    if (diffInSeconds < 86400) return `Hace ${Math.floor(diffInSeconds / 3600)} h`;
+    return `Hace ${Math.floor(diffInSeconds / 86400)} días`;
   };
 
   const getUserInitials = () => {
@@ -189,18 +356,18 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg border-b border-gray-200/50 dark:border-gray-700' 
-        : 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200/30 dark:border-gray-700'
+      isScrolled
+        ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg border-b border-gray-200/50 dark:border-gray-700'
+        : 'bg-gradient-to-r from-white/95 via-blue-50/30 to-indigo-50/20 dark:from-gray-900/90 dark:via-gray-800/90 dark:to-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200/30 dark:border-gray-700'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left section */}
           <div className="flex items-center gap-4">
             {!isPublic && isMobile && (
-              <button 
+              <button
                 onClick={toggleSidebar}
-                className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/50 transition-all duration-200 group"
+                className="p-2 rounded-xl text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"
                 aria-label="Toggle menu"
               >
                 <FaBars size={18} className="group-hover:scale-110 transition-transform duration-200" />
@@ -215,8 +382,8 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold bg-gradient-to-r from-[#1a237e] to-[#3949ab] bg-clip-text text-transparent">TransSync</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 -mt-1 opacity-80">Transport Management</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-[#1a237e] dark:to-[#3949ab] bg-clip-text text-transparent">TransSync</span>
+                <span className="text-xs text-slate-500 dark:text-gray-400 -mt-1 opacity-80">Transport Management</span>
               </div>
             </Link>
           </div>
@@ -226,35 +393,142 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
             {/* Theme toggle button */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 text-gray-600 dark:text-gray-300 hover:text-[#3949ab] dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group"
+              className="p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"
               title={dark ? "Activar modo claro" : "Activar modo oscuro"}
             >
               {dark ? (
-                <FaSun size={16} className="text-yellow-500" />
+                <FaSun size={16} className="text-amber-500 group-hover:text-amber-600" />
               ) : (
-                <FaMoon size={16} className="text-blue-600" />
+                <FaMoon size={16} className="text-indigo-600 group-hover:text-indigo-700" />
               )}
             </button>
 
             {isPublic || !isAuthenticated() ? (
               <div className="flex items-center gap-3">
-                <button onClick={handleLogin} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-[#1a237e] dark:text-gray-200 border border-[#1a237e]/20 dark:border-gray-600 rounded-xl transition-all duration-200 hover:bg-[#1a237e]/5 dark:hover:bg-gray-800">
+                <button onClick={handleLogin} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-indigo-700 dark:text-gray-200 border border-indigo-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:border-indigo-300">
                   <FaSignInAlt size={14} />
                   <span className="hidden sm:inline">Iniciar Sesión</span>
                 </button>
-                <button onClick={handleRegister} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#1a237e] to-[#3949ab] rounded-xl shadow-md hover:scale-105">
+                <button onClick={handleRegister} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-[#1a237e] dark:to-[#3949ab] rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200">
                   <FaUserCircle size={14} />
                   <span className="hidden sm:inline">Registrarse</span>
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <button className="relative p-2.5 text-gray-600 dark:text-gray-300 hover:text-[#3949ab] dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
-                  <FaBell size={16} />
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-md">3</div>
-                </button>
+                {/* Notifications */}
+                <div className="relative" ref={notificationsRef}>
+                  <button
+                    onClick={toggleNotifications}
+                    className="relative p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group min-h-[44px] min-w-[44px] flex items-center justify-center border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"
+                    title="Notificaciones"
+                  >
+                    <FaBell size={16} />
+                    {unreadCount > 0 && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-md animate-pulse">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </div>
+                    )}
+                  </button>
 
-                <button className="p-2.5 text-gray-600 dark:text-gray-300 hover:text-[#3949ab] dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group">
+                  {/* Notification Dropdown */}
+                  {isNotificationsOpen && (
+                    <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden">
+                      {/* Header */}
+                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          Notificaciones
+                          {unreadCount > 0 && (
+                            <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                              {unreadCount}
+                            </span>
+                          )}
+                        </h3>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllAsRead}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                          >
+                            Marcar todas como leídas
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Notifications List */}
+                      <div className="max-h-80 overflow-y-auto">
+                        {notifications.length > 0 ? (
+                          notifications.map((notification) => (
+                            <div
+                              key={notification.id}
+                              className={`px-4 py-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                                !notification.read ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  {notification.icon}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex justify-between items-start">
+                                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                      {notification.title}
+                                    </h4>
+                                    <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                                      {!notification.read && (
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                      )}
+                                      <button
+                                        onClick={() => deleteNotification(notification.id)}
+                                        className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded"
+                                        title="Eliminar notificación"
+                                      >
+                                        <FaTimes size={12} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                                    {notification.message}
+                                  </p>
+                                  <div className="flex justify-between items-center mt-2">
+                                    <span className="text-xs text-gray-500 dark:text-gray-500">
+                                      {formatTimeAgo(notification.time)}
+                                    </span>
+                                    {!notification.read && (
+                                      <button
+                                        onClick={() => markAsRead(notification.id)}
+                                        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                                      >
+                                        Marcar como leída
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-4 py-8 text-center">
+                            <FaBell className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              No hay notificaciones
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      {notifications.length > 0 && (
+                        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+                          <button className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
+                            Ver todas las notificaciones
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <button className="p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group min-h-[44px] min-w-[44px] flex items-center justify-center border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600">
                   <FaQuestionCircle size={16} />
                 </button>
 
@@ -262,7 +536,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={toggleUserMenu}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 group border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-700"
                     aria-label="User menu"
                   >
                     <div className="relative">

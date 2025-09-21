@@ -10,7 +10,7 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       console.error('Error obteniendo estadísticas generales:', error);
-      throw new Error(apiUtils.formatError(error));
+      return { estadisticas: { totalRutas: 0, totalVehiculos: 0, rutasActivas: 0 } };
     }
   },
 
@@ -26,7 +26,7 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       console.error('Error obteniendo datos de gráficos:', error);
-      throw new Error(apiUtils.formatError(error));
+      return { graficos: [] };
     }
   },
 
@@ -37,7 +37,7 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       console.error('Error obteniendo alertas activas:', error);
-      throw new Error(apiUtils.formatError(error));
+      return { alertas: [] };
     }
   },
 
@@ -48,7 +48,7 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       console.error('Error obteniendo actividad reciente:', error);
-      throw new Error(apiUtils.formatError(error));
+      return { actividades: [] };
     }
   },
 
@@ -60,7 +60,7 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       console.error('Error obteniendo KPIs:', error);
-      throw new Error(apiUtils.formatError(error));
+      return { kpis: [] };
     }
   },
 
@@ -71,7 +71,7 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       console.error('Error obteniendo resumen ejecutivo:', error);
-      throw new Error(apiUtils.formatError(error));
+      return { resumen: {} };
     }
   },
 
@@ -82,7 +82,11 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       console.error('Error obteniendo datos en tiempo real:', error);
-      throw new Error(apiUtils.formatError(error));
+      // Retornar datos simulados si el endpoint no está disponible
+      return {
+        buses: [],
+        message: 'Datos en tiempo real no disponibles'
+      };
     }
   },
 
@@ -93,7 +97,7 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       console.error('Error en test de conexión dashboard:', error);
-      throw new Error(apiUtils.formatError(error));
+      return { connected: false, message: 'Conexión no disponible' };
     }
   },
 

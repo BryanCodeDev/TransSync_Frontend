@@ -1,5 +1,5 @@
 // api/rutasAPI.js - Servicio específico para rutas
-import { apiClient, apiUtils } from './baseAPI';
+import { apiClient, apiUtils } from '../api/baseAPI';
 
 const rutasAPI = {
   // ================================
@@ -10,8 +10,16 @@ const rutasAPI = {
   getAll: async (filters = {}) => {
     try {
       const params = apiUtils.createUrlParams(filters);
-      const response = await apiClient.get(`/rutas${params ? `?${params}` : ''}`);
-      return response.data;
+      const response = await apiClient.get(`/api/rutas${params ? `?${params}` : ''}`);
+      // Adaptar la respuesta para que tenga la estructura esperada
+      const rutas = response.data.map(ruta => ({
+        ...ruta,
+        estRuta: 'ACTIVA', // Asumir todas activas por defecto
+        distanciaKm: null,
+        tiempoEstimadoMin: null,
+        tarifaRuta: null
+      }));
+      return { rutas };
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -21,7 +29,7 @@ const rutasAPI = {
   getById: async (id) => {
     try {
       if (!id) throw new Error('ID de ruta requerido');
-      const response = await apiClient.get(`/rutas/${id}`);
+      const response = await apiClient.get(`/api/rutas/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -75,7 +83,7 @@ const rutasAPI = {
         throw new Error('El origen y destino deben ser diferentes');
       }
 
-      const response = await apiClient.post('/rutas', {
+      const response = await apiClient.post('/api/rutas', {
         ...routeData,
         nomRuta: nomRuta.trim(),
         origen: origen.trim(),
@@ -120,7 +128,7 @@ const rutasAPI = {
       if (cleanedData.destino) cleanedData.destino = cleanedData.destino.trim();
       if (cleanedData.descripcion) cleanedData.descripcion = cleanedData.descripcion.trim();
 
-      const response = await apiClient.put(`/rutas/${id}`, cleanedData);
+      const response = await apiClient.put(`/api/rutas/${id}`, cleanedData);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -131,7 +139,7 @@ const rutasAPI = {
   delete: async (id) => {
     try {
       if (!id) throw new Error('ID de ruta requerido');
-      const response = await apiClient.delete(`/rutas/${id}`);
+      const response = await apiClient.delete(`/api/rutas/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -154,7 +162,7 @@ const rutasAPI = {
         throw new Error('Estado inválido. Estados válidos: ' + validStates.join(', '));
       }
 
-      const response = await apiClient.patch(`/rutas/${id}/estado`, {
+      const response = await apiClient.patch(`/api/rutas/${id}/estado`, {
         estRuta: nuevoEstado
       });
 
@@ -188,11 +196,19 @@ const rutasAPI = {
   // CONSULTAS ESPECIALIZADAS
   // ================================
   
-  // Obtener rutas activas
+  // Obtener rutas activas (por ahora todas las rutas ya que no hay campo estRuta)
   getActive: async () => {
     try {
-      const response = await apiClient.get('/rutas?estRuta=ACTIVA');
-      return response.data;
+      const response = await apiClient.get('/api/rutas');
+      // Adaptar la respuesta para que tenga la estructura esperada
+      const rutas = response.data.map(ruta => ({
+        ...ruta,
+        estRuta: 'ACTIVA', // Asumir todas activas por defecto
+        distanciaKm: null,
+        tiempoEstimadoMin: null,
+        tarifaRuta: null
+      }));
+      return { rutas };
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -205,7 +221,7 @@ const rutasAPI = {
         throw new Error('El término de búsqueda debe tener al menos 2 caracteres');
       }
 
-      const response = await apiClient.get(`/rutas/buscar?q=${encodeURIComponent(searchTerm.trim())}`);
+      const response = await apiClient.get(`/api/rutas/buscar?q=${encodeURIComponent(searchTerm.trim())}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -216,7 +232,7 @@ const rutasAPI = {
   getByOrigin: async (origen) => {
     try {
       if (!origen) throw new Error('Origen requerido');
-      const response = await apiClient.get(`/rutas?origen=${encodeURIComponent(origen)}`);
+      const response = await apiClient.get(`/api/rutas?origen=${encodeURIComponent(origen)}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -227,7 +243,7 @@ const rutasAPI = {
   getByDestination: async (destino) => {
     try {
       if (!destino) throw new Error('Destino requerido');
-      const response = await apiClient.get(`/rutas?destino=${encodeURIComponent(destino)}`);
+      const response = await apiClient.get(`/api/rutas?destino=${encodeURIComponent(destino)}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -240,7 +256,7 @@ const rutasAPI = {
       if (!minKm || !maxKm) throw new Error('Rango de distancia requerido');
       if (minKm >= maxKm) throw new Error('La distancia mínima debe ser menor que la máxima');
       
-      const response = await apiClient.get(`/rutas?minDistancia=${minKm}&maxDistancia=${maxKm}`);
+      const response = await apiClient.get(`/api/rutas?minDistancia=${minKm}&maxDistancia=${maxKm}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -253,7 +269,7 @@ const rutasAPI = {
       if (!minTarifa || !maxTarifa) throw new Error('Rango de tarifa requerido');
       if (minTarifa >= maxTarifa) throw new Error('La tarifa mínima debe ser menor que la máxima');
       
-      const response = await apiClient.get(`/rutas?minTarifa=${minTarifa}&maxTarifa=${maxTarifa}`);
+      const response = await apiClient.get(`/api/rutas?minTarifa=${minTarifa}&maxTarifa=${maxTarifa}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -268,10 +284,12 @@ const rutasAPI = {
   getStops: async (idRuta) => {
     try {
       if (!idRuta) throw new Error('ID de ruta requerido');
-      const response = await apiClient.get(`/rutas/${idRuta}/paradas`);
+      const response = await apiClient.get(`/api/rutas/${idRuta}/paradas`);
       return response.data;
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      // Si las paradas no están implementadas, retornar array vacío
+      console.warn(`Paradas no disponibles para ruta ${idRuta}:`, error.message);
+      return { paradas: [] };
     }
   },
 
@@ -307,7 +325,7 @@ const rutasAPI = {
         throw new Error('El orden debe ser mayor a 0');
       }
 
-      const response = await apiClient.post(`/rutas/${idRuta}/paradas`, {
+      const response = await apiClient.post(`/api/rutas/${idRuta}/paradas`, {
         nombreParada: nombreParada.trim(),
         latitud,
         longitud,
@@ -342,7 +360,7 @@ const rutasAPI = {
       const cleanedData = { ...stopData };
       if (cleanedData.nombreParada) cleanedData.nombreParada = cleanedData.nombreParada.trim();
 
-      const response = await apiClient.put(`/rutas/${idRuta}/paradas/${idParada}`, cleanedData);
+      const response = await apiClient.put(`/api/rutas/${idRuta}/paradas/${idParada}`, cleanedData);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -353,7 +371,7 @@ const rutasAPI = {
   deleteStop: async (idRuta, idParada) => {
     try {
       if (!idRuta || !idParada) throw new Error('ID de ruta e ID de parada requeridos');
-      const response = await apiClient.delete(`/rutas/${idRuta}/paradas/${idParada}`);
+      const response = await apiClient.delete(`/api/rutas/${idRuta}/paradas/${idParada}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -367,7 +385,7 @@ const rutasAPI = {
   // Obtener estadísticas de rutas
   getStatistics: async () => {
     try {
-      const response = await apiClient.get('/rutas/estadisticas');
+      const response = await apiClient.get('/api/rutas/estadisticas');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -377,7 +395,7 @@ const rutasAPI = {
   // Obtener distribución por estado
   getStatusDistribution: async () => {
     try {
-      const response = await apiClient.get('/rutas/distribucion-estados');
+      const response = await apiClient.get('/api/rutas/distribucion-estados');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -387,7 +405,7 @@ const rutasAPI = {
   // Obtener rutas más utilizadas
   getMostUsed: async (limit = 10) => {
     try {
-      const response = await apiClient.get(`/rutas/mas-utilizadas?limite=${limit}`);
+      const response = await apiClient.get(`/api/rutas/mas-utilizadas?limite=${limit}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -398,7 +416,7 @@ const rutasAPI = {
   getProfitabilityAnalysis: async (fechaInicio, fechaFin) => {
     try {
       const params = apiUtils.createUrlParams({ fechaInicio, fechaFin });
-      const response = await apiClient.get(`/rutas/analisis-rentabilidad${params ? `?${params}` : ''}`);
+      const response = await apiClient.get(`/api/rutas/analisis-rentabilidad${params ? `?${params}` : ''}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -520,7 +538,7 @@ const rutasAPI = {
   exportRoutes: async (format = 'csv', filters = {}) => {
     try {
       const params = apiUtils.createUrlParams({ ...filters, formato: format });
-      const response = await apiClient.get(`/rutas/export${params ? `?${params}` : ''}`, {
+      const response = await apiClient.get(`/api/rutas/export${params ? `?${params}` : ''}`, {
         responseType: 'blob'
       });
       

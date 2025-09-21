@@ -251,7 +251,7 @@ const Vehiculos = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-slate-900 min-h-screen text-slate-800 dark:text-slate-200">
+    <div className="p-4 md:p-6 bg-gray-50 dark:bg-slate-900 min-h-screen text-slate-800 dark:text-slate-200">
       {error && (
         <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4">
           {error}
@@ -259,50 +259,74 @@ const Vehiculos = () => {
       )}
 
       {/* Header con estadísticas */}
-      <div className="flex justify-between items-center mb-6 bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm">
-        <h2 className="text-2xl font-semibold flex items-center gap-3 m-0">
-          <FaBus className="text-blue-500 text-3xl" />
-          Flota de Vehículos
-        </h2>
-        <div className="flex gap-5">
-          <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
-            <span className="text-2xl font-bold text-blue-500">{estadisticas.total || 0}</span>
-            <span className="text-sm text-slate-500 dark:text-slate-300">Total</span>
+      <div className="mb-6 bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <h2 className="text-xl md:text-2xl font-semibold flex items-center gap-2 md:gap-3 m-0">
+            <FaBus className="text-blue-500 text-2xl md:text-3xl" />
+            <span>Flota de Vehículos</span>
+          </h2>
+
+          {/* Mobile Stats Grid */}
+          <div className="grid grid-cols-2 lg:hidden gap-3 w-full lg:w-auto">
+            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
+              <span className="text-lg md:text-2xl font-bold text-blue-500">{estadisticas.total || 0}</span>
+              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">Total</span>
+            </div>
+            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
+              <span className="text-lg md:text-2xl font-bold text-green-500">{estadisticas.disponibles || 0}</span>
+              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">Disponibles</span>
+            </div>
+            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
+              <span className="text-lg md:text-2xl font-bold text-blue-500">{estadisticas.enRuta || 0}</span>
+              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">En Ruta</span>
+            </div>
+            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
+              <span className="text-lg md:text-2xl font-bold text-orange-500">{estadisticas.enMantenimiento || 0}</span>
+              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">Mantenimiento</span>
+            </div>
           </div>
-          <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
-            <span className="text-2xl font-bold text-green-500">{estadisticas.disponibles || 0}</span>
-            <span className="text-sm text-slate-500 dark:text-slate-300">Disponibles</span>
-          </div>
-          <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
-            <span className="text-2xl font-bold text-blue-500">{estadisticas.enRuta || 0}</span>
-            <span className="text-sm text-slate-500 dark:text-slate-300">En Ruta</span>
-          </div>
-          <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
-            <span className="text-2xl font-bold text-orange-500">{estadisticas.enMantenimiento || 0}</span>
-            <span className="text-sm text-slate-500 dark:text-slate-300">Mantenimiento</span>
+
+          {/* Desktop Stats */}
+          <div className="hidden lg:flex gap-5">
+            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
+              <span className="text-2xl font-bold text-blue-500">{estadisticas.total || 0}</span>
+              <span className="text-sm text-slate-500 dark:text-slate-300">Total</span>
+            </div>
+            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
+              <span className="text-2xl font-bold text-green-500">{estadisticas.disponibles || 0}</span>
+              <span className="text-sm text-slate-500 dark:text-slate-300">Disponibles</span>
+            </div>
+            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
+              <span className="text-2xl font-bold text-blue-500">{estadisticas.enRuta || 0}</span>
+              <span className="text-sm text-slate-500 dark:text-slate-300">En Ruta</span>
+            </div>
+            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
+              <span className="text-2xl font-bold text-orange-500">{estadisticas.enMantenimiento || 0}</span>
+              <span className="text-sm text-slate-500 dark:text-slate-300">Mantenimiento</span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-4 mb-6 flex-wrap">
-        <div className="flex-grow-2 relative min-w-64">
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex-1 relative min-w-0">
           <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Buscar por placa, marca, modelo o conductor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-slate-600 text-base bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+            className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-slate-600 text-base bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none min-h-[48px]"
           />
         </div>
 
-        <div className="flex-1 relative min-w-48">
+        <div className="flex-1 relative min-w-0 md:max-w-48">
           <FaFilter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-slate-600 text-base bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 cursor-pointer transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none appearance-none"
+            className="w-full py-3 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-slate-600 text-base bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 cursor-pointer transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none appearance-none min-h-[48px]"
           >
             <option value="all">Todos los vehículos</option>
             {estadosVehiculo.map(estado => (
@@ -312,15 +336,16 @@ const Vehiculos = () => {
         </div>
 
         <button
-          className="bg-blue-500 text-white border-none rounded-lg px-6 text-base font-semibold cursor-pointer flex items-center gap-2 transition-all duration-300 hover:bg-blue-600 hover:-translate-y-0.5"
+          className="bg-blue-500 text-white border-none rounded-lg px-4 md:px-6 py-3 text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all duration-300 hover:bg-blue-600 hover:-translate-y-0.5 min-h-[48px] w-full md:w-auto"
           onClick={() => setShowAddModal(true)}
         >
-          <FaPlus /> Agregar Vehículo
+          <FaPlus /> <span className="hidden sm:inline">Agregar Vehículo</span>
+          <span className="sm:hidden">Agregar</span>
         </button>
       </div>
 
-      {/* Cards */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-5">
+      {/* Cards - Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-4 md:gap-5">
         {filteredVehiculos.map((vehiculo) => {
           const estadoInfo = getEstadoInfo(vehiculo.estVehiculo);
           const soatProximoVencer = isVencimientoProximo(vehiculo.fecVenSOAT);

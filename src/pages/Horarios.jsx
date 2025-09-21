@@ -479,14 +479,14 @@ const Horarios = () => {
           <button
             onClick={fetchAll}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 min-h-[44px]"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Actualizar</span>
           </button>
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors min-h-[44px]"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Nuevo</span>
@@ -502,7 +502,7 @@ const Horarios = () => {
           <span className="text-sm">{error}</span>
         </div>
       )}
-      
+
       {success && (
         <div className="mb-4 p-4 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg flex items-center gap-2 text-green-700 dark:text-green-200">
           <CheckCircle className="w-5 h-5 flex-shrink-0" />
@@ -512,7 +512,7 @@ const Horarios = () => {
 
       {/* Filters */}
       <div className="flex flex-col lg:flex-row gap-4 mb-6">
-        <div className="flex items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 flex-grow">
+        <div className="flex items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 flex-grow min-h-[44px]">
           <Search className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
           <input
             type="text"
@@ -522,12 +522,12 @@ const Horarios = () => {
             onChange={(e) => setFiltroRuta(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-h-[44px]">
           <Filter className="w-5 h-5 text-gray-400" />
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
-            className="border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 min-w-32"
+            className="border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 min-w-32 min-h-[44px]"
           >
             <option value="all">Todos los estados</option>
             <option value="PROGRAMADO">Programado</option>
@@ -538,8 +538,89 @@ const Horarios = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+      {/* Mobile Card View */}
+      <div className="block md:hidden space-y-4 mb-6">
+        {filtered.length ? (
+          filtered.map((v, i) => {
+            const id = getField(v, ["idViaje", "id_viaje", "id"]);
+            const status = getField(v, ["estViaje", "estado", "estatus"]) || "PROGRAMADO";
+            const salida = getField(v, ["fecHorSalViaje", "fec_hor_sal_viaje", "fecSal"]) || "";
+            const llegada = getField(v, ["fecHorLleViaje", "fec_hor_lle_viaje", "fecLle"]) || "";
+
+            return (
+              <div key={id || i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">
+                      {getRutaLabel(v)}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {getConductorLabel(v)}
+                    </p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusClass(status)} ml-2 flex-shrink-0`}>
+                    {getStatusIcon(status)}
+                    <span>{status}</span>
+                  </span>
+                </div>
+
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Vehículo:</span>
+                    <span className="text-sm text-gray-900 dark:text-gray-100">{getVehicleLabel(v)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Salida:</span>
+                    <span className="text-sm text-gray-900 dark:text-gray-100">{parseDateForDisplay(salida)}</span>
+                  </div>
+                  {llegada && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Llegada:</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100">{parseDateForDisplay(llegada)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                  <button
+                    onClick={() => openEdit(v)}
+                    className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Editar viaje"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(id)}
+                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Eliminar viaje"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="text-center py-12">
+            <Clock className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400 mb-2">No hay viajes registrados</p>
+            {filtroRuta || filtroEstado !== "all" ? (
+              <button
+                onClick={() => {
+                  setFiltroRuta("");
+                  setFiltroEstado("all");
+                }}
+                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-sm underline"
+              >
+                Limpiar filtros
+              </button>
+            ) : null}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-gray-100 dark:bg-gray-800">
@@ -559,7 +640,7 @@ const Horarios = () => {
                 const status = getField(v, ["estViaje", "estado", "estatus"]) || "PROGRAMADO";
                 const salida = getField(v, ["fecHorSalViaje", "fec_hor_sal_viaje", "fecSal"]) || "";
                 const llegada = getField(v, ["fecHorLleViaje", "fec_hor_lle_viaje", "fecLle"]) || "";
-                
+
                 return (
                   <tr key={id || i} className={i % 2 === 0 ? "bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-gray-800" : "bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-gray-700"}>
                     <td className="p-3">
@@ -588,16 +669,16 @@ const Horarios = () => {
                     </td>
                     <td className="p-3">
                       <div className="flex justify-center gap-1">
-                        <button 
-                          onClick={() => openEdit(v)} 
-                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors"
+                        <button
+                          onClick={() => openEdit(v)}
+                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                           title="Editar viaje"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button 
-                          onClick={() => onDelete(id)} 
-                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
+                        <button
+                          onClick={() => onDelete(id)}
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                           title="Eliminar viaje"
                         >
                           <Trash2 className="w-4 h-4" />

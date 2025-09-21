@@ -1,217 +1,69 @@
-// api/adminAPI.js - Servicio específico para administración
-import { apiClient, apiUtils } from '../api/baseAPI';
+// src/utilidades/adminAPI.js
+
+import axios from 'axios';
+import authAPI from './authAPI';
+
+const API_URL = 'http://localhost:5000/api/admin';
+
+const adminClient = axios.create({
+  baseURL: API_URL,
+});
+
+adminClient.interceptors.request.use(
+  (config) => {
+    const token = authAPI.getAuthToken();
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 const adminAPI = {
-  // ================================
-  // GESTIÓN DE ADMINISTRADORES
-  // ================================
-  
-  // Listar administradores con filtros - RUTA CORREGIDA
-  getAdministrators: async (filters = {}) => {
+  /**
+   * Obtiene la lista de usuarios.
+   */
+  getUsers: async () => {
     try {
-      const params = apiUtils.createUrlParams(filters);
-      // CAMBIADO: de '/admin/listar-administradores' a '/api/admin/listar-administradores'
-      const response = await apiClient.get(`/api/admin/listar-administradores${params ? `?${params}` : ''}`);
+      const response = await adminClient.get('/users'); 
       return response.data;
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      console.error("Error en adminAPI.getUsers:", error);
+      throw error.response?.data || error;
     }
   },
 
-  // Obtener administrador por ID - RUTA CORREGIDA
-  getAdministratorById: async (id) => {
+  /**
+   * Elimina un usuario por su ID.
+   */
+deleteUser: async (idUsuario) => {
+    if (!idUsuario) throw new Error("ID de usuario requerido para eliminar.");
     try {
-      if (!id) throw new Error('ID de administrador requerido');
-      const response = await apiClient.get(`/api/admin/administrador/${id}`);
+      const response = await adminClient.delete(`/users/${idUsuario}`); 
       return response.data;
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      console.error("Error en adminAPI.deleteUser:", error);
+      throw error.response?.data || error;
     }
   },
 
-  // ================================
-  // GESTIÓN DE ROLES
-  // ================================
-  
-  // Asignar rol a usuario - RUTA CORREGIDA
-  assignRole: async (userData) => {
+  /**
+   * ¡FUNCIÓN QUE FALTABA!
+   * Actualiza el rol de un usuario.
+   */
+  updateUserRole: async (idUsuario, nuevoRol) => {
+    if (!idUsuario || !nuevoRol) throw new Error("ID y nuevo rol son requeridos.");
     try {
-      const {
-        idUsuario,
-        nuevoRol,
-        nomAdministrador,
-        apeAdministrador,
-        numDocAdministrador,
-        idEmpresa
-      } = userData;
-
-      // Validaciones básicas
-      const missing = apiUtils.validateRequired({ idUsuario, nuevoRol });
-      if (missing.length > 0) {
-        throw new Error(`Campos requeridos: ${missing.join(', ')}`);
-      }
-
-      // Validar rol válido
-      const validRoles = ['ADMINISTRADOR', 'SUPERADMIN', 'USER', 'PENDIENTE'];
-      if (!validRoles.includes(nuevoRol)) {
-        throw new Error(`Rol inválido. Roles válidos: ${validRoles.join(', ')}`);
-      }
-
-      // Validaciones adicionales para roles administrativos
-      if (['ADMINISTRADOR', 'SUPERADMIN'].includes(nuevoRol)) {
-        const adminRequired = { nomAdministrador, apeAdministrador, numDocAdministrador };
-        const adminMissing = apiUtils.validateRequired(adminRequired);
-        if (adminMissing.length > 0) {
-          throw new Error(`Para roles administrativos se requieren: ${adminMissing.join(', ')}`);
-        }
-
-        // Validar número de documento
-        if (numDocAdministrador.length < 6) {
-          throw new Error('El número de documento debe tener al menos 6 caracteres');
-        }
-      }
-
-      const response = await apiClient.put('/api/admin/asignar-rol', {
-        idUsuario,
-        nuevoRol,
-        nomAdministrador: nomAdministrador?.trim(),
-        apeAdministrador: apeAdministrador?.trim(),
-        numDocAdministrador: numDocAdministrador?.trim(),
-        idEmpresa
-      });
-
+      const response = await adminClient.put(`/users/${idUsuario}/role`, { nuevoRol });
       return response.data;
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+        console.error("Error en adminAPI.updateUserRole:", error);
+        throw error.response?.data || error;
     }
   },
-
-  // ================================
-  // ELIMINACIÓN DE ADMINISTRADORES
-  // ================================
-  
-  // Eliminar administrador - RUTA CORREGIDA
-  deleteAdministrator: async (idUsuario) => {
-    try {
-      if (!idUsuario) {
-        throw new Error('ID de usuario requerido');
-      }
-
-      const response = await apiClient.delete(`/api/admin/eliminar-administrador/${idUsuario}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // ================================
-  // EDICIÓN DE ADMINISTRADORES
-  // ================================
-  
-  // Editar datos de administrador - RUTA CORREGIDA
-  editAdministrator: async (idUsuario, adminData) => {
-    try {
-      if (!idUsuario) {
-        throw new Error('ID de usuario requerido');
-      }
-
-      const { nomAdministrador, apeAdministrador, numDocAdministrador, telAdministrador } = adminData;
-
-      // Validaciones de campos requeridos
-      const missing = apiUtils.validateRequired({ 
-        nomAdministrador, 
-        apeAdministrador, 
-        numDocAdministrador 
-      });
-
-      if (missing.length > 0) {
-        throw new Error(`Campos requeridos: ${missing.join(', ')}`);
-      }
-
-      // Validaciones específicas
-      if (nomAdministrador.trim().length < 2) {
-        throw new Error('El nombre debe tener al menos 2 caracteres');
-      }
-
-      if (apeAdministrador.trim().length < 2) {
-        throw new Error('El apellido debe tener al menos 2 caracteres');
-      }
-
-      if (numDocAdministrador.trim().length < 6) {
-        throw new Error('El número de documento debe tener al menos 6 caracteres');
-      }
-
-      // Validar teléfono si se proporciona
-      if (telAdministrador && telAdministrador.trim().length < 7) {
-        throw new Error('El número de teléfono debe tener al menos 7 dígitos');
-      }
-
-      const response = await apiClient.put(`/api/admin/editar-administrador/${idUsuario}`, {
-        nomAdministrador: nomAdministrador.trim(),
-        apeAdministrador: apeAdministrador.trim(),
-        numDocAdministrador: numDocAdministrador.trim(),
-        telAdministrador: telAdministrador?.trim()
-      });
-
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // ================================
-  // ACCESO EXCLUSIVO SUPERADMIN
-  // ================================
-  
-  // Acceso exclusivo para SUPERADMIN - RUTA CORREGIDA
-  getSuperAdminPanel: async () => {
-    try {
-      const response = await apiClient.get('/api/admin/solo-superadmin');
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
-
-  // ================================
-  // UTILIDADES Y HELPERS
-  // ================================
-  
-  // Formatear datos de administrador para mostrar
-  formatAdminData: (admin) => {
-    return {
-      ...admin,
-      nombreCompleto: `${admin.nomAdministrador || ''} ${admin.apeAdministrador || ''}`.trim(),
-      rolFormateado: adminAPI.getRoleLabel(admin.rol),
-      estadoFormateado: admin.estActivo ? 'Activo' : 'Inactivo',
-      fechaRegistroFormateada: admin.fechaRegistro ? 
-        new Date(admin.fechaRegistro).toLocaleDateString('es-ES') : 'N/A'
-    };
-  },
-
-  // Obtener etiqueta del rol
-  getRoleLabel: (role) => {
-    const roleLabels = {
-      'SUPERADMIN': 'Superadministrador',
-      'ADMINISTRADOR': 'Administrador',
-      'USER': 'Usuario',
-      'PENDIENTE': 'Pendiente'
-    };
-    return roleLabels[role] || role;
-  },
-
-  // Obtener color del rol para UI
-  getRoleColor: (role) => {
-    const roleColors = {
-      'SUPERADMIN': 'purple',
-      'ADMINISTRADOR': 'blue',
-      'USER': 'green',
-      'PENDIENTE': 'orange'
-    };
-    return roleColors[role] || 'gray';
-  }
 };
 
-// Export compatible con import { adminService } y import adminAPI
-export const adminService = adminAPI;
 export default adminAPI;

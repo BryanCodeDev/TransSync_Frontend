@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import chatbotAPI from '../utilidades/chatbotAPI';
+import conversationMemory from '../utilidades/conversationMemory';
+import realTimeService from '../utilidades/realTimeService';
 
 // Componente Button con paleta uniforme y modo oscuro
 const Button = ({ 
@@ -60,6 +62,8 @@ const ChatBot = ({
   const [connectionStatus, setConnectionStatus] = useState('unknown');
   const [userContext, setUserContext] = useState(null);
   const [dark, setDark] = useState(localStorage.getItem("theme") === "dark"); // Estado modo oscuro
+  const [realTimeNotifications, setRealTimeNotifications] = useState([]);
+  const [wsConnected, setWsConnected] = useState(false);
   const messagesEndRef = useRef(null);
   
   // Detectar cambios en el tema del sistema
@@ -93,10 +97,10 @@ const ChatBot = ({
     // Obtener contexto del usuario al inicializar
     const context = chatbotAPI.obtenerContextoUsuario();
     setUserContext(context);
-    
+
     // Mensaje inicial personalizado
     if (messages.length === 0) {
-      const mensajeInicial = context.esUsuarioAutenticado 
+      const mensajeInicial = context.esUsuarioAutenticado
         ? `Hola ${context.nombreUsuario}! Soy el asistente de ${context.empresa}. Tengo acceso a datos actuales del sistema y puedo ayudarte con información sobre conductores, vehículos, rutas, horarios y más. ¿Qué necesitas consultar?`
         : initialMessage;
 
@@ -110,12 +114,92 @@ const ChatBot = ({
         }
       ]);
     }
-    
+
     // Verificar estado del servicio al abrir
     if (isOpen && connectionStatus === 'unknown') {
       verificarConexion();
     }
   }, [isOpen, connectionStatus, messages.length, initialMessage]);
+
+  // Manejar notificaciones en tiempo real
+  const handleRealTimeNotification = useCallback((notification) => {
+    // Agregar notificación al estado
+    setRealTimeNotifications(prev => [notification, ...prev.slice(0, 9)]); // Mantener máximo 10
+
+    // Crear mensaje del bot con la notificación
+    const botMessage = {
+      id: Date.now() + Math.random(),
+      text: `🔔 **Notificación en Tiempo Real**\n\n${notification.title}\n${notification.message}`,
+      sender: 'bot',
+      timestamp: new Date(),
+      intencion: 'realtime_notification',
+      notification: notification,
+      formatted: true,
+      isRealTime: true
+    };
+
+    setMessages(prev => [...prev, botMessage]);
+
+    // Auto-scroll al final
+    setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+  }, []);
+
+  // Configurar WebSocket para notificaciones en tiempo real
+  useEffect(() => {
+    if (userContext && isOpen) {
+      // Conectar al servicio WebSocket
+      realTimeService.connect(userContext);
+      setWsConnected(true);
+
+      // Configurar listeners para notificaciones
+      const setupRealTimeListeners = () => {
+        // Nuevo conductor
+        realTimeService.on('notification:new_conductor', (notification) => {
+          handleRealTimeNotification(notification);
+        });
+
+        // Nuevo vehículo
+        realTimeService.on('notification:new_vehicle', (notification) => {
+          handleRealTimeNotification(notification);
+        });
+
+        // Nuevo viaje
+        realTimeService.on('notification:new_trip', (notification) => {
+          handleRealTimeNotification(notification);
+        });
+
+        // Alertas de vencimiento
+        realTimeService.on('notification:expiration_alert', (notification) => {
+          handleRealTimeNotification(notification);
+        });
+
+        // Conexión WebSocket
+        realTimeService.on('connection:established', (data) => {
+          console.log('🔗 WebSocket conectado para notificaciones en tiempo real');
+          setWsConnected(true);
+        });
+
+        // Desconexión WebSocket
+        realTimeService.on('connection:error', (error) => {
+          console.log('🔌 WebSocket desconectado:', error);
+          setWsConnected(false);
+        });
+      };
+
+      setupRealTimeListeners();
+
+      // Solicitar permisos para notificaciones del navegador
+      realTimeService.requestNotificationPermission();
+
+      // Cleanup function
+      return () => {
+        realTimeService.disconnect();
+        setWsConnected(false);
+      };
+    }
+  }, [userContext, isOpen, handleRealTimeNotification]);
 
   useEffect(() => {
     scrollToBottom();
@@ -317,7 +401,7 @@ const ChatBot = ({
 
   const handleSendMessage = async () => {
     if (inputText.trim() === '' || isTyping) return;
-    
+
     // Validar mensaje
     const validacion = chatbotAPI.validarMensaje(inputText);
     if (!validacion.esValido) {
@@ -332,23 +416,26 @@ const ChatBot = ({
       setMessages(prev => [...prev, errorMessage]);
       return;
     }
-    
+
     const userMessage = {
       id: Date.now(),
       text: inputText,
       sender: 'user',
       timestamp: new Date()
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
     const mensajeUsuario = inputText;
     setInputText('');
     setIsTyping(true);
-    
+
     try {
-      // Enviar consulta a la API real
-      const respuesta = await chatbotAPI.enviarConsulta(mensajeUsuario);
-      
+      // Usar procesamiento inteligente avanzado
+      const respuesta = await chatbotAPI.procesarConsultaInteligente(mensajeUsuario, {
+        incluirMetadata: true,
+        contextoUsuario: userContext
+      });
+
       setTimeout(() => {
         const botMessage = {
           id: Date.now() + 1,
@@ -356,17 +443,30 @@ const ChatBot = ({
           sender: 'bot',
           timestamp: new Date(),
           intencion: respuesta.intencion,
+          confianza: respuesta.confianza,
+          entidades: respuesta.entidades,
+          tiempoProcesamiento: respuesta.tiempoProcesamiento,
+          sugerencias: respuesta.sugerencias,
           success: respuesta.success,
-          formatted: true
+          formatted: true,
+          metadata: respuesta.metadata
         };
-        
+
         setMessages(prev => [...prev, botMessage]);
         setIsTyping(false);
-      }, 500);
+
+        // Actualizar sugerencias dinámicas basadas en la respuesta
+        if (respuesta.sugerencias && respuesta.sugerencias.length > 0) {
+          setTimeout(() => {
+            // Las sugerencias se mostrarán automáticamente en el componente
+          }, 1000);
+        }
+
+      }, Math.max(500, respuesta.tiempoProcesamiento || 0));
 
     } catch (error) {
-      console.error('Error enviando mensaje:', error);
-      
+      console.error('Error procesando mensaje inteligente:', error);
+
       const errorMessage = {
         id: Date.now() + 1,
         text: 'Lo siento, ocurrió un error procesando tu consulta. Por favor verifica tu conexión e intenta nuevamente.',
@@ -374,7 +474,7 @@ const ChatBot = ({
         timestamp: new Date(),
         isError: true
       };
-      
+
       setMessages(prev => [...prev, errorMessage]);
       setIsTyping(false);
       setConnectionStatus('disconnected');
@@ -392,6 +492,32 @@ const ChatBot = ({
     if (isTyping) return;
     setInputText(sugerencia.texto);
     setTimeout(() => handleSendMessage(), 100);
+  };
+
+  // Limpiar todas las notificaciones
+  const clearNotifications = () => {
+    setRealTimeNotifications([]);
+  };
+
+  // Ver todas las notificaciones
+  const viewAllNotifications = () => {
+    if (realTimeNotifications.length === 0) return;
+
+    const notificationsText = realTimeNotifications
+      .map((notif, index) => `${index + 1}. ${notif.title}: ${notif.message}`)
+      .join('\n\n');
+
+    const botMessage = {
+      id: Date.now() + Math.random(),
+      text: `📋 **Todas las Notificaciones (${realTimeNotifications.length})**\n\n${notificationsText}`,
+      sender: 'bot',
+      timestamp: new Date(),
+      intencion: 'view_notifications',
+      formatted: true
+    };
+
+    setMessages(prev => [...prev, botMessage]);
+    setTimeout(() => scrollToBottom(), 100);
   };
 
   // Clases de posición responsivas
@@ -471,8 +597,31 @@ const ChatBot = ({
     };
   };
 
-  // Obtener sugerencias
-  const sugerencias = chatbotAPI.obtenerSugerencias().slice(0, 4);
+  // Obtener sugerencias inteligentes
+  const obtenerSugerenciasInteligentes = () => {
+    if (!userContext?.idUsuario) {
+      return chatbotAPI.obtenerSugerencias().slice(0, 4);
+    }
+
+    try {
+      // Usar sugerencias del sistema de memoria de conversación
+      const sugerenciasInteligentes = conversationMemory.getSuggestions(
+        userContext.idUsuario,
+        userContext.idEmpresa
+      );
+
+      if (sugerenciasInteligentes && sugerenciasInteligentes.length > 0) {
+        return sugerenciasInteligentes.slice(0, 4);
+      }
+    } catch (error) {
+      console.error('Error obteniendo sugerencias inteligentes:', error);
+    }
+
+    // Fallback a sugerencias estáticas
+    return chatbotAPI.obtenerSugerencias().slice(0, 4);
+  };
+
+  const sugerencias = obtenerSugerenciasInteligentes();
 
   return (
     <div className={`fixed z-[9999] ${getPositionClasses()}`}>
@@ -497,22 +646,48 @@ const ChatBot = ({
           aria-label="Abrir chat de asistencia"
         >
           <span className="text-2xl max-sm:text-xl filter drop-shadow-sm">💬</span>
-          
+
+          {/* Indicador de notificaciones en tiempo real */}
+          {realTimeNotifications.length > 0 && (
+            <div className="absolute -top-2 -left-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold animate-pulse">
+              {realTimeNotifications.length > 9 ? '9+' : realTimeNotifications.length}
+            </div>
+          )}
+
           {/* Indicador de conexión */}
           <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center ${
-            connectionStatus === 'connected' ? 'bg-green-500' : 
+            connectionStatus === 'connected' ? 'bg-green-500' :
             connectionStatus === 'disconnected' ? 'bg-red-500' : 'bg-yellow-500'
           }`}>
             <span className="text-white text-xs font-bold">
               {connectionStatus === 'connected' ? '✓' : connectionStatus === 'disconnected' ? '✗' : '?'}
             </span>
           </div>
+
+          {/* Indicador WebSocket */}
+          <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full ${
+            wsConnected ? 'bg-blue-500' : 'bg-gray-400'
+          } border-2 border-white`}></div>
           
           {/* Tooltip */}
-          <div className={`absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-3 py-1 ${
+          <div className={`absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-3 py-2 ${
             dark ? 'bg-gray-800 border border-gray-600' : 'bg-[#1a237e] border border-white/20'
-          } text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none`}>
-            Asistente Virtual con Datos Reales
+          } text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none max-w-xs`}>
+            <div className="text-center">
+              <div className="font-semibold">🤖 Asistente TransSync</div>
+              <div className="text-xs opacity-90 mt-1">
+                {connectionStatus === 'connected' && wsConnected
+                  ? '✅ API + WebSocket conectados'
+                  : connectionStatus === 'connected'
+                  ? '✅ API conectado • WebSocket pendiente'
+                  : '⏳ Verificando conexiones...'}
+              </div>
+              {realTimeNotifications.length > 0 && (
+                <div className="text-xs mt-1 text-yellow-300">
+                  🔔 {realTimeNotifications.length} notificación(es) pendiente(s)
+                </div>
+              )}
+            </div>
             <div className={`absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent ${
               dark ? 'border-t-gray-800' : 'border-t-[#1a237e]'
             }`}></div>
@@ -537,12 +712,16 @@ const ChatBot = ({
                 <div className="font-semibold text-base leading-tight">{title}</div>
                 <div className="text-xs opacity-90 flex items-center gap-1">
                   <span className={`w-2 h-2 rounded-full ${
-                    connectionStatus === 'connected' ? 'bg-green-300' : 
+                    connectionStatus === 'connected' ? 'bg-green-300' :
                     connectionStatus === 'disconnected' ? 'bg-red-300' : 'bg-yellow-300'
                   }`}></span>
-                  {isTyping ? 'Escribiendo...' : 
-                   connectionStatus === 'connected' ? 'Conectado con datos reales' : 
-                   connectionStatus === 'disconnected' ? 'Sin conexión' : 'Verificando...'}
+                  <span className={`w-2 h-2 rounded-full ${
+                    wsConnected ? 'bg-blue-300' : 'bg-gray-400'
+                  }`}></span>
+                  {isTyping ? 'Escribiendo...' :
+                   connectionStatus === 'connected' && wsConnected ? 'Conectado (API + WebSocket)' :
+                   connectionStatus === 'connected' ? 'Conectado API • WS desconectado' :
+                   connectionStatus === 'disconnected' ? 'Sin conexión API' : 'Verificando...'}
                 </div>
               </div>
             </div>
@@ -611,7 +790,7 @@ const ChatBot = ({
                         )}
                       </div>
                       <div className={`
-                        text-xs opacity-75 text-right mt-2 flex items-center justify-end gap-1
+                        text-xs opacity-75 text-right mt-2 flex items-center justify-end gap-1 flex-wrap
                         ${currentTheme.timestamp}
                       `}>
                         {formatTimestamp(msg.timestamp)}
@@ -620,6 +799,22 @@ const ChatBot = ({
                             dark ? 'bg-white bg-opacity-20' : 'bg-black bg-opacity-10'
                           }`}>
                             {msg.intencion}
+                          </span>
+                        )}
+                        {msg.confianza && (
+                          <span className={`text-xs px-1 rounded ${
+                            msg.confianza > 0.8 ? 'bg-green-500 bg-opacity-20 text-green-700' :
+                            msg.confianza > 0.6 ? 'bg-yellow-500 bg-opacity-20 text-yellow-700' :
+                            'bg-red-500 bg-opacity-20 text-red-700'
+                          }`}>
+                            {Math.round(msg.confianza * 100)}%
+                          </span>
+                        )}
+                        {msg.tiempoProcesamiento && (
+                          <span className={`text-xs px-1 rounded ${
+                            dark ? 'bg-blue-500 bg-opacity-20 text-blue-300' : 'bg-blue-500 bg-opacity-20 text-blue-700'
+                          }`}>
+                            {msg.tiempoProcesamiento}ms
                           </span>
                         )}
                       </div>
@@ -745,6 +940,42 @@ const ChatBot = ({
                     >
                       Reintentar
                     </button>
+                  </div>
+                )}
+
+                {/* Controles de notificaciones en tiempo real */}
+                {realTimeNotifications.length > 0 && (
+                  <div className={`mt-3 p-2 rounded-lg ${
+                    dark ? 'bg-blue-900/30 border border-blue-700/50' : 'bg-blue-50 border border-blue-200'
+                  }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-sm font-medium ${
+                        dark ? 'text-blue-300' : 'text-blue-700'
+                      }`}>
+                        🔔 {realTimeNotifications.length} notificación(es) en tiempo real
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={viewAllNotifications}
+                          className={`text-xs px-2 py-1 rounded ${
+                            dark ? 'bg-blue-700 hover:bg-blue-600 text-blue-100' : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          } transition-colors`}
+                        >
+                          Ver todas
+                        </button>
+                        <button
+                          onClick={clearNotifications}
+                          className={`text-xs px-2 py-1 rounded ${
+                            dark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-600 hover:bg-gray-700 text-white'
+                          } transition-colors`}
+                        >
+                          Limpiar
+                        </button>
+                      </div>
+                    </div>
+                    <div className={`text-xs ${dark ? 'text-blue-200' : 'text-blue-600'}`}>
+                      Última: {realTimeNotifications[0]?.title}
+                    </div>
                   </div>
                 )}
 

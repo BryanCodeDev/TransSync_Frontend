@@ -1,10 +1,10 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { 
-  FaChartLine, FaUserTie, FaRoute, FaBus, 
-  FaClock, FaExclamationTriangle, FaFileAlt, 
+import {
+  FaChartLine, FaUserTie, FaRoute, FaBus,
+  FaClock, FaExclamationTriangle, FaFileAlt,
   FaSignOutAlt, FaChevronLeft, FaChevronRight,
-  FaUserShield, FaCogs, FaUser, FaMoon, FaSun
+  FaUserShield, FaCogs, FaUser
 } from "react-icons/fa";
 import { getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
 
@@ -13,7 +13,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   const [isTablet, setIsTablet] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState('');
-  const [dark, setDark] = useState(localStorage.getItem("theme") === "dark"); // 👈 Estado modo oscuro
+  const [dark] = useState(localStorage.getItem("theme") === "dark"); // 👈 Estado modo oscuro
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -366,7 +366,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         {/* Footer del sidebar */}
         <div className={`p-4 mt-auto backdrop-blur-sm space-y-3 ${dark ? "border-t border-gray-700" : "border-t border-white/20"}`}>
           {/* Botón modo oscuro */}
-          <button
+          {/* <button
             onClick={() => setDark(!dark)}
             className={`
               flex items-center w-full rounded-xl cursor-pointer
@@ -388,7 +388,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                 {dark ? "Modo Claro" : "Modo Oscuro"}
               </span>
             )}
-          </button>
+          </button> */}
 
           {/* Botón logout */}
           <button 

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaLock, 
-  FaEnvelope, 
-  FaExclamationTriangle, 
-  FaEye, 
+import {
+  FaLock,
+  FaEnvelope,
+  FaExclamationTriangle,
+  FaEye,
   FaEyeSlash,
   FaUserTie,
   FaCheckCircle,
@@ -19,14 +19,17 @@ import authAPI from '../utilidades/authAPI';
 
 const Register = () => {
   const navigate = useNavigate();
-  
-  // Estados simplificados
+
   const [formData, setFormData] = useState({
     email: "",
+    nombre: "",
+    apellido: "",
+    numeroDocumento: "",
+    telefono: "",
     password: "",
     confirmPassword: ""
   });
-  
+
   const [ui, setUI] = useState({
     formErrors: {},
     loading: false,
@@ -37,124 +40,140 @@ const Register = () => {
     showConfirmPassword: false
   });
 
-  // Funciones de utilidad
-  const updateUI = (updates) => setUI(prev => ({ ...prev, ...updates }));
-  
+  const updateUI = (updates) => setUI((prev) => ({ ...prev, ...updates }));
+
   const clearMessages = () => updateUI({ error: "", success: "" });
 
-  // Validación de campos
   const validateField = (name, value) => {
     const validators = {
-      email: (val) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return !emailRegex.test(val) ? "Ingrese un correo electrónico válido" : "";
-      },
+      email: (val) =>
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
+          ? ""
+          : "Ingrese un correo electrónico válido",
+      nombre: (val) => (val.trim() ? "" : "El nombre es obligatorio"),
+      apellido: (val) => (val.trim() ? "" : "El apellido es obligatorio"),
+      numeroDocumento: (val) =>
+        val.trim().length >= 6 ? "" : "Número de documento inválido",
+      telefono: (val) =>
+        val.trim().length >= 7 ? "" : "Número de teléfono inválido",
       password: (val) => {
-        if (val.length < 6) return "La contraseña debe tener al menos 6 caracteres";
-        if (!/(?=.*[a-z])/.test(val)) return "Debe incluir al menos una minúscula";
-        if (!/(?=.*[A-Z])/.test(val)) return "Debe incluir al menos una mayúscula";
+        if (val.length < 6)
+          return "La contraseña debe tener al menos 6 caracteres";
+        if (!/(?=.*[a-z])/.test(val))
+          return "Debe incluir al menos una minúscula";
+        if (!/(?=.*[A-Z])/.test(val))
+          return "Debe incluir al menos una mayúscula";
         if (!/(?=.*\d)/.test(val)) return "Debe incluir al menos un número";
-        if (!/(?=.*[\W_])/.test(val)) return "Debe incluir al menos un símbolo";
+        if (!/(?=.*[\W_])/.test(val))
+          return "Debe incluir al menos un símbolo";
         return "";
       },
-      confirmPassword: (val) => {
-        return val !== formData.password ? "Las contraseñas no coinciden" : "";
-      }
+      confirmPassword: (val) =>
+        val !== formData.password ? "Las contraseñas no coinciden" : ""
     };
-    
+
     return validators[name]?.(value) || "";
   };
 
-  // Manejo de cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    const fieldError = validateField(name, value);
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    const error = validateField(name, value);
     updateUI({
       formTouched: true,
-      formErrors: { ...ui.formErrors, [name]: fieldError }
+      formErrors: { ...ui.formErrors, [name]: error }
     });
-    
+
     clearMessages();
   };
 
-  // Validación completa del formulario
   const validateForm = () => {
     const errors = {};
     let isValid = true;
-    
-    Object.keys(formData).forEach(field => {
+
+    for (const field in formData) {
       const error = validateField(field, formData[field]);
       if (error) {
         errors[field] = error;
         isValid = false;
       }
-    });
-    
+    }
+
     updateUI({ formErrors: errors });
     return isValid;
   };
 
-  // Manejo del registro
   const handleRegister = async (e) => {
     e.preventDefault();
     updateUI({ formTouched: true });
-    
+
     if (!validateForm()) return;
-    
+
     clearMessages();
     updateUI({ loading: true });
 
     try {
       await authAPI.register({
+        nomUsuario: formData.nombre.trim(),
+        apeUsuario: formData.apellido.trim(),
+        numDocUsuario: formData.numeroDocumento.trim(),
+        telUsuario: formData.telefono.trim(),
         email: formData.email.trim(),
-        password: formData.password
+        password: formData.password,
+        confirmPassword: formData.password
       });
 
-      updateUI({ 
-        success: "¡Registro exitoso! Por favor, verifica tu correo electrónico para completar el registro.",
-        loading: false 
+      updateUI({
+        success:
+          "¡Registro exitoso! Por favor, verifica tu correo electrónico.",
+        loading: false
       });
-      
-      // Limpiar formulario
-      setFormData({ email: "", password: "", confirmPassword: "" });
+
+      setFormData({
+        email: "",
+        nombre: "",
+        apellido: "",
+        numeroDocumento: "",
+        telefono: "",
+        password: "",
+        confirmPassword: ""
+      });
+
       updateUI({ formTouched: false, formErrors: {} });
-      
-      // Redirigir después de un momento
+
       setTimeout(() => navigate("/login"), 3000);
-      
     } catch (error) {
-      console.error("Error de registro:", error);
-      updateUI({ 
-        error: error.message || "Error al registrar usuario. Intente nuevamente.",
-        loading: false 
+      updateUI({
+        error:
+          error?.response?.data?.message ||
+          error.message ||
+          "Error al registrar usuario.",
+        loading: false
       });
     }
   };
 
-  // Toggle de visibilidad de contraseña
   const togglePasswordVisibility = (field) => {
-    const key = field === 'password' ? 'showPassword' : 'showConfirmPassword';
+    const key = field === "password" ? "showPassword" : "showConfirmPassword";
     updateUI({ [key]: !ui[key] });
   };
 
-  // Cálculo de fortaleza de contraseña
   const getPasswordStrength = () => {
     const { password } = formData;
     if (!password) return { score: 0, label: "", color: "" };
-    
+
     const checks = [
       password.length >= 8,
-      /(?=.*[a-z])/.test(password),
-      /(?=.*[A-Z])/.test(password),
-      /(?=.*\d)/.test(password),
-      /(?=.*[\W_])/.test(password)
+      /[a-z]/.test(password),
+      /[A-Z]/.test(password),
+      /\d/.test(password),
+      /[\W_]/.test(password)
     ];
-    
+
     const score = checks.filter(Boolean).length;
-    
+
     if (score < 3) return { score, label: "Débil", color: "text-red-500" };
     if (score < 5) return { score, label: "Media", color: "text-yellow-500" };
     return { score, label: "Fuerte", color: "text-green-500" };
@@ -255,11 +274,10 @@ const Register = () => {
                     value={formData.email}
                     onChange={handleChange}
                     disabled={ui.loading}
-                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${
-                      ui.formTouched && ui.formErrors.email 
-                        ? "border-red-500 focus:ring-2 focus:ring-red-500" 
+                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.email
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500"
                         : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    }`}
+                      }`}
                     required
                     autoComplete="email"
                   />
@@ -271,7 +289,106 @@ const Register = () => {
                   </p>
                 )}
               </div>
-
+              <div>
+                <label htmlFor="nombre" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
+                  Nombre
+                </label>
+                <input
+                  id="nombre"
+                  name="nombre"
+                  placeholder="Ingrese su nombre"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  disabled={ui.loading}
+                  className={`w-full px-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.nombre
+                      ? "border-red-500 focus:ring-2 focus:ring-red-500"
+                      : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    }`}
+                  required
+                  autoComplete="name"
+                />
+                {ui.formTouched && ui.formErrors.nombre && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-2 flex items-center">
+                    <FaExclamationTriangle className="mr-2 text-red-500" />
+                    {ui.formErrors.nombre}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="apellido" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
+                  Apellido
+                </label>
+                <input
+                  id="apellido"
+                  name="apellido"
+                  placeholder="Ingrese su apellido"
+                  value={formData.apellido}
+                  onChange={handleChange}
+                  disabled={ui.loading}
+                  className={`w-full px-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.apellido
+                      ? "border-red-500 focus:ring-2 focus:ring-red-500"
+                      : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    }`}
+                  required
+                  autoComplete="family-name"
+                />
+                {ui.formTouched && ui.formErrors.apellido && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-2 flex items-center">
+                    <FaExclamationTriangle className="mr-2 text-red-500" />
+                    {ui.formErrors.apellido}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="numeroDocumento" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
+                  Número de Documento
+                </label>
+                <input
+                  id="numeroDocumento"
+                  name="numeroDocumento"
+                  placeholder="Ingrese su número de documento"
+                  value={formData.numeroDocumento}
+                  onChange={handleChange}
+                  disabled={ui.loading}
+                  className={`w-full px-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.numeroDocumento
+                      ? "border-red-500 focus:ring-2 focus:ring-red-500"
+                      : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    }`}
+                  required
+                  autoComplete="off"
+                />
+                {ui.formTouched && ui.formErrors.numeroDocumento && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-2 flex items-center">
+                    <FaExclamationTriangle className="mr-2 text-red-500" />
+                    {ui.formErrors.numeroDocumento}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="telefono" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
+                  Teléfono
+                </label>
+                <input
+                  id="telefono"
+                  name="telefono"
+                  placeholder="Ingrese su número de teléfono"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  disabled={ui.loading}
+                  className={`w-full px-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.telefono
+                      ? "border-red-500 focus:ring-2 focus:ring-red-500"
+                      : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    }`}
+                  required
+                  autoComplete="tel"
+                />
+                {ui.formTouched && ui.formErrors.telefono && (
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-2 flex items-center">
+                    <FaExclamationTriangle className="mr-2 text-red-500" />
+                    {ui.formErrors.telefono}
+                  </p>
+                )}
+              </div>
               {/* Password Field */}
               <div>
                 <label htmlFor="password" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
@@ -287,16 +404,15 @@ const Register = () => {
                     value={formData.password}
                     onChange={handleChange}
                     disabled={ui.loading}
-                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${
-                      ui.formTouched && ui.formErrors.password 
-                        ? "border-red-500 focus:ring-2 focus:ring-red-500" 
+                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.password
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500"
                         : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    }`}
+                      }`}
                     required
                     autoComplete="new-password"
                   />
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-blue-500 transition-colors duration-200 disabled:opacity-50"
                     onClick={() => togglePasswordVisibility('password')}
                     disabled={ui.loading}
@@ -305,7 +421,7 @@ const Register = () => {
                     {ui.showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
-                
+
                 {/* Password strength indicator */}
                 {formData.password && (
                   <div className="mt-3">
@@ -316,17 +432,16 @@ const Register = () => {
                       </span>
                     </div>
                     <div className="w-full bg-slate-200 dark:bg-gray-600 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          passwordStrength.score < 3 ? 'bg-red-500' :
-                          passwordStrength.score < 5 ? 'bg-yellow-500' : 'bg-green-500'
-                        }`}
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.score < 3 ? 'bg-red-500' :
+                            passwordStrength.score < 5 ? 'bg-yellow-500' : 'bg-green-500'
+                          }`}
                         style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
                       />
                     </div>
                   </div>
                 )}
-                
+
                 {ui.formTouched && ui.formErrors.password && (
                   <p className="text-red-600 dark:text-red-400 text-sm mt-2 flex items-center">
                     <FaExclamationTriangle className="mr-2 text-red-500" />
@@ -350,16 +465,15 @@ const Register = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     disabled={ui.loading}
-                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${
-                      ui.formTouched && ui.formErrors.confirmPassword 
-                        ? "border-red-500 focus:ring-2 focus:ring-red-500" 
+                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.confirmPassword
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500"
                         : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    }`}
+                      }`}
                     required
                     autoComplete="new-password"
                   />
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-blue-500 transition-colors duration-200 disabled:opacity-50"
                     onClick={() => togglePasswordVisibility('confirmPassword')}
                     disabled={ui.loading}
@@ -421,7 +535,7 @@ const Register = () => {
               </div>
 
               {/* Submit button */}
-              <button 
+              <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
                 disabled={ui.loading}
@@ -439,8 +553,8 @@ const Register = () => {
               {/* Login link */}
               <div className="text-center pt-6 border-t border-slate-200 dark:border-gray-600">
                 <p className="text-slate-600 dark:text-slate-300 text-base mb-4">¿Ya tienes una cuenta?</p>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="w-full sm:w-auto bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 border-2 border-blue-600 dark:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-700 hover:text-blue-700 dark:hover:text-blue-300 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base disabled:opacity-50"
                   onClick={() => navigate("/login")}
                   disabled={ui.loading}

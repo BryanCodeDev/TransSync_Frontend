@@ -50,64 +50,36 @@ const authAPI = {
   // ================================
   // AUTENTICACIÓN BÁSICA
   // ================================
-  
+
   // Registro de usuario
-  register: async (userData, password, name) => {
+  // REEMPLAZA LA FUNCIÓN VIEJA CON ESTA:
+
+  // Registro de usuario
+  register: async (userData) => {
     try {
-      // Permitir tanto formato de objeto como parámetros separados
-      let email, finalPassword, finalName;
-      
-      if (typeof userData === 'object') {
-        ({ email, password: finalPassword, name: finalName } = userData);
-      } else {
-        // Compatibilidad con authService.js (email, password como parámetros)
-        email = userData;
-        finalPassword = password;
-        finalName = name;
-      }
-      
-      // Validaciones
-      if (!email || !finalPassword) {
-        throw new Error("Email y contraseña son requeridos");
+      // 1. Validación simple para asegurar que recibimos los datos
+      if (!userData) {
+        throw new Error("No se proporcionaron datos para el registro.");
       }
 
-      if (!apiUtils.isValidEmail(email)) {
-        throw new Error('Por favor ingrese un correo electrónico válido');
-      }
+      // 2. Enviar el objeto userData COMPLETO al backend
+      const response = await authClient.post('/register', userData);
 
-      if (finalPassword.length < 6) {
-        throw new Error('La contraseña debe tener al menos 6 caracteres');
-      }
-
-      const response = await authClient.post('/register', { 
-        email: email.trim().toLowerCase(), 
-        password: finalPassword,
-        name: finalName?.trim()
-      });
-
+      // 3. Devolver la respuesta del backend
       return response.data;
+
     } catch (error) {
-      // Manejo específico de errores comunes
-      if (error.message.includes("ya existe") || error.message.includes("Ya Está Registrado")) {
-        throw new Error("Este correo electrónico ya está registrado. Intente iniciar sesión.");
-      } else if (error.message.includes("foreign key constraint") || error.message.includes("Error En El Servidor")) {
-        throw new Error("Error en la configuración del sistema. Por favor contacte al administrador o intente más tarde.");
-      } else if (error.code === 'ECONNABORTED') {
-        throw new Error("La solicitud tardó demasiado. Verifique su conexión e intente nuevamente.");
-      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-        throw new Error("No se puede conectar con el servidor. Verifique que el servidor esté ejecutándose.");
-      }
-      
-      throw new Error(apiUtils.formatError(error));
+      // Re-lanzar el error para que sea manejado por el interceptor
+      // o por el componente que llamó a la función.
+      throw error;
     }
   },
-
   // Login de usuario
   login: async (credentials, password) => {
     try {
       // Permitir tanto formato de objeto como parámetros separados
       let email, finalPassword;
-      
+
       if (typeof credentials === 'object') {
         ({ email, password: finalPassword } = credentials);
       } else {
@@ -115,7 +87,7 @@ const authAPI = {
         email = credentials;
         finalPassword = password;
       }
-      
+
       // Validaciones
       if (!email || !finalPassword) {
         throw new Error("Email y contraseña son requeridos");
@@ -125,9 +97,9 @@ const authAPI = {
         throw new Error('Formato de email inválido');
       }
 
-      const response = await authClient.post('/login', { 
-        email: email.trim().toLowerCase(), 
-        password: finalPassword 
+      const response = await authClient.post('/login', {
+        email: email.trim().toLowerCase(),
+        password: finalPassword
       });
 
       // Guardar datos de autenticación automáticamente
@@ -147,7 +119,7 @@ const authAPI = {
       } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
         throw new Error("No se puede conectar con el servidor. Verifique que el servidor esté ejecutándose.");
       }
-      
+
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -167,7 +139,7 @@ const authAPI = {
       } else if (error.status === 404 || error.response?.status === 404) {
         throw new Error('Usuario no encontrado o ya verificado.');
       }
-      
+
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -175,7 +147,7 @@ const authAPI = {
   // ================================
   // RECUPERACIÓN DE CONTRASEÑA
   // ================================
-  
+
   // Olvido de contraseña
   forgotPassword: async (email) => {
     try {
@@ -195,7 +167,7 @@ const authAPI = {
       if (error.status === 404 || error.response?.status === 404) {
         throw new Error('El correo electrónico no está registrado.');
       }
-      
+
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -221,7 +193,7 @@ const authAPI = {
       } else if (error.status === 404 || error.response?.status === 404) {
         throw new Error('Usuario no encontrado.');
       }
-      
+
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -229,7 +201,7 @@ const authAPI = {
   // ================================
   // GESTIÓN DE SESIÓN
   // ================================
-  
+
   // Logout
   logout: async () => {
     try {
@@ -242,7 +214,7 @@ const authAPI = {
 
       // Limpiar datos locales
       authAPI.clearAuthData();
-      
+
       return { success: true, message: 'Sesión cerrada exitosamente' };
     } catch (error) {
       console.error('Error en logout:', error);
@@ -255,12 +227,12 @@ const authAPI = {
   // ================================
   // GESTIÓN DE PERFIL
   // ================================
-  
+
   // Actualizar perfil de usuario
   updateProfile: async (profileData) => {
     try {
       const { name, email } = profileData;
-      
+
       if (email && !apiUtils.isValidEmail(email)) {
         throw new Error('Formato de email inválido');
       }
@@ -274,7 +246,7 @@ const authAPI = {
       if (response.data.user) {
         const currentData = authAPI.getCurrentUser() || {};
         const updatedUser = { ...currentData, ...response.data.user };
-        
+
         localStorage.setItem('userData', JSON.stringify(updatedUser));
         localStorage.setItem('userName', updatedUser.name || '');
         localStorage.setItem('userEmail', updatedUser.email || '');
@@ -290,7 +262,7 @@ const authAPI = {
   changePassword: async (passwordData) => {
     try {
       const { currentPassword, newPassword, confirmPassword } = passwordData;
-      
+
       const missing = apiUtils.validateRequired({ currentPassword, newPassword, confirmPassword });
       if (missing.length > 0) {
         throw new Error(`Campos requeridos: ${missing.join(', ')}`);
@@ -318,7 +290,7 @@ const authAPI = {
   // ================================
   // UTILIDADES DE AUTENTICACIÓN
   // ================================
-  
+
   // Verificar si está autenticado
   isAuthenticated: () => {
     try {
@@ -338,13 +310,13 @@ const authAPI = {
       if (userData) {
         return JSON.parse(userData);
       }
-      
+
       // Fallback con datos separados
       const userName = localStorage.getItem('userName');
       const userRole = localStorage.getItem('userRole');
       const userEmail = localStorage.getItem('userEmail');
       const userId = localStorage.getItem('userId');
-      
+
       if (userName || userRole || userEmail || userId) {
         return {
           id: userId,
@@ -353,7 +325,7 @@ const authAPI = {
           role: userRole
         };
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error parseando userData:', error);
@@ -390,7 +362,7 @@ const authAPI = {
   // ================================
   // MANEJO DE DATOS LOCALES
   // ================================
-  
+
   // Guardar datos de autenticación
   saveAuthData: (authData) => {
     try {
@@ -398,7 +370,7 @@ const authAPI = {
         localStorage.setItem('authToken', authData.token);
         localStorage.setItem('userToken', authData.token); // Por compatibilidad
         localStorage.setItem('isAuthenticated', 'true');
-        
+
         if (authData.user) {
           localStorage.setItem('userData', JSON.stringify(authData.user));
           localStorage.setItem('userName', authData.user.name || '');
@@ -419,10 +391,10 @@ const authAPI = {
         'authToken', 'userToken', 'userData', 'isAuthenticated',
         'userName', 'userRole', 'userEmail', 'userId', 'rememberedEmail'
       ];
-      
+
       keysToRemove.forEach(key => localStorage.removeItem(key));
       localStorage.setItem('rememberMe', 'false');
-      
+
       return true;
     } catch (error) {
       console.error('Error en clearAuthData:', error);
@@ -440,12 +412,12 @@ const authAPI = {
   // ================================
   // VERIFICACIÓN DE SALUD
   // ================================
-  
+
   // Verificar la salud de la conexión con el servidor de auth
   checkServerHealth: async () => {
     try {
       const startTime = Date.now();
-      
+
       // Intentar tanto el endpoint de health específico como uno general
       let response;
       try {
@@ -456,37 +428,37 @@ const authAPI = {
           method: "GET",
           signal: AbortSignal.timeout(5000)
         });
-        
+
         if (!response.ok) {
           throw new Error('Server health check failed');
         }
-        
-        response = { 
-          status: response.status, 
+
+        response = {
+          status: response.status,
           data: { status: 'OK', message: 'Servidor conectado' }
         };
       }
-      
+
       const responseTime = Date.now() - startTime;
-      
+
       if (response.status === 200) {
-        return { 
-          status: 'OK', 
+        return {
+          status: 'OK',
           message: 'Servidor de autenticación conectado',
           responseTime,
           timestamp: new Date().toISOString()
         };
       } else {
-        return { 
-          status: 'WARNING', 
+        return {
+          status: 'WARNING',
           message: 'Servidor de autenticación responde pero con problemas',
           responseTime,
           timestamp: new Date().toISOString()
         };
       }
     } catch (error) {
-      return { 
-        status: 'ERROR', 
+      return {
+        status: 'ERROR',
         message: 'No se puede conectar con el servidor de autenticación',
         error: apiUtils.formatError(error),
         timestamp: new Date().toISOString(),
