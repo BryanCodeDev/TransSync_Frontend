@@ -60,58 +60,58 @@ const Home = () => {
   const testimonios = [
     {
       id: 1,
-      texto: "TranSync transformó completamente nuestra operación. Redujimos costos operativos en un 42% mientras mejoramos la puntualidad en un 38%. La plataforma es simplemente revolucionaria.",
+      texto: "Como ciudad piloto, TranSync nos ha permitido probar tecnologías que antes parecían imposibles. Los resultados iniciales son prometedores y vemos un gran potencial para escalar.",
       autor: "Carlos Rodríguez",
       cargo: "Director de Operaciones",
-      empresa: "TransUrbe Bogotá",
+      empresa: "TransUrbe Bogotá - Ciudad Piloto",
       rating: 5,
-      beneficio: "42% reducción de costos",
+      beneficio: "Resultados prometedores",
       imagen: "/api/placeholder/80/80"
     },
     {
       id: 2,
-      texto: "La implementación fue impecable y el ROI se vio en solo 2 meses. Nuestros pasajeros están más satisfechos que nunca y nuestros operadores aman la interfaz intuitiva.",
+      texto: "La implementación fue muy suave y el equipo de soporte nos acompañó en cada paso. Ya vemos mejoras en la eficiencia operativa y nuestros conductores están adaptándose rápidamente.",
       autor: "Ana Martínez",
       cargo: "Gerente de Flota",
-      empresa: "Metroplús Medellín",
+      empresa: "Metroplús Medellín - Programa Piloto",
       rating: 5,
-      beneficio: "ROI en 2 meses",
+      beneficio: "Implementación exitosa",
       imagen: "/api/placeholder/80/80"
     },
     {
       id: 3,
-      texto: "Gestionamos ahora el triple de rutas con la misma cantidad de personal. La automatización y la IA nos permiten enfocarnos en lo que realmente importa: el servicio al pasajero.",
+      texto: "La plataforma nos da visibilidad en tiempo real de nuestra flota por primera vez. Es un cambio significativo en cómo operamos y estamos emocionados con las posibilidades futuras.",
       autor: "Luis Fernández",
       cargo: "Jefe de Operaciones",
-      empresa: "MIO Cali",
+      empresa: "MIO Cali - Proyecto Piloto",
       rating: 5,
-      beneficio: "300% más eficiencia",
+      beneficio: "Visibilidad en tiempo real",
       imagen: "/api/placeholder/80/80"
     },
     {
       id: 4,
-      texto: "La precisión del sistema es impresionante. Podemos predecir congestiones y ajustar rutas en tiempo real, lo que ha mejorado drásticamente la experiencia de nuestros usuarios.",
+      texto: "Como empresa de transporte mediano, esta tecnología nos pone a la vanguardia. La interfaz es intuitiva y el potencial de crecimiento es evidente desde las primeras semanas.",
       autor: "María González",
       cargo: "Directora de Tecnología",
-      empresa: "TransMilenio",
+      empresa: "Transportes del Valle - Partner Inicial",
       rating: 5,
-      beneficio: "65% mejora en puntualidad",
+      beneficio: "Tecnología de vanguardia",
       imagen: "/api/placeholder/80/80"
     }
   ];
 
   const estadisticas = [
-    { numero: "50+", etiqueta: "Ciudades activas", icono: Globe },
-    { numero: "2.5M+", etiqueta: "Pasajeros diarios", icono: Users },
-    { numero: "98.5%", etiqueta: "Puntualidad promedio", icono: Clock },
-    { numero: "42%", etiqueta: "Reducción de costos", icono: TrendingUp }
+    { numero: "5+", etiqueta: "Ciudades piloto", icono: Globe },
+    { numero: "150K+", etiqueta: "Pasajeros impactados", icono: Users },
+    { numero: "95%", etiqueta: "Satisfacción usuarios", icono: Clock },
+    { numero: "25%", etiqueta: "Mejora eficiencia", icono: TrendingUp }
   ];
 
   const premios = [
-    { titulo: "Mejor Innovación en Transporte", año: "2025", organizacion: "Smart Cities Awards", icono: Award },
-    { titulo: "Excelencia en Tecnología IA", año: "2025", organizacion: "TransTech Global", icono: Star },
-    { titulo: "Producto del Año", año: "2025", organizacion: "Mobility Innovation Awards", icono: Target },
-    { titulo: "Seguridad Digital Certificada", año: "2025", organizacion: "CyberSecurity Excellence", icono: Shield }
+    { titulo: "Startup Innovadora 2024", año: "2024", organizacion: "TechHub Colombia", icono: Award },
+    { titulo: "Mención Especial IA", año: "2024", organizacion: "Innovation Summit", icono: Star },
+    { titulo: "Finalista Transporte Inteligente", año: "2024", organizacion: "Smart Mobility Awards", icono: Target },
+    { titulo: "Certificación de Seguridad", año: "2024", organizacion: "CyberSecurity Standards", icono: Shield }
   ];
 
   const ciudades = [
@@ -175,7 +175,7 @@ const Home = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 mb-8 hover:bg-white/15 transition-all duration-300">
             <Award className="w-5 h-5 text-yellow-400" />
-            <span className="text-sm font-medium">🏆 Premio a la Innovación en Transporte 2025</span>
+            <span className="text-sm font-medium">🚀 Startup Innovadora en Transporte Inteligente</span>
           </div>
 
           {/* Main Title */}
@@ -184,7 +184,7 @@ const Home = () => {
           </h1>
 
           <p className={`text-2xl max-w-4xl mx-auto mb-12 text-blue-100 dark:text-gray-300 leading-relaxed transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            La plataforma de IA más avanzada para la gestión y optimización del transporte público moderno
+            La plataforma emergente de IA que está revolucionando la gestión del transporte público en Colombia
           </p>
 
           {/* CTA Buttons */}
@@ -209,7 +209,7 @@ const Home = () => {
               Impacto Real en el Transporte Público
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Nuestros números hablan por sí solos. Más de 50 ciudades han transformado su sistema de transporte con TranSync.
+              Nuestros primeros resultados demuestran el potencial. Estamos transformando el transporte público con proyectos piloto exitosos.
             </p>
           </div>
 
@@ -390,7 +390,7 @@ const Home = () => {
               Premios y Reconocimientos
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Reconocidos por nuestra excelencia e innovación en el sector
+              Reconocidos por nuestra innovación y potencial en el sector
             </p>
           </div>
 
@@ -420,7 +420,7 @@ const Home = () => {
             ¿Listo para Transformar tu Sistema de Transporte?
           </h2>
           <p className={`text-xl text-blue-100 dark:text-gray-300 mb-12 leading-relaxed transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            Únete a las ciudades más innovadoras y lleva tu transporte público al siguiente nivel con IA avanzada
+            Sé parte de la revolución del transporte inteligente. Únete a nuestro programa de adopción temprana y transforma tu operación
           </p>
 
           <div className={`flex flex-col sm:flex-row gap-6 justify-center items-center transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
