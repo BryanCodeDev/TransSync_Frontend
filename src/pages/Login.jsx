@@ -16,6 +16,7 @@ import {
   FaMoon,
   FaSun
 } from "react-icons/fa";
+import authAPI from '../utilidades/authAPI';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -58,18 +59,14 @@ const Login = () => {
     checkServerConnection();
   }, []);
 
-  // Función para verificar conexión con el servidor
+  // Función para verificar conexión con el servidor usando authAPI
   const checkServerConnection = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/health", {
-        method: "GET",
-        timeout: 5000
-      });
-
-      if (response.ok) {
-        setServerStatus({ status: 'connected', message: 'Servidor conectado' });
+      const health = await authAPI.checkServerHealth();
+      if (health.status === 'OK') {
+        setServerStatus({ status: 'connected', message: health.message });
       } else {
-        setServerStatus({ status: 'error', message: 'Servidor no responde' });
+        setServerStatus({ status: 'error', message: health.message });
       }
     } catch (error) {
       setServerStatus({
@@ -127,79 +124,79 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      // Usar authAPI para el login
+      const response = await authAPI.login(email, password);
 
-      const data = await response.json();
+      setSuccess("¡Inicio de sesión exitoso! Redirigiendo...");
 
-      if (response.ok) {
-        setSuccess("¡Inicio de sesión exitoso! Redirigiendo...");
-
-        // Guardar estado de "recordarme"
-        if (rememberMe) {
-          localStorage.setItem("rememberedEmail", email);
-          localStorage.setItem("rememberMe", "true");
-        } else {
-          localStorage.removeItem("rememberedEmail");
-          localStorage.setItem("rememberMe", "false");
-        }
-
-        // Guardar información de autenticación
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("userName", data.user?.name || "");
-        localStorage.setItem("userRole", data.user?.role || "");
-        localStorage.setItem("userEmail", data.user?.email || "");
-        localStorage.setItem("userId", data.user?.id || "");
-
-        // Guardar token
-        if (data.token) {
-          localStorage.setItem("authToken", data.token);
-          localStorage.setItem("userToken", data.token);
-        }
-
-        // Redirigir después de un momento
-        setTimeout(() => {
-          const userRole = data.user?.role;
-          const from = location.state?.from?.pathname;
-
-          if (from && from !== '/login' && from !== '/register') {
-            navigate(from, { replace: true });
-          } else {
-            if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
-              navigate("/admin/dashboard", { replace: true });
-            } else {
-              navigate("/dashboard", { replace: true });
-            }
-          }
-        }, 1500);
+      // Guardar estado de "recordarme"
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", email);
+        localStorage.setItem("rememberMe", "true");
       } else {
-        if (response.status === 401) {
-          setError("Credenciales incorrectas. Verifique su email y contraseña.");
-        } else if (response.status === 403) {
-          setError("Su cuenta no está activada. Por favor verifique su correo electrónico.");
-        } else {
-          setError(data.message || "Error de autenticación. Intente nuevamente.");
-        }
+        localStorage.removeItem("rememberedEmail");
+        localStorage.setItem("rememberMe", "false");
       }
+
+      // Redirigir después de un momento
+      setTimeout(() => {
+        const userRole = response.user?.role;
+        const from = location.state?.from?.pathname;
+
+        if (from && from !== '/login' && from !== '/register') {
+          navigate(from, { replace: true });
+        } else {
+          if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
+            navigate("/admin/dashboard", { replace: true });
+          } else {
+            navigate("/dashboard", { replace: true });
+          }
+        }
+      }, 1500);
     } catch (err) {
       console.error("Error de login:", err);
-      if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        setError("No se puede conectar con el servidor. Verifique su conexión a internet.");
+
+      // authAPI ya maneja los errores específicos
+      if (err.message.includes('Credenciales incorrectas')) {
+        setError("Credenciales incorrectas. Verifique su email y contraseña.");
+      } else if (err.message.includes('no está activada')) {
+        setError("Su cuenta no está activada. Por favor verifique su correo electrónico.");
+      } else if (err.message.includes('servidor')) {
+        setError(err.message);
         setServerStatus({ status: 'disconnected', message: 'Sin conexión al servidor' });
       } else {
-        setError("Error al conectar con el servidor. Verifique su conexión e intente nuevamente.");
+        setError(err.message || "Error de autenticación. Intente nuevamente.");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForgotPassword = (e) => {
+  const handleForgotPassword = async (e) => {
     e.preventDefault();
-    navigate("/forgot-password");
+
+    if (!email) {
+      setError("Por favor ingrese su correo electrónico primero");
+      return;
+    }
+
+    if (!isEmailValid(email)) {
+      setError("Por favor ingrese un correo electrónico válido");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      await authAPI.forgotPassword(email);
+      setSuccess("Se ha enviado un enlace de recuperación a su correo electrónico");
+    } catch (err) {
+      console.error("Error en forgot password:", err);
+      setError(err.message || "Error al enviar el correo de recuperación");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleNavigateToRegister = () => {

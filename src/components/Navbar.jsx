@@ -22,7 +22,7 @@ import {
   FaHome,
   FaChartLine
 } from 'react-icons/fa';
-import { isAuthenticated, getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
+import { getUserRole } from '../utilidades/authAPI';
 import { useAuth } from '../hooks/useAuth';
 
 const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
@@ -72,7 +72,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     if (!isPublic && isLoggedIn) {
       loadNotifications();
     }
-  }, [isPublic, isLoggedIn]);
+  }, [isPublic, isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Simular notificaciones en tiempo real (cada 30 segundos)
   useEffect(() => {
@@ -119,7 +119,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
       return () => clearInterval(interval);
     }
-  }, [isPublic]);
+  }, [isPublic, isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Manejo de modo oscuro con mejor detección inicial
   useEffect(() => {
@@ -196,10 +196,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     navigate("/home", { replace: true });
   };
 
-  // Verificar si el usuario está autenticado (usando el hook)
-  const isUserAuthenticated = () => {
-    return isLoggedIn;
-  };
 
   // Cargar notificaciones iniciales
   const loadNotifications = () => {
