@@ -17,6 +17,7 @@ import {
   FaSun
 } from "react-icons/fa";
 import authAPI from '../utilidades/authAPI';
+import { useTheme } from '../context/ThemeContext';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -31,19 +32,9 @@ const Login = () => {
   const [formTouched, setFormTouched] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [serverStatus, setServerStatus] = useState(null);
-  
-  // Estado de tema oscuro
-  const [dark, setDark] = useState(localStorage.getItem("theme") === "dark");
 
-  useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [dark]);
+  // Usar el contexto de tema
+  const { theme, toggleTheme } = useTheme();
 
   // Verificar si hay credenciales guardadas al cargar el componente
   useEffect(() => {
@@ -74,11 +65,6 @@ const Login = () => {
         message: 'No se puede conectar con el servidor'
       });
     }
-  };
-
-  // Toggle para cambiar tema
-  const toggleTheme = () => {
-    setDark(prev => !prev);
   };
 
   // Función para alternar visibilidad de contraseña
@@ -204,25 +190,26 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface-light via-primary-50 to-primary-100 dark:from-background-dark dark:via-surface-dark dark:to-background-dark flex items-center justify-center p-4 lg:p-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-surface-light via-primary-50 to-primary-100 dark:from-background-dark dark:via-surface-dark dark:to-background-dark flex items-center justify-center p-4 sm:p-6 lg:p-8 transition-all duration-500">
       {/* Theme toggle button - fixed position */}
       <button
         onClick={toggleTheme}
-        className="fixed top-4 right-4 z-10 p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
-        title={dark ? "Activar modo claro" : "Activar modo oscuro"}
+        className="fixed top-4 right-4 z-10 p-3 rounded-full bg-background-light dark:bg-surface-dark shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+        title={theme === 'dark' ? "Activar modo claro" : "Activar modo oscuro"}
+        aria-label={theme === 'dark' ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       >
-        {dark ? (
-          <FaSun className="w-5 h-5 text-yellow-500" />
+        {theme === 'dark' ? (
+          <FaSun className="w-5 h-5 text-yellow-400" />
         ) : (
           <FaMoon className="w-5 h-5 text-blue-600" />
         )}
       </button>
 
       {/* Main container */}
-      <div className="w-full max-w-7xl bg-background-light dark:bg-surface-dark rounded-3xl shadow-2xl overflow-hidden transition-colors duration-300">
-        <div className="flex flex-col xl:flex-row min-h-[80vh]">
+      <div className="w-full max-w-7xl mx-auto bg-background-light dark:bg-surface-dark rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 animate-fade-in-up">
+        <div className="flex flex-col lg:flex-row min-h-[70vh] md:min-h-[80vh] xl:min-h-[85vh]">
           {/* Left side - Brand section */}
-          <div className="xl:w-2/5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 lg:p-12 xl:p-16 flex flex-col justify-center relative overflow-hidden">
+          <div className="lg:w-2/5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-6 md:p-8 lg:p-12 xl:p-16 flex flex-col justify-center relative overflow-hidden animate-slide-in-left">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent"></div>
             <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-l from-white/5 to-transparent rounded-full -translate-y-32 translate-x-32"></div>
             <div className="relative z-10">
@@ -250,11 +237,11 @@ const Login = () => {
           </div>
 
           {/* Right side - Form section */}
-          <div className="xl:w-3/5 p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
+          <div className="lg:w-3/5 p-6 md:p-8 lg:p-12 xl:p-16 flex flex-col justify-center animate-slide-in-right">
             {/* Header */}
-            <div className="text-center mb-10">
-              <h2 className="text-3xl xl:text-4xl font-bold text-text-primary-light dark:text-text-primary-dark mb-3">Iniciar Sesión</h2>
-              <p className="text-text-secondary-light dark:text-text-secondary-dark text-lg">Acceda a su cuenta empresarial</p>
+            <div className="text-center mb-6 md:mb-10">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-text-primary-light dark:text-text-primary-dark mb-3">Iniciar Sesión</h2>
+              <p className="text-text-secondary-light dark:text-text-secondary-dark text-base md:text-lg">Acceda a su cuenta empresarial</p>
 
               {serverStatus && (
                 <div className={`mt-4 p-3 rounded-lg text-sm flex items-center justify-center ${serverStatus.status === 'connected'
@@ -273,23 +260,23 @@ const Login = () => {
 
             {/* Success */}
             {success && (
-              <div className="flex items-center bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-200 p-4 rounded-xl mb-8 border border-green-200 dark:border-green-800">
-                <FaCheckCircle className="mr-3 flex-shrink-0 text-green-500 dark:text-green-300 text-lg" />
+              <div className="flex items-center bg-green-50 dark:bg-green-900/50 text-green-700 dark:text-green-200 p-3 md:p-4 rounded-xl mb-6 md:mb-8 border border-green-200 dark:border-green-800">
+                <FaCheckCircle className="mr-3 flex-shrink-0 text-green-500 dark:text-green-300 text-base md:text-lg" />
                 <span className="text-sm">{success}</span>
               </div>
             )}
 
             {/* Error */}
             {error && (
-              <div className="flex items-center bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-200 p-4 rounded-xl mb-8 border border-red-200 dark:border-red-800">
-                <FaExclamationTriangle className="mr-3 flex-shrink-0 text-red-500 dark:text-red-300 text-lg" />
+              <div className="flex items-center bg-red-50 dark:bg-red-900/50 text-red-700 dark:text-red-200 p-3 md:p-4 rounded-xl mb-6 md:mb-8 border border-red-200 dark:border-red-800">
+                <FaExclamationTriangle className="mr-3 flex-shrink-0 text-red-500 dark:text-red-300 text-base md:text-lg" />
                 <div className="text-sm">
                   <span>{error}</span>
                   {error.includes("servidor") && (
                     <div className="mt-2">
                       <button
                         onClick={checkServerConnection}
-                        className="text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-400 underline font-medium"
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-400 underline font-medium transition-colors duration-200"
                         disabled={loading}
                       >
                         Verificar conexión nuevamente
@@ -301,11 +288,11 @@ const Login = () => {
             )}
 
             {/* Form */}
-            <div className="space-y-8">
+            <div className="space-y-6 md:space-y-8">
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                  Correo electrónico
+                  Correo electrónico <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg" />
@@ -316,12 +303,14 @@ const Login = () => {
                     value={email}
                     onChange={handleInputChange(setEmail)}
                     disabled={loading}
-                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${formTouched && !isEmailValid(email) && email
+                    className={`w-full pl-12 pr-4 py-3 md:py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-base md:text-lg disabled:opacity-50 ${formTouched && !isEmailValid(email) && email
                         ? 'border-red-500 focus:ring-2 focus:ring-red-500'
                         : 'border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                       }`}
                     required
                     autoComplete="email"
+                    aria-describedby={formTouched && !isEmailValid(email) && email ? "email-error" : undefined}
+                    aria-invalid={formTouched && !isEmailValid(email) && email}
                   />
                 </div>
               </div>
@@ -332,7 +321,7 @@ const Login = () => {
                   htmlFor="password"
                   className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3"
                 >
-                  Contraseña
+                  Contraseña <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg" />
@@ -343,12 +332,14 @@ const Login = () => {
                     value={password}
                     onChange={handleInputChange(setPassword)}
                     disabled={loading}
-                    className={`w-full pl-12 pr-12 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${formTouched && !password
+                    className={`w-full pl-12 pr-12 py-3 md:py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-base md:text-lg disabled:opacity-50 ${formTouched && !password
                         ? "border-red-500 focus:ring-2 focus:ring-red-500"
                         : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       }`}
                     required
                     autoComplete="current-password"
+                    aria-describedby={formTouched && !password ? "password-error" : undefined}
+                    aria-invalid={formTouched && !password}
                   />
                   <button
                     type="button"
@@ -387,12 +378,13 @@ const Login = () => {
               <button
                 type="button"
                 onClick={handleLogin}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 text-lg"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 md:py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:transform-none disabled:hover:scale-100 text-base md:text-lg animate-scale-in focus:outline-none focus:ring-4 focus:ring-blue-500/50"
                 disabled={loading || serverStatus?.status === 'disconnected'}
+                aria-describedby={loading ? "login-loading" : serverStatus?.status === 'disconnected' ? "server-status" : undefined}
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <FaSpinner className="w-6 h-6 mr-3 animate-spin" />
+                    <FaSpinner className="w-5 h-5 md:w-6 md:h-6 mr-3 animate-spin" />
                     Verificando...
                   </div>
                 ) : (
@@ -401,13 +393,14 @@ const Login = () => {
               </button>
 
               {/* Register */}
-              <div className="text-center pt-6 border-t border-slate-200 dark:border-gray-700">
-                <p className="text-slate-600 dark:text-slate-300 text-base mb-4">¿No tienes una cuenta?</p>
+              <div className="text-center pt-4 md:pt-6 border-t border-slate-200 dark:border-gray-700">
+                <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base mb-3 md:mb-4">¿No tienes una cuenta?</p>
                 <button
                   type="button"
-                  className="w-full sm:w-auto bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-300 border-2 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-600 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base"
+                  className="w-full sm:w-auto bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-300 border-2 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-600 font-semibold py-2.5 md:py-3 px-6 md:px-8 rounded-xl transition-all duration-300 text-sm md:text-base animate-scale-in hover:animate-bounce-gentle focus:outline-none focus:ring-4 focus:ring-blue-500/50"
                   onClick={handleNavigateToRegister}
                   disabled={loading}
+                  aria-label="Ir a la página de registro de cuenta"
                 >
                   Crear cuenta nueva
                 </button>

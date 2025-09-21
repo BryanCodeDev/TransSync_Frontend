@@ -187,11 +187,11 @@ const Register = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="flex flex-col xl:flex-row min-h-[80vh]">
+    <div className="min-h-screen bg-gradient-to-br from-surface-light via-primary-50 to-primary-100 dark:from-background-dark dark:via-surface-dark dark:to-background-dark flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-6xl mx-auto bg-background-light dark:bg-surface-dark rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 animate-fade-in-up">
+        <div className="flex flex-col lg:flex-row min-h-[70vh] md:min-h-[80vh] xl:min-h-[85vh]">
           {/* Left side - Brand section */}
-          <div className="xl:w-2/5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 lg:p-12 xl:p-16 flex flex-col justify-center relative overflow-hidden">
+          <div className="lg:w-2/5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-6 md:p-8 lg:p-12 xl:p-16 flex flex-col justify-center relative overflow-hidden animate-slide-in-left">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent"></div>
             <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-l from-white/5 to-transparent rounded-full -translate-y-32 translate-x-32"></div>
             <div className="relative z-10">
@@ -219,12 +219,12 @@ const Register = () => {
           </div>
 
           {/* Right side - Form section */}
-          <div className="xl:w-3/5 p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
+          <div className="lg:w-3/5 p-6 md:p-8 lg:p-12 xl:p-16 flex flex-col justify-center animate-slide-in-right">
             {/* Header */}
-            <div className="text-center mb-10">
-              <h2 className="text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white mb-3">Crear Cuenta</h2>
-              <p className="text-slate-600 dark:text-slate-300 text-lg">Regístrese para acceder al sistema</p>
-              <div className="mt-4 p-4 bg-blue-50 dark:bg-gray-700 border border-blue-200 dark:border-gray-600 rounded-xl">
+            <div className="text-center mb-6 md:mb-10">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-text-primary-light dark:text-text-primary-dark mb-3">Crear Cuenta</h2>
+              <p className="text-text-secondary-light dark:text-text-secondary-dark text-base md:text-lg">Regístrese para acceder al sistema</p>
+              <div className="mt-4 p-3 md:p-4 bg-blue-50 dark:bg-surface-dark border border-blue-200 dark:border-gray-600 rounded-xl">
                 <div className="flex items-center text-blue-700 dark:text-blue-300 text-sm">
                   <FaUserTie className="mr-2 text-blue-600 dark:text-blue-400" />
                   <span className="font-medium">Su cuenta será revisada por un administrador antes de la activación</span>
@@ -234,15 +234,15 @@ const Register = () => {
 
             {/* Messages */}
             {ui.success && (
-              <div className="flex items-center bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 p-4 rounded-xl mb-8 border border-green-200 dark:border-green-700">
-                <FaCheckCircle className="mr-3 flex-shrink-0 text-green-500" />
+              <div className="flex items-center bg-green-50 dark:bg-green-900/50 text-green-700 dark:text-green-200 p-3 md:p-4 rounded-xl mb-6 md:mb-8 border border-green-200 dark:border-green-800">
+                <FaCheckCircle className="mr-3 flex-shrink-0 text-green-500 dark:text-green-300 text-base md:text-lg" />
                 <span className="text-sm">{ui.success}</span>
               </div>
             )}
 
             {ui.error && (
-              <div className="flex items-center bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-300 p-4 rounded-xl mb-8 border border-red-200 dark:border-red-700">
-                <FaExclamationTriangle className="mr-3 flex-shrink-0 text-red-500" />
+              <div className="flex items-center bg-red-50 dark:bg-red-900/50 text-red-700 dark:text-red-200 p-3 md:p-4 rounded-xl mb-6 md:mb-8 border border-red-200 dark:border-red-800">
+                <FaExclamationTriangle className="mr-3 flex-shrink-0 text-red-500 dark:text-red-300 text-base md:text-lg" />
                 <div className="text-sm">
                   <p>{ui.error}</p>
                   {ui.error.includes("configuración del sistema") && (
@@ -255,11 +255,11 @@ const Register = () => {
             )}
 
             {/* Form */}
-            <form onSubmit={handleRegister} className="space-y-8">
+            <form onSubmit={handleRegister} className="space-y-6 md:space-y-8">
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                  Correo electrónico
+                  Correo electrónico <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg" />
@@ -271,12 +271,14 @@ const Register = () => {
                     value={formData.email}
                     onChange={handleChange}
                     disabled={ui.loading}
-                    className={`w-full pl-12 pr-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.email
+                    className={`w-full pl-12 pr-4 py-3 md:py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-base md:text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.email
                         ? "border-red-500 focus:ring-2 focus:ring-red-500"
                         : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       }`}
                     required
                     autoComplete="email"
+                    aria-describedby={ui.formTouched && ui.formErrors.email ? "email-error" : undefined}
+                    aria-invalid={ui.formTouched && ui.formErrors.email}
                   />
                 </div>
                 {ui.formTouched && ui.formErrors.email && (
@@ -288,7 +290,7 @@ const Register = () => {
               </div>
               <div>
                 <label htmlFor="nombre" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                  Nombre
+                  Nombre <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="nombre"
@@ -297,12 +299,14 @@ const Register = () => {
                   value={formData.nombre}
                   onChange={handleChange}
                   disabled={ui.loading}
-                  className={`w-full px-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.nombre
+                  className={`w-full px-4 py-3 md:py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-base md:text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.nombre
                       ? "border-red-500 focus:ring-2 focus:ring-red-500"
                       : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     }`}
                   required
                   autoComplete="name"
+                  aria-describedby={ui.formTouched && ui.formErrors.nombre ? "nombre-error" : undefined}
+                  aria-invalid={ui.formTouched && ui.formErrors.nombre}
                 />
                 {ui.formTouched && ui.formErrors.nombre && (
                   <p className="text-red-600 dark:text-red-400 text-sm mt-2 flex items-center">
@@ -313,7 +317,7 @@ const Register = () => {
               </div>
               <div>
                 <label htmlFor="apellido" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                  Apellido
+                  Apellido <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="apellido"
@@ -322,12 +326,14 @@ const Register = () => {
                   value={formData.apellido}
                   onChange={handleChange}
                   disabled={ui.loading}
-                  className={`w-full px-4 py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.apellido
+                  className={`w-full px-4 py-3 md:py-4 border rounded-xl bg-slate-50 dark:bg-gray-700 text-slate-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-gray-600 transition-all duration-200 text-base md:text-lg disabled:opacity-50 ${ui.formTouched && ui.formErrors.apellido
                       ? "border-red-500 focus:ring-2 focus:ring-red-500"
                       : "border-slate-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     }`}
                   required
                   autoComplete="family-name"
+                  aria-describedby={ui.formTouched && ui.formErrors.apellido ? "apellido-error" : undefined}
+                  aria-invalid={ui.formTouched && ui.formErrors.apellido}
                 />
                 {ui.formTouched && ui.formErrors.apellido && (
                   <p className="text-red-600 dark:text-red-400 text-sm mt-2 flex items-center">
@@ -488,8 +494,8 @@ const Register = () => {
               </div>
 
               {/* Password requirements */}
-              <div className="bg-slate-50 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-xl p-6">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-4">Requisitos de contraseña:</p>
+              <div className="bg-slate-50 dark:bg-surface-dark border border-slate-200 dark:border-gray-600 rounded-xl p-4 md:p-6">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3 md:mb-4">Requisitos de contraseña:</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                    <PasswordRequirement met={formData.password.length >= 6}>
                      Mínimo 6 caracteres
@@ -507,7 +513,7 @@ const Register = () => {
               </div>
 
               {/* Information about process */}
-              <div className="bg-blue-50 dark:bg-gray-700 border border-blue-200 dark:border-gray-600 rounded-xl p-6">
+              <div className="bg-blue-50 dark:bg-surface-dark border border-blue-200 dark:border-gray-600 rounded-xl p-4 md:p-6">
                 <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-3 flex items-center">
                   <FaUserTie className="mr-2" />
                   Proceso de registro
@@ -531,12 +537,13 @@ const Register = () => {
               {/* Submit button */}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 md:py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 text-base md:text-lg animate-scale-in focus:outline-none focus:ring-4 focus:ring-blue-500/50"
                 disabled={ui.loading}
+                aria-describedby={ui.loading ? "register-loading" : undefined}
               >
                 {ui.loading ? (
                   <div className="flex items-center justify-center">
-                    <FaSpinner className="w-6 h-6 mr-3 animate-spin" />
+                    <FaSpinner className="w-5 h-5 md:w-6 md:h-6 mr-3 animate-spin" />
                     Registrando...
                   </div>
                 ) : (
@@ -545,13 +552,14 @@ const Register = () => {
               </button>
 
               {/* Login link */}
-              <div className="text-center pt-6 border-t border-slate-200 dark:border-gray-600">
-                <p className="text-slate-600 dark:text-slate-300 text-base mb-4">¿Ya tienes una cuenta?</p>
+              <div className="text-center pt-4 md:pt-6 border-t border-slate-200 dark:border-gray-600">
+                <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base mb-3 md:mb-4">¿Ya tienes una cuenta?</p>
                 <button
                   type="button"
-                  className="w-full sm:w-auto bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 border-2 border-blue-600 dark:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-700 hover:text-blue-700 dark:hover:text-blue-300 font-semibold py-3 px-8 rounded-xl transition-all duration-200 text-base disabled:opacity-50"
+                  className="w-full sm:w-auto bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 border-2 border-blue-600 dark:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-700 hover:text-blue-700 dark:hover:text-blue-300 font-semibold py-2.5 md:py-3 px-6 md:px-8 rounded-xl transition-all duration-300 text-sm md:text-base disabled:opacity-50 animate-scale-in hover:animate-bounce-gentle focus:outline-none focus:ring-4 focus:ring-blue-500/50"
                   onClick={() => navigate("/login")}
                   disabled={ui.loading}
+                  aria-label="Ir a la página de inicio de sesión"
                 >
                   Iniciar sesión
                 </button>

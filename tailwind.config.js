@@ -83,40 +83,66 @@ module.exports = {
         // Colores específicos para el tema
         background: {
           light: '#ffffff',
-          dark: '#111827',
+          dark: '#0f172a',
         },
         surface: {
-          light: '#f9fafb',
-          dark: '#1f2937',
+          light: '#f8fafc',
+          dark: '#1e293b',
         },
         text: {
           primary: {
-            light: '#111827',
-            dark: '#f9fafb',
+            light: '#0f172a',
+            dark: '#f1f5f9',
           },
           secondary: {
-            light: '#6b7280',
-            dark: '#9ca3af',
+            light: '#475569',
+            dark: '#94a3b8',
           },
         },
         border: {
-          light: '#e5e7eb',
-          dark: '#374151',
+          light: '#e2e8f0',
+          dark: '#334155',
         }
       },
       animation: {
         'spin-slow': 'spin 20s linear infinite',
         'fade-in': 'fadeIn 0.5s ease-in-out',
+        'fade-in-up': 'fadeInUp 0.6s ease-out',
         'slide-in': 'slideIn 0.3s ease-in-out',
+        'slide-in-left': 'slideInLeft 0.4s ease-out',
+        'slide-in-right': 'slideInRight 0.4s ease-out',
+        'scale-in': 'scaleIn 0.2s ease-out',
+        'bounce-gentle': 'bounceGentle 0.6s ease-in-out',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
         slideIn: {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(0)' },
+        },
+        slideInLeft: {
+          '0%': { opacity: '0', transform: 'translateX(-30px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        slideInRight: {
+          '0%': { opacity: '0', transform: 'translateX(30px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.9)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        bounceGentle: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-5px)' },
         }
       },
       transitionProperty: {
