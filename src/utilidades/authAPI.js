@@ -13,15 +13,34 @@ const authAPI = {
   // Registro de usuario
   register: async (userData) => {
     try {
-      // 1. Validación simple para asegurar que recibimos los datos
-      if (!userData) {
-        throw new Error("No se proporcionaron datos para el registro.");
+      // 1. Validación de campos requeridos según el backend
+      const requiredFields = ['nomUsuario', 'apeUsuario', 'numDocUsuario', 'telUsuario', 'email', 'password'];
+      const missingFields = requiredFields.filter(field => !userData[field]);
+
+      if (missingFields.length > 0) {
+        throw new Error(`Campos requeridos faltantes: ${missingFields.join(', ')}`);
       }
 
-      // 2. Enviar el objeto userData COMPLETO al backend
-      const response = await apiClient.post('/api/auth/register', userData);
+      // 2. Validar formato de email
+      if (!apiUtils.isValidEmail(userData.email)) {
+        throw new Error('Formato de email inválido');
+      }
 
-      // 3. Devolver la respuesta del backend
+      // 3. Validar contraseña segura
+      if (userData.password && userData.password.length < 6) {
+        throw new Error('La contraseña debe tener al menos 6 caracteres');
+      }
+
+      // 4. Enviar datos al backend con el formato correcto
+      const response = await apiClient.post('/api/auth/register', {
+        nomUsuario: userData.nomUsuario.trim(),
+        apeUsuario: userData.apeUsuario.trim(),
+        numDocUsuario: userData.numDocUsuario.trim(),
+        telUsuario: userData.telUsuario.trim(),
+        email: userData.email.trim().toLowerCase(),
+        password: userData.password
+      });
+
       return response.data;
 
     } catch (error) {
@@ -177,6 +196,30 @@ const authAPI = {
       // Limpiar de todas formas
       authAPI.clearAuthData();
       return { success: false, message: 'Error al cerrar sesión, pero se limpió localmente' };
+    }
+  },
+
+  // ================================
+  // ENDPOINTS PROTEGIDOS
+  // ================================
+
+  // Obtener perfil del usuario
+  getProfile: async () => {
+    try {
+      const response = await apiClient.get('/api/auth/profile');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
+    }
+  },
+
+  // Verificar token
+  verifyToken: async () => {
+    try {
+      const response = await apiClient.get('/api/auth/verify-token');
+      return response.data;
+    } catch (error) {
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -435,6 +478,8 @@ export const {
   forgotPassword,
   resetPassword,
   logout,
+  getProfile,
+  verifyToken,
   isAuthenticated,
   getCurrentUser,
   getUserRole,

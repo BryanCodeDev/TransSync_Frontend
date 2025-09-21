@@ -11,8 +11,50 @@ const vehiculosAPI = {
     try {
       const params = apiUtils.createUrlParams(filters);
       const response = await apiClient.get(`/api/vehiculos${params ? `?${params}` : ''}`);
+
+      // Log para debugging
+      console.log('vehiculosAPI.getAll - Response data type:', typeof response.data);
+      console.log('vehiculosAPI.getAll - Response data:', response.data);
+
+      // Asegurar que response.data sea un array - manejo más robusto
+      let dataArray = [];
+
+      if (Array.isArray(response.data)) {
+        dataArray = response.data;
+      } else if (response.data && typeof response.data === 'object') {
+        // Si es un objeto, verificar si es un vehículo individual o un objeto contenedor
+        if (response.data.idVehiculo || response.data.plaVehiculo) {
+          // Es un vehículo individual, convertirlo en array
+          dataArray = [response.data];
+        } else if (response.data.vehiculos && Array.isArray(response.data.vehiculos)) {
+          // Es un objeto contenedor con array de vehículos
+          dataArray = response.data.vehiculos;
+        } else {
+          // Es otro tipo de objeto, intentar convertirlo
+          dataArray = [response.data];
+        }
+      } else if (typeof response.data === 'string') {
+        // Si es un string, intentar parsear como JSON
+        try {
+          const parsedData = JSON.parse(response.data);
+          if (Array.isArray(parsedData)) {
+            dataArray = parsedData;
+          } else if (parsedData && typeof parsedData === 'object') {
+            if (parsedData.idVehiculo || parsedData.plaVehiculo) {
+              dataArray = [parsedData];
+            } else if (parsedData.vehiculos && Array.isArray(parsedData.vehiculos)) {
+              dataArray = parsedData.vehiculos;
+            }
+          }
+        } catch (parseError) {
+          console.warn('vehiculosAPI.getAll - No se pudo parsear response.data como JSON:', response.data);
+          dataArray = [];
+        }
+      }
+      // Si response.data es null, undefined, número, boolean, etc., dataArray queda como array vacío
+
       // Adaptar la respuesta para que tenga la estructura esperada
-      const vehiculos = response.data.map(vehiculo => ({
+      const vehiculos = dataArray.map(vehiculo => ({
         ...vehiculo,
         estVehiculo: vehiculo.estVehiculo || 'DISPONIBLE',
         lat: vehiculo.lat,
@@ -20,9 +62,17 @@ const vehiculosAPI = {
         speed: vehiculo.speed || 0,
         direction: vehiculo.direction || 0
       }));
+
+      console.log('vehiculosAPI.getAll - Vehículos procesados:', vehiculos.length);
       return { vehiculos };
     } catch (error) {
       console.error('Error en vehiculosAPI.getAll:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      });
       // Retornar datos vacíos si hay error
       return { vehiculos: [] };
     }

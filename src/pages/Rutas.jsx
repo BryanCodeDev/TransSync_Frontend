@@ -169,8 +169,15 @@ const InteractiveMap = () => {
 
   const handleBusClick = (bus) => {
     setSelectedBus(bus);
-    setMapCenter([bus.lat, bus.lng]);
-    setMapZoom(15);
+    // Verificar que las coordenadas sean válidas antes de usarlas
+    if (bus.lat && bus.lng && !isNaN(bus.lat) && !isNaN(bus.lng)) {
+      setMapCenter([bus.lat, bus.lng]);
+      setMapZoom(15);
+    } else {
+      // Usar coordenadas por defecto si las del bus no son válidas
+      setMapCenter([4.6482, -74.0648]);
+      setMapZoom(12);
+    }
   };
 
   const handleRouteSelect = (route) => {
@@ -191,7 +198,13 @@ const InteractiveMap = () => {
       setBuses(currentBuses => {
         const trackedBus = currentBuses.find(b => b.id === bus.id);
         if (trackedBus) {
-          setMapCenter([trackedBus.lat, trackedBus.lng]);
+          // Verificar que las coordenadas sean válidas antes de usarlas
+          if (trackedBus.lat && trackedBus.lng && !isNaN(trackedBus.lat) && !isNaN(trackedBus.lng)) {
+            setMapCenter([trackedBus.lat, trackedBus.lng]);
+          } else {
+            // Usar coordenadas por defecto si las del bus no son válidas
+            setMapCenter([4.6482, -74.0648]);
+          }
         }
         return currentBuses;
       });
@@ -304,7 +317,7 @@ const InteractiveMap = () => {
 
             {/* Filtros de visualización - ocultos en móvil */}
             <div className="hidden md:flex items-center gap-2">
-              <label className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
+              <label key="filter-buses" className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={showBuses}
@@ -314,7 +327,7 @@ const InteractiveMap = () => {
                 <Bus className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                 Buses
               </label>
-              <label className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
+              <label key="filter-routes" className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={showRoutes}
@@ -324,7 +337,7 @@ const InteractiveMap = () => {
                 <Route className="w-4 h-4" />
                 Rutas
               </label>
-              <label className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
+              <label key="filter-stops" className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
                 <input
                   type="checkbox"
                   checked={showStops}
@@ -415,11 +428,12 @@ const InteractiveMap = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span><strong>Última actualización:</strong> {selectedBus.lastUpdate.toLocaleTimeString()}</span>
+                  <span><strong>Última actualización:</strong> {selectedBus.lastUpdate ? new Date(selectedBus.lastUpdate).toLocaleTimeString() : 'N/A'}</span>
                 </div>
               </div>
               <div className="mt-3 flex gap-2">
                 <button
+                  key="track-bus"
                   onClick={() => startTracking(selectedBus)}
                   disabled={isTracking}
                   className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 disabled:opacity-50 transition-colors flex items-center gap-1"
@@ -428,6 +442,7 @@ const InteractiveMap = () => {
                   {isTracking ? 'Siguiendo...' : 'Seguir Bus'}
                 </button>
                 <button
+                  key="close-bus-info"
                   onClick={() => setSelectedBus(null)}
                   className="bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition-colors flex items-center gap-1"
                 >
@@ -442,7 +457,7 @@ const InteractiveMap = () => {
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2 mb-3">
               <Bus className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              <h3 className="font-bold text-gray-900 dark:text-gray-100">
+              <h3 key="buses-title" className="font-bold text-gray-900 dark:text-gray-100">
                 Buses Activos ({buses.length})
               </h3>
             </div>
@@ -542,19 +557,19 @@ const InteractiveMap = () => {
               <h3 className="font-bold text-gray-900 dark:text-gray-100">Estadísticas en Tiempo Real</h3>
             </div>
             <div className="space-y-3">
-              <div className="bg-green-50 dark:bg-green-900 p-3 rounded-lg">
+              <div key="stats-en-ruta" className="bg-green-50 dark:bg-green-900 p-3 rounded-lg">
                 <div className="text-lg font-bold text-green-600 dark:text-green-400">
                   {buses.filter(b => b.estVehiculo === 'EN_RUTA').length}
                 </div>
                 <div className="text-sm text-green-700 dark:text-green-300">Buses en Ruta</div>
               </div>
-              <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-lg">
+              <div key="stats-total" className="bg-blue-50 dark:bg-blue-900 p-3 rounded-lg">
                 <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
                   {buses.length}
                 </div>
                 <div className="text-sm text-blue-700 dark:text-blue-300">Vehículos Totales</div>
               </div>
-              <div className="bg-purple-50 dark:bg-purple-900 p-3 rounded-lg">
+              <div key="stats-activas" className="bg-purple-50 dark:bg-purple-900 p-3 rounded-lg">
                 <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
                   {routes.filter(r => r.estRuta === 'ACTIVA').length}
                 </div>
@@ -688,7 +703,10 @@ const InteractiveMap = () => {
 {showBuses && buses.map(bus => (
   <Marker
     key={bus.idVehiculo}
-    position={[bus.lat || 4.6482, bus.lng || -74.0648]} // Usar coordenadas por defecto si no hay GPS
+    position={[
+      (bus.lat && !isNaN(bus.lat) && bus.lat !== 0) ? bus.lat : 4.6482,
+      (bus.lng && !isNaN(bus.lng) && bus.lng !== 0) ? bus.lng : -74.0648
+    ]} // Usar coordenadas por defecto si no hay GPS válidas
     icon={L.divIcon({
       html: `<div style="
         background-color: ${getStatusColor(bus.estVehiculo)};
@@ -769,12 +787,13 @@ const InteractiveMap = () => {
                         <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                         <span>
                           <strong>Última actualización:</strong>{" "}
-                          {bus.lastUpdate ? bus.lastUpdate.toLocaleTimeString() : 'N/A'}
+                          {bus.lastUpdate ? new Date(bus.lastUpdate).toLocaleTimeString() : 'N/A'}
                         </span>
                       </div>
                     </div>
                     <div className="mt-3 flex gap-2">
                       <button
+                        key="track-bus-popup"
                         onClick={() => startTracking(bus)}
                         className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors flex items-center gap-1"
                       >
@@ -782,6 +801,7 @@ const InteractiveMap = () => {
                         Seguir
                       </button>
                       <button
+                        key="details-bus-popup"
                         onClick={() => setSelectedBus(bus)}
                         className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors flex items-center gap-1"
                       >
@@ -812,18 +832,21 @@ const InteractiveMap = () => {
           {/* Controles de zoom y ubicación - Responsive */}
           <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-[1000] md:bottom-4 md:right-4">
             <button
+              key="zoom-in"
               onClick={() => setMapZoom(prev => Math.min(prev + 1, 18))}
               className="bg-white shadow-lg rounded-full w-10 h-10 md:w-10 md:h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
             >
               <ZoomIn className="w-5 h-5" />
             </button>
             <button
+              key="zoom-out"
               onClick={() => setMapZoom(prev => Math.max(prev - 1, 3))}
               className="bg-white shadow-lg rounded-full w-10 h-10 md:w-10 md:h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
             >
               <ZoomOut className="w-5 h-5" />
             </button>
             <button
+              key="locate"
               onClick={() => {
                 navigator.geolocation?.getCurrentPosition(
                   (position) => {
@@ -849,29 +872,29 @@ const InteractiveMap = () => {
               <h4 className="font-bold text-sm">Leyenda</h4>
             </div>
             <div className="space-y-1 text-xs">
-              <div className="flex items-center gap-2">
+              <div key="legend-en-ruta" className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white">
                   <Bus className="w-3 h-3" />
                 </div>
                 <span>En ruta</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div key="legend-disponible" className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white">
                   <Bus className="w-3 h-3" />
                 </div>
                 <span>Disponible</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div key="legend-parada" className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white">
                   <MapPin className="w-3 h-3" />
                 </div>
                 <span>Parada</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div key="legend-ruta-activa" className="flex items-center gap-2">
                 <div className="w-4 h-1" style={{ backgroundColor: '#6366f1' }}></div>
                 <span>Ruta activa</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div key="legend-ruta-inactiva" className="flex items-center gap-2">
                 <div className="w-4 h-1 border-b border-gray-400 border-dashed"></div>
                 <span>Ruta inactiva</span>
               </div>
@@ -883,25 +906,25 @@ const InteractiveMap = () => {
       {/* Footer con información adicional */}
       <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
         <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-          <div className="flex items-center gap-1">
+          <div key="footer-time" className="flex items-center gap-1">
             <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
             Última actualización: {new Date().toLocaleTimeString()}
           </div>
           <div className="flex gap-4">
-            <span className="flex items-center gap-1">
+            <span key="footer-vehicles" className="flex items-center gap-1">
               <Bus className="w-3 h-3 text-gray-600 dark:text-gray-400" />
               {buses.length} vehículos registrados
             </span>
-            <span className="flex items-center gap-1">
+            <span key="footer-routes" className="flex items-center gap-1">
               <Route className="w-3 h-3 text-gray-600 dark:text-gray-400" />
               {routes.filter(r => r.estRuta === 'ACTIVA').length} rutas activas
             </span>
-            <span className="flex items-center gap-1">
+            <span key="footer-stops" className="flex items-center gap-1">
               <MapPin className="w-3 h-3 text-gray-600 dark:text-gray-400" />
               {stops.length + newMarkers.length} paradas registradas
             </span>
           </div>
-          <div className="flex items-center gap-1">
+          <div key="footer-status" className="flex items-center gap-1">
             <Activity className="w-3 h-3 text-gray-600 dark:text-gray-400" />
             Sistema en tiempo real
           </div>

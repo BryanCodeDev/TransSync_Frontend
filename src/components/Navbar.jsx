@@ -23,12 +23,12 @@ import {
   FaChartLine
 } from 'react-icons/fa';
 import { isAuthenticated, getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
+import { useAuth } from '../hooks/useAuth';
 
 const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState(null);
-  const [userRole, setUserRole] = useState('');
+  const { isLoggedIn, user, userRole, logout: handleLogoutAuth, loading: authLoading } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -49,29 +49,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Obtener datos del usuario actual
-  useEffect(() => {
-    if (!isPublic && isAuthenticated()) {
-      const loadUserData = () => {
-        try {
-          const user = getCurrentUser();
-          const role = getUserRole();
-
-          setCurrentUser(user);
-          setUserRole(role);
-        } catch (error) {
-          console.error('Error loading user data:', error);
-          setCurrentUser(null);
-          setUserRole('');
-        }
-      };
-
-      loadUserData();
-    } else {
-      setCurrentUser(null);
-      setUserRole('');
-    }
-  }, [isPublic, location.pathname]);
 
   // Cerrar menús cuando se hace clic fuera
   useEffect(() => {
@@ -92,14 +69,14 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
   // Cargar notificaciones iniciales
   useEffect(() => {
-    if (!isPublic && isAuthenticated()) {
+    if (!isPublic && isLoggedIn) {
       loadNotifications();
     }
-  }, [isPublic]);
+  }, [isPublic, isLoggedIn]);
 
   // Simular notificaciones en tiempo real (cada 30 segundos)
   useEffect(() => {
-    if (!isPublic && isAuthenticated()) {
+    if (!isPublic && isLoggedIn) {
       const interval = setInterval(() => {
         // Simular nuevas notificaciones
         const randomNotifications = [
@@ -170,13 +147,13 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const handleLogout = async () => {
     if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
       try {
-        await logout();
+        await handleLogoutAuth();
         navigate("/home");
         setIsUserMenuOpen(false);
         setIsNotificationsOpen(false);
       } catch (error) {
         console.error('Error during logout:', error);
-        localStorage.clear();
+        // El hook useAuth ya maneja el logout local
         navigate("/home");
       }
     }
@@ -219,9 +196,9 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     navigate("/home", { replace: true });
   };
 
-  // Verificar si el usuario está autenticado
+  // Verificar si el usuario está autenticado (usando el hook)
   const isUserAuthenticated = () => {
-    return isAuthenticated();
+    return isLoggedIn;
   };
 
   // Cargar notificaciones iniciales
@@ -307,24 +284,24 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   };
 
   const getUserInitials = () => {
-    if (currentUser?.name) {
-      return currentUser.name
+    if (user?.name) {
+      return user.name
         .split(' ')
         .map(word => word.charAt(0))
         .join('')
         .toUpperCase()
         .slice(0, 2);
-    } else if (currentUser?.email) {
-      return currentUser.email.charAt(0).toUpperCase();
+    } else if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
     }
     return 'U';
   };
 
   const getDisplayName = () => {
-    if (currentUser?.name) {
-      return currentUser.name;
-    } else if (currentUser?.email) {
-      return currentUser.email.split('@')[0];
+    if (user?.name) {
+      return user.name;
+    } else if (user?.email) {
+      return user.email.split('@')[0];
     }
     return 'Usuario';
   };
@@ -379,6 +356,22 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
+
+  // Mostrar indicador de carga mientras se verifica la autenticación
+  if (authLoading) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg border-b border-gray-200/50 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Verificando sesión...</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-300 ${
@@ -439,7 +432,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
             </button>
 
             {/* Botones de navegación inteligente */}
-            {isUserAuthenticated() && (
+            {isLoggedIn && (
               <div className="flex items-center gap-2">
                 {location.pathname === '/home' && (
                   <button
@@ -465,7 +458,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
               </div>
             )}
 
-            {isPublic || !isAuthenticated() ? (
+            {isPublic || !isLoggedIn ? (
               <div className="flex items-center gap-3">
                 <button onClick={handleLogin} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-indigo-700 dark:text-gray-200 border border-indigo-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:border-indigo-300">
                   <FaSignInAlt size={14} />
@@ -643,7 +636,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{getDisplayName()}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{currentUser?.email}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
                           </div>
                         </div>
                       </div>

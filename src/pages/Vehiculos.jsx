@@ -268,19 +268,19 @@ const Vehiculos = () => {
 
           {/* Mobile Stats Grid */}
           <div className="grid grid-cols-2 lg:hidden gap-3 w-full lg:w-auto">
-            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
+            <div key="stats-total" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
               <span className="text-lg md:text-2xl font-bold text-blue-500">{estadisticas.total || 0}</span>
               <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">Total</span>
             </div>
-            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
+            <div key="stats-disponibles" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
               <span className="text-lg md:text-2xl font-bold text-green-500">{estadisticas.disponibles || 0}</span>
               <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">Disponibles</span>
             </div>
-            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
+            <div key="stats-enRuta" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
               <span className="text-lg md:text-2xl font-bold text-blue-500">{estadisticas.enRuta || 0}</span>
               <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">En Ruta</span>
             </div>
-            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
+            <div key="stats-mantenimiento" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
               <span className="text-lg md:text-2xl font-bold text-orange-500">{estadisticas.enMantenimiento || 0}</span>
               <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">Mantenimiento</span>
             </div>
@@ -288,19 +288,19 @@ const Vehiculos = () => {
 
           {/* Desktop Stats */}
           <div className="hidden lg:flex gap-5">
-            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
+            <div key="stats-total-desktop" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
               <span className="text-2xl font-bold text-blue-500">{estadisticas.total || 0}</span>
               <span className="text-sm text-slate-500 dark:text-slate-300">Total</span>
             </div>
-            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
+            <div key="stats-disponibles-desktop" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
               <span className="text-2xl font-bold text-green-500">{estadisticas.disponibles || 0}</span>
               <span className="text-sm text-slate-500 dark:text-slate-300">Disponibles</span>
             </div>
-            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
+            <div key="stats-enRuta-desktop" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
               <span className="text-2xl font-bold text-blue-500">{estadisticas.enRuta || 0}</span>
               <span className="text-sm text-slate-500 dark:text-slate-300">En Ruta</span>
             </div>
-            <div className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
+            <div key="stats-mantenimiento-desktop" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 py-2 px-5 rounded-lg min-w-24">
               <span className="text-2xl font-bold text-orange-500">{estadisticas.enMantenimiento || 0}</span>
               <span className="text-sm text-slate-500 dark:text-slate-300">Mantenimiento</span>
             </div>
@@ -310,7 +310,7 @@ const Vehiculos = () => {
 
       {/* Filtros */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1 relative min-w-0">
+        <div key="filters-search" className="flex-1 relative min-w-0">
           <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -321,7 +321,7 @@ const Vehiculos = () => {
           />
         </div>
 
-        <div className="flex-1 relative min-w-0 md:max-w-48">
+        <div key="filters-select" className="flex-1 relative min-w-0 md:max-w-48">
           <FaFilter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" />
           <select
             value={filterStatus}
@@ -336,6 +336,7 @@ const Vehiculos = () => {
         </div>
 
         <button
+          key="filters-add-button"
           className="bg-blue-500 text-white border-none rounded-lg px-4 md:px-6 py-3 text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all duration-300 hover:bg-blue-600 hover:-translate-y-0.5 min-h-[48px] w-full md:w-auto"
           onClick={() => setShowAddModal(true)}
         >
@@ -360,7 +361,7 @@ const Vehiculos = () => {
                   {vehiculo.marVehiculo} {vehiculo.modVehiculo}
                 </h3>
                 <div className="flex items-center gap-2">
-                  <span className={`flex items-center gap-1 text-sm font-semibold py-1 px-3 rounded-full ${estadoInfo.color}`}>
+                  <span key={`status-${vehiculo.idVehiculo}`} className={`flex items-center gap-1 text-sm font-semibold py-1 px-3 rounded-full ${estadoInfo.color}`}>
                     {vehiculo.estVehiculo === 'DISPONIBLE' && <FaCheckCircle />}
                     {vehiculo.estVehiculo === 'EN_RUTA' && <FaRoad />}
                     {vehiculo.estVehiculo === 'EN_MANTENIMIENTO' && <FaCogs />}
@@ -368,6 +369,7 @@ const Vehiculos = () => {
                     {estadoInfo.label}
                   </span>
                   <select
+                    key={`select-${vehiculo.idVehiculo}`}
                     value={vehiculo.estVehiculo}
                     onChange={(e) => handleChangeStatus(vehiculo, e.target.value)}
                     className="text-xs border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded px-2 py-1"
@@ -476,7 +478,7 @@ const Vehiculos = () => {
             </h3>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="flex flex-col">
+              <div key="form-numero-interno" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Número Interno *</label>
                 <input
                   type="text"
@@ -487,7 +489,7 @@ const Vehiculos = () => {
                 />
               </div>
 
-              <div className="flex flex-col">
+              <div key="form-placa" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Placa *</label>
                 <input
                   type="text"
@@ -500,7 +502,7 @@ const Vehiculos = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="flex flex-col">
+              <div key="form-marca" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Marca *</label>
                 <input
                   type="text"
@@ -511,7 +513,7 @@ const Vehiculos = () => {
                 />
               </div>
 
-              <div className="flex flex-col">
+              <div key="form-modelo" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Modelo *</label>
                 <input
                   type="text"
@@ -524,7 +526,7 @@ const Vehiculos = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="flex flex-col">
+              <div key="form-anio" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Año *</label>
                 <input
                   type="number"
@@ -536,7 +538,7 @@ const Vehiculos = () => {
                 />
               </div>
 
-              <div className="flex flex-col">
+              <div key="form-estado" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Estado</label>
                 <select
                   value={newVehiculo.estVehiculo}
@@ -551,7 +553,7 @@ const Vehiculos = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="flex flex-col">
+              <div key="form-soat" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Vencimiento SOAT *</label>
                 <input
                   type="date"
@@ -562,7 +564,7 @@ const Vehiculos = () => {
                 />
               </div>
 
-              <div className="flex flex-col">
+              <div key="form-tecnica" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Vencimiento Técnica *</label>
                 <input
                   type="date"
@@ -621,7 +623,7 @@ const Vehiculos = () => {
             </h3>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="flex flex-col">
+              <div key="edit-form-numero-interno" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Número Interno *</label>
                 <input
                   type="text"
@@ -631,7 +633,7 @@ const Vehiculos = () => {
                 />
               </div>
 
-              <div className="flex flex-col">
+              <div key="edit-form-placa" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Placa *</label>
                 <input
                   type="text"
@@ -643,7 +645,7 @@ const Vehiculos = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="flex flex-col">
+              <div key="edit-form-marca" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Marca *</label>
                 <input
                   type="text"
@@ -653,7 +655,7 @@ const Vehiculos = () => {
                 />
               </div>
 
-              <div className="flex flex-col">
+              <div key="edit-form-modelo" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Modelo *</label>
                 <input
                   type="text"
@@ -665,7 +667,7 @@ const Vehiculos = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="flex flex-col">
+              <div key="edit-form-anio" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Año *</label>
                 <input
                   type="number"
@@ -677,7 +679,7 @@ const Vehiculos = () => {
                 />
               </div>
 
-              <div className="flex flex-col">
+              <div key="edit-form-estado" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Estado</label>
                 <select
                   value={editVehiculo.estVehiculo || ''}
@@ -692,7 +694,7 @@ const Vehiculos = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="flex flex-col">
+              <div key="edit-form-soat" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Vencimiento SOAT *</label>
                 <input
                   type="date"
@@ -702,7 +704,7 @@ const Vehiculos = () => {
                 />
               </div>
 
-              <div className="flex flex-col">
+              <div key="edit-form-tecnica" className="flex flex-col">
                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Vencimiento Técnica *</label>
                 <input
                   type="date"

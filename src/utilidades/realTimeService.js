@@ -32,7 +32,8 @@ class RealTimeService {
         auth: {
           token: localStorage.getItem('authToken'),
           userId: userContext?.idUsuario,
-          empresaId: userContext?.idEmpresa
+          empresaId: userContext?.idEmpresa,
+          rol: userContext?.rol || 'USER'
         }
       });
 
@@ -68,6 +69,17 @@ class RealTimeService {
         empresaId: this.userContext?.idEmpresa,
         timestamp: new Date()
       });
+    });
+
+    // Eventos de autenticación
+    this.socket.on('auth:success', (data) => {
+      console.log('✅ Autenticación exitosa:', data);
+      this.emit('auth:success', data);
+    });
+
+    this.socket.on('auth:error', (error) => {
+      console.error('❌ Error de autenticación:', error);
+      this.emit('auth:error', error);
     });
 
     // Evento de desconexión
@@ -180,7 +192,7 @@ class RealTimeService {
     console.log('🏠 Unido a salas:', {
       empresa: this.userContext.idEmpresa,
       usuario: this.userContext.idUsuario,
-      rol: this.userContext.rol
+      rol: this.userContext.rol || 'USER'
     });
   }
 
@@ -545,9 +557,113 @@ class RealTimeService {
       activeRooms: this.userContext ? [
         `empresa_${this.userContext.idEmpresa}`,
         `usuario_${this.userContext.idUsuario}`,
-        `rol_${this.userContext.rol}`
+        `rol_${this.userContext.rol || 'USER'}`
       ] : []
     };
+  }
+
+  /**
+   * Obtener estadísticas del servicio desde el backend
+   */
+  async getServiceStats() {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/realtime/stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error('Error al obtener estadísticas');
+      }
+    } catch (error) {
+      console.error('❌ Error obteniendo estadísticas:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Obtener clientes conectados desde el backend
+   */
+  async getConnectedClients() {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/realtime/clients`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error('Error al obtener clientes conectados');
+      }
+    } catch (error) {
+      console.error('❌ Error obteniendo clientes conectados:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Enviar notificación vía API REST
+   */
+  async sendNotificationViaAPI(targetType, targetId, event, data, priority = 'medium') {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/realtime/notifications`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          targetType,
+          targetId,
+          event,
+          data,
+          priority
+        })
+      });
+
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error('Error al enviar notificación');
+      }
+    } catch (error) {
+      console.error('❌ Error enviando notificación via API:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Obtener métricas de rendimiento
+   */
+  async getPerformanceMetrics() {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/realtime/metrics`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error('Error al obtener métricas');
+      }
+    } catch (error) {
+      console.error('❌ Error obteniendo métricas:', error);
+      return null;
+    }
   }
 }
 
@@ -555,3 +671,6 @@ class RealTimeService {
 const realTimeService = new RealTimeService();
 
 export default realTimeService;
+
+// Exportar también la clase para casos donde se necesite una instancia específica
+export { RealTimeService };
