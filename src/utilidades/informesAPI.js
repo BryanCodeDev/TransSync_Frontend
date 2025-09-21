@@ -1,4 +1,6 @@
-// api/informesAPI.js - Servicio específico para informes
+import { apiClient, apiUtils } from '../api/baseAPI';
+
+// utilidades/informesAPI.js - Servicio específico para informes
 export const informesAPI = {
   // Obtener informes generales
   getAll: async (filters = {}) => {

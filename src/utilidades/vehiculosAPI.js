@@ -15,8 +15,8 @@ const vehiculosAPI = {
       const vehiculos = response.data.map(vehiculo => ({
         ...vehiculo,
         estVehiculo: vehiculo.estVehiculo || 'DISPONIBLE',
-        lat: vehiculo.lat || 4.6482, // Coordenadas por defecto
-        lng: vehiculo.lng || -74.0648,
+        lat: vehiculo.lat,
+        lng: vehiculo.lng,
         speed: vehiculo.speed || 0,
         direction: vehiculo.direction || 0
       }));

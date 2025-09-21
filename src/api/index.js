@@ -1,10 +1,10 @@
-// api/index.js - Punto de entrada principal para todos los servicios de API
+s// api/index.js - Punto de entrada principal para todos los servicios de API
 import authAPI from '../utilidades/authAPI';
 import adminAPI from '../utilidades/adminAPI';
 import driversAPI from '../utilidades/driversAPI';
 import vehiculosAPI from '../utilidades/vehiculosAPI';
 import rutasAPI from '../utilidades/rutasAPI';
-import horariosAPI from '../utilidades/horariosAPI';
+import viajesAPI from '../utilidades/viajesAPI';
 import informesAPI from '../utilidades/informesAPI';
 import emergencyAPI from '../utilidades/emergencyAPI';
 import dashboardAPI from '../utilidades/dashboardAPI';
@@ -23,7 +23,7 @@ const API = {
   drivers: driversAPI,
   vehiculos: vehiculosAPI, // Actualizado
   rutas: rutasAPI,
-  horarios: horariosAPI,
+  viajes: viajesAPI,
   
   // Servicios de reportes y análisis
   informes: informesAPI,
@@ -70,7 +70,7 @@ export {
   driversAPI,
   vehiculosAPI, // Actualizado
   rutasAPI,
-  horariosAPI,
+  viajesAPI,
   informesAPI,
   emergencyAPI,
   dashboardAPI,

@@ -82,9 +82,11 @@ export const dashboardAPI = {
       return response.data;
     } catch (error) {
       console.error('Error obteniendo datos en tiempo real:', error);
-      // Retornar datos simulados si el endpoint no está disponible
+      // Retornar datos vacíos si el endpoint no está disponible
       return {
-        buses: [],
+        viajesEnCurso: 0,
+        alertasCriticas: 0,
+        timestamp: new Date().toISOString(),
         message: 'Datos en tiempo real no disponibles'
       };
     }

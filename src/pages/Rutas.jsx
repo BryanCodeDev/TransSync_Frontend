@@ -590,50 +590,52 @@ const InteractiveMap = () => {
             <RealTimeUpdater onRefresh={refreshRealTimeData} />
 
             {/* Rutas */}
-            {showRoutes && routes.map(route => (
-              <Polyline
-                key={route.idRuta}
-                positions={[
-                  [4.5981, -74.0758], // Simular coordenadas por ahora
-                  [4.6280, -74.0631],
-                  [4.6601, -74.0547],
-                  [4.7110, -74.0721]
-                ]}
-                color={route.estRuta === 'ACTIVA' ? '#6366f1' : '#ef4444'}
-                weight={selectedRoute?.idRuta === route.idRuta ? 6 : 4}
-                opacity={route.estRuta === 'ACTIVA' ? 0.8 : 0.4}
-                dashArray={route.estRuta === 'ACTIVA' ? null : "10, 10"}
-              >
-                <Popup>
-                  <div className="text-center">
-                    <h3 className="font-bold">{route.nomRuta}</h3>
-                    <div className="flex items-center gap-2 justify-center text-sm mt-1">
-                      <span className="flex items-center gap-1">
-                        <MapIcon className="w-3 h-3" />
-                        {route.distanciaKm ? `${route.distanciaKm} km` : 'N/A'}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {route.tiempoEstimadoMin ? `${Math.floor(route.tiempoEstimadoMin / 60)}h ${route.tiempoEstimadoMin % 60}min` : 'N/A'}
-                      </span>
+            {showRoutes && routes.map(route => {
+              // Usar coordenadas reales de la base de datos o coordenadas por defecto si no hay
+              const routePositions = route.coordenadasRuta ?
+                JSON.parse(route.coordenadasRuta) :
+                [[4.5981, -74.0758], [4.6280, -74.0631], [4.6601, -74.0547], [4.7110, -74.0721]];
+
+              return (
+                <Polyline
+                  key={route.idRuta}
+                  positions={routePositions}
+                  color={route.estRuta === 'ACTIVA' ? '#6366f1' : '#ef4444'}
+                  weight={selectedRoute?.idRuta === route.idRuta ? 6 : 4}
+                  opacity={route.estRuta === 'ACTIVA' ? 0.8 : 0.4}
+                  dashArray={route.estRuta === 'ACTIVA' ? null : "10, 10"}
+                >
+                  <Popup>
+                    <div className="text-center">
+                      <h3 className="font-bold">{route.nomRuta}</h3>
+                      <div className="flex items-center gap-2 justify-center text-sm mt-1">
+                        <span className="flex items-center gap-1">
+                          <MapIcon className="w-3 h-3" />
+                          {route.distanciaKm ? `${route.distanciaKm} km` : 'N/A'}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {route.tiempoEstimadoMin ? `${Math.floor(route.tiempoEstimadoMin / 60)}h ${route.tiempoEstimadoMin % 60}min` : 'N/A'}
+                        </span>
+                      </div>
+                      <p className="text-xs mt-1 flex items-center gap-1 justify-center">
+                        Estado: {route.estRuta === 'ACTIVA' ? (
+                          <span className="flex items-center gap-1 text-green-600">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            Activa
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-red-600">
+                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                            Inactiva
+                          </span>
+                        )}
+                      </p>
                     </div>
-                    <p className="text-xs mt-1 flex items-center gap-1 justify-center">
-                      Estado: {route.estRuta === 'ACTIVA' ? (
-                        <span className="flex items-center gap-1 text-green-600">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          Activa
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-red-600">
-                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                          Inactiva
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </Popup>
-              </Polyline>
-            ))}
+                  </Popup>
+                </Polyline>
+              );
+            })}
 
             {/* Paradas de Bus */}
             {showStops && stops.map(stop => (

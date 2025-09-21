@@ -1,50 +1,6 @@
 // api/authAPI.js - Servicio de autenticación integrado
-import axios from "axios";
-import { apiUtils } from '../api/baseAPI';
+import { apiClient, apiUtils } from '../api/baseAPI';
 
-// URL base para auth (puede ser diferente del base general)
-const AUTH_API_URL = "http://localhost:5000/api/auth";
-
-const authClient = axios.create({
-  baseURL: AUTH_API_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-});
-
-// Interceptor para manejo de errores específicos de auth
-authClient.interceptors.response.use(
-  (response) => {
-    // Logging en desarrollo
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ Auth Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-        status: response.status,
-        data: response.data
-      });
-    }
-    return response;
-  },
-  (error) => {
-    // Logging del error para depuración
-    console.error('❌ Auth Service Error:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      message: error.response?.data?.message || error.message
-    });
-
-    // Formatear el error para el frontend
-    const formattedError = {
-      message: error.response?.data?.message || error.message || "Error desconocido",
-      status: error.response?.status,
-      code: error.code,
-      response: error.response
-    };
-
-    return Promise.reject(formattedError);
-  }
-);
 
 const authAPI = {
   // ================================
@@ -63,7 +19,7 @@ const authAPI = {
       }
 
       // 2. Enviar el objeto userData COMPLETO al backend
-      const response = await authClient.post('/register', userData);
+      const response = await apiClient.post('/api/auth/register', userData);
 
       // 3. Devolver la respuesta del backend
       return response.data;
@@ -97,7 +53,7 @@ const authAPI = {
         throw new Error('Formato de email inválido');
       }
 
-      const response = await authClient.post('/login', {
+      const response = await apiClient.post('/api/auth/login', {
         email: email.trim().toLowerCase(),
         password: finalPassword
       });
@@ -131,7 +87,7 @@ const authAPI = {
         throw new Error('Token de verificación requerido');
       }
 
-      const response = await authClient.get(`/verify?token=${token}`);
+      const response = await apiClient.get(`/api/auth/verify?token=${token}`);
       return response.data;
     } catch (error) {
       if (error.status === 400 || error.response?.status === 400) {
@@ -159,7 +115,7 @@ const authAPI = {
         throw new Error('Por favor ingrese un correo electrónico válido');
       }
 
-      const response = await authClient.post('/forgot-password', {
+      const response = await apiClient.post('/api/auth/forgot-password', {
         email: email.trim().toLowerCase()
       });
       return response.data;
@@ -183,7 +139,7 @@ const authAPI = {
         throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
       }
 
-      const response = await authClient.post(`/reset-password?token=${token}`, {
+      const response = await apiClient.post(`/api/auth/reset-password?token=${token}`, {
         newPassword
       });
       return response.data;
@@ -207,7 +163,7 @@ const authAPI = {
     try {
       // Intentar logout en el servidor (opcional)
       try {
-        await authClient.post('/logout');
+        await apiClient.post('/api/auth/logout');
       } catch (error) {
         console.warn('Error en logout del servidor:', error);
       }
@@ -237,7 +193,7 @@ const authAPI = {
         throw new Error('Formato de email inválido');
       }
 
-      const response = await authClient.put('/profile', {
+      const response = await apiClient.put('/api/auth/profile', {
         name: name?.trim(),
         email: email?.trim().toLowerCase()
       });
@@ -276,7 +232,7 @@ const authAPI = {
         throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
       }
 
-      const response = await authClient.put('/change-password', {
+      const response = await apiClient.put('/api/auth/change-password', {
         currentPassword,
         newPassword
       });
@@ -421,7 +377,7 @@ const authAPI = {
       // Intentar tanto el endpoint de health específico como uno general
       let response;
       try {
-        response = await authClient.get('/health', { timeout: 5000 });
+        response = await apiClient.get('/api/auth/health', { timeout: 5000 });
       } catch (error) {
         // Fallback a health check general
         response = await fetch("http://localhost:5000/api/health", {

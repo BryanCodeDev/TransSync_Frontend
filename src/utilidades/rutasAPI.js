@@ -14,10 +14,7 @@ const rutasAPI = {
       // Adaptar la respuesta para que tenga la estructura esperada
       const rutas = response.data.map(ruta => ({
         ...ruta,
-        estRuta: 'ACTIVA', // Asumir todas activas por defecto
-        distanciaKm: null,
-        tiempoEstimadoMin: null,
-        tarifaRuta: null
+        estRuta: ruta.estRuta || 'ACTIVA'
       }));
       return { rutas };
     } catch (error) {
@@ -203,10 +200,7 @@ const rutasAPI = {
       // Adaptar la respuesta para que tenga la estructura esperada
       const rutas = response.data.map(ruta => ({
         ...ruta,
-        estRuta: 'ACTIVA', // Asumir todas activas por defecto
-        distanciaKm: null,
-        tiempoEstimadoMin: null,
-        tarifaRuta: null
+        estRuta: ruta.estRuta || 'ACTIVA'
       }));
       return { rutas };
     } catch (error) {
