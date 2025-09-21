@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { FaBus, FaCheckCircle, FaTimesCircle, FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaUser, FaExclamationTriangle, FaCogs, FaRoad } from "react-icons/fa";
 import vehiculosAPI from '../utilidades/vehiculosAPI';
 import { apiClient } from '../api/baseAPI';
-// import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/ThemeContext";
 
 const Vehiculos = () => {
-// const { theme } = useTheme();  <-- comentar o borrar
+  const { theme } = useTheme();
   const [vehiculos, setVehiculos] = useState([]);
   const [filteredVehiculos, setFilteredVehiculos] = useState([]);
   const [conductoresDisponibles, setConductoresDisponibles] = useState([]);
@@ -34,10 +34,10 @@ const Vehiculos = () => {
 
   // Estados de vehículos válidos según la base de datos
   const estadosVehiculo = [
-    { value: 'DISPONIBLE', label: 'Disponible', color: 'text-green-600 bg-green-50' },
-    { value: 'EN_RUTA', label: 'En Ruta', color: 'text-blue-600 bg-blue-50' },
-    { value: 'EN_MANTENIMIENTO', label: 'En Mantenimiento', color: 'text-orange-600 bg-orange-50' },
-    { value: 'FUERA_DE_SERVICIO', label: 'Fuera de Servicio', color: 'text-red-600 bg-red-50' }
+    { value: 'DISPONIBLE', label: 'Disponible', color: 'text-green-600 bg-green-50 dark:bg-green-900/30 dark:text-green-400' },
+    { value: 'EN_RUTA', label: 'En Ruta', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400' },
+    { value: 'EN_MANTENIMIENTO', label: 'En Mantenimiento', color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/30 dark:text-orange-400' },
+    { value: 'FUERA_DE_SERVICIO', label: 'Fuera de Servicio', color: 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400' }
   ];
 
   // Filtrar vehículos - usando useCallback para evitar recreación en cada render

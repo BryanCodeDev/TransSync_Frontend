@@ -24,15 +24,16 @@ import {
 } from 'react-icons/fa';
 import { getUserRole } from '../utilidades/authAPI';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../context/ThemeContext';
 
 const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isLoggedIn, user, userRole, logout: handleLogoutAuth, loading: authLoading } = useAuth();
+  const { theme, toggleTheme: toggleThemeContext } = useTheme();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [dark, setDark] = useState(localStorage.getItem("theme") === "dark");
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const userMenuRef = useRef(null);
@@ -121,28 +122,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   }, [isPublic, isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Manejo de modo oscuro con mejor detección inicial
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    // Si no hay tema guardado, usar preferencia del sistema
-    if (!savedTheme) {
-      setDark(prefersDark);
-    } else {
-      setDark(savedTheme === "dark");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [dark]);
 
   const handleLogout = async () => {
     if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
@@ -173,7 +152,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   };
 
   const toggleTheme = () => {
-    setDark(prev => !prev);
+    toggleThemeContext();
   };
 
   const toggleNotifications = () => {
@@ -418,9 +397,9 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
             <button
               onClick={toggleTheme}
               className="p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"
-              title={dark ? "Activar modo claro" : "Activar modo oscuro"}
+              title={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
             >
-              {dark ? (
+              {theme === "dark" ? (
                 <FaSun size={16} className="text-amber-500 group-hover:text-amber-600" />
               ) : (
                 <FaMoon size={16} className="text-indigo-600 group-hover:text-indigo-700" />

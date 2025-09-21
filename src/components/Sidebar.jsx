@@ -7,13 +7,14 @@ import {
   FaUserShield, FaCogs, FaUser
 } from "react-icons/fa";
 import { getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
+import { useTheme } from '../context/ThemeContext';
 
 const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState('');
-  const [dark] = useState(localStorage.getItem("theme") === "dark"); // 👈 Estado modo oscuro
+  const { theme } = useTheme(); // 👈 Usar ThemeContext
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -66,16 +67,6 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     }
   }, [isMobile, isTablet, isOpen]);
 
-  // 👇 Manejo de modo oscuro
-  useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [dark]);
 
   const handleLogout = async () => {
     if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
@@ -228,7 +219,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         className={`
           fixed left-0 top-16 h-[calc(100vh-64px)] z-[999]
           flex flex-col shadow-2xl transition-all duration-300 ease-in-out
-          ${dark
+          ${theme === "dark"
             ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-gray-100 before:from-black/10"
             : "bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] text-white before:from-white/5"}
           before:absolute before:inset-0 before:bg-gradient-to-r before:to-transparent before:pointer-events-none
@@ -241,8 +232,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         aria-label="Navegación principal"
       >
         {/* Header del sidebar */}
-        <div className={`relative p-4 border-b min-h-[70px] flex items-center justify-between backdrop-blur-sm 
-          ${dark ? "border-gray-700" : "border-white/20"}`}>
+        <div className={`relative p-4 border-b min-h-[70px] flex items-center justify-between backdrop-blur-sm
+          ${theme === "dark" ? "border-gray-700" : "border-white/20"}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative">
               <img 
@@ -253,14 +244,14 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                   e.target.style.display = 'none';
                 }}
               />
-              <div className={`absolute -inset-1 rounded-full blur opacity-50 ${dark ? "bg-gray-700" : "bg-white/20"}`} />
+              <div className={`absolute -inset-1 rounded-full blur opacity-50 ${theme === "dark" ? "bg-gray-700" : "bg-white/20"}`} />
             </div>
             {(isOpen || (!isMobile && !isTablet)) && (
               <div className={`flex flex-col transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
                 <span className="text-xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent whitespace-nowrap">
                   TransSync
                 </span>
-                <span className={`text-xs ${dark ? "text-gray-400" : "text-blue-200 opacity-80"}`}>
+                <span className={`text-xs ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`}>
                   Sistema de Gestión
                 </span>
               </div>
@@ -270,7 +261,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
           {!isMobile && !isTablet && (
             <button
               className={`border-none cursor-pointer w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110 active:scale-95 backdrop-blur-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50
-              ${dark ? "bg-gray-700 hover:bg-gray-600 text-gray-200" : "bg-white/10 hover:bg-white/20 text-white"}`}
+              ${theme === "dark" ? "bg-gray-700 hover:bg-gray-600 text-gray-200" : "bg-white/10 hover:bg-white/20 text-white"}`}
               onClick={toggleSidebar}
               aria-label={isOpen ? "Contraer menú lateral" : "Expandir menú lateral"}
               aria-expanded={isOpen}
@@ -291,10 +282,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         </div>
 
         {/* Perfil de usuario */}
-        <div className={`p-4 border-b backdrop-blur-sm ${dark ? "border-gray-700" : "border-white/20"}`}>
+        <div className={`p-4 border-b backdrop-blur-sm ${theme === "dark" ? "border-gray-700" : "border-white/20"}`}>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-lg ring-2 ${dark ? "ring-gray-700" : "ring-white/20"}`}>
+              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-lg ring-2 ${theme === "dark" ? "ring-gray-700" : "ring-white/20"}`}>
                 {currentUser ? (
                   <span className="text-white font-bold text-sm">
                     {getUserInitials()}
@@ -307,14 +298,14 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
             </div>
             {(isOpen || (!isMobile && !isTablet)) && (
               <div className={`flex-1 min-w-0 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                <h4 className={`text-sm font-semibold truncate ${dark ? "text-gray-100" : "text-white"}`} title={getDisplayName()}>
+                <h4 className={`text-sm font-semibold truncate ${theme === "dark" ? "text-gray-100" : "text-white"}`} title={getDisplayName()}>
                   {getDisplayName()}
                 </h4>
-                <p className={`text-xs truncate ${dark ? "text-gray-400" : "text-blue-200 opacity-80"}`} title={formatUserRole(userRole)}>
+                <p className={`text-xs truncate ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`} title={formatUserRole(userRole)}>
                   {formatUserRole(userRole)}
                 </p>
                 {currentUser?.email && (
-                  <p className={`text-xs truncate mt-0.5 ${dark ? "text-gray-500" : "text-blue-300 opacity-60"}`} title={currentUser.email}>
+                  <p className={`text-xs truncate mt-0.5 ${theme === "dark" ? "text-gray-500" : "text-blue-300 opacity-60"}`} title={currentUser.email}>
                     {currentUser.email}
                   </p>
                 )}
@@ -346,18 +337,18 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                         flex items-center no-underline rounded-xl
                         transition-all duration-300 ease-in-out
                         hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]
-                        ${isActive 
-                          ? dark 
-                            ? "bg-gray-700 text-gray-100 font-semibold shadow-lg backdrop-blur-sm" 
-                            : "bg-white/20 shadow-lg backdrop-blur-sm text-blue-100 font-semibold" 
-                          : dark 
-                            ? "text-gray-300 hover:bg-gray-700 hover:text-gray-100" 
+                        ${isActive
+                          ? theme === "dark"
+                            ? "bg-gray-700 text-gray-100 font-semibold shadow-lg backdrop-blur-sm"
+                            : "bg-white/20 shadow-lg backdrop-blur-sm text-blue-100 font-semibold"
+                          : theme === "dark"
+                            ? "text-gray-300 hover:bg-gray-700 hover:text-gray-100"
                             : "text-white/90 hover:bg-white/10 hover:text-white"}
                         ${(isOpen || (!isMobile && !isTablet)) ? 'p-3 justify-start' : 'p-3 justify-center'}
                       `}
                       onClick={handleLinkClick}
                     >
-                      <div className={`flex items-center justify-center text-lg ${(isOpen || (!isMobile && !isTablet)) ? 'w-6 mr-4' : 'w-6'} ${isActive ? (dark ? "text-gray-200" : "text-blue-200") : ""}`}>
+                      <div className={`flex items-center justify-center text-lg ${(isOpen || (!isMobile && !isTablet)) ? 'w-6 mr-4' : 'w-6'} ${isActive ? (theme === "dark" ? "text-gray-200" : "text-blue-200") : ""}`}>
                         {icon}
                       </div>
                       {(isOpen || (!isMobile && !isTablet)) && (
@@ -371,12 +362,12 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
               })}
             </div>
           ) : (
-            <div className={`p-4 text-center text-sm ${dark ? "text-gray-400" : "text-blue-200"}`}>Sin permisos de acceso</div>
+            <div className={`p-4 text-center text-sm ${theme === "dark" ? "text-gray-400" : "text-blue-200"}`}>Sin permisos de acceso</div>
           )}
         </nav>
 
         {/* Footer del sidebar */}
-        <div className={`p-4 mt-auto backdrop-blur-sm space-y-3 ${dark ? "border-t border-gray-700" : "border-t border-white/20"}`}>
+        <div className={`p-4 mt-auto backdrop-blur-sm space-y-3 ${theme === "dark" ? "border-t border-gray-700" : "border-t border-white/20"}`}>
           {/* Botón modo oscuro */}
           {/* <button
             onClick={() => setDark(!dark)}
@@ -406,12 +397,12 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
           <button 
             onClick={handleLogout} 
             className={`
-              flex items-center w-full rounded-xl cursor-pointer 
+              flex items-center w-full rounded-xl cursor-pointer
               transition-all duration-300 ease-in-out
               text-sm font-medium shadow-lg hover:shadow-xl
               hover:scale-105 active:scale-95
-              ${dark 
-                ? "bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white" 
+              ${theme === "dark"
+                ? "bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white"
                 : "bg-gradient-to-r from-[#c62828] to-[#d32f2f] hover:from-[#b71c1c] hover:to-[#c62828] text-white"}
               ${(isOpen || (!isMobile && !isTablet)) ? 'p-3 justify-start' : 'p-3 justify-center'}
             `}

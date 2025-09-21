@@ -2,28 +2,30 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import chatbotAPI from '../utilidades/chatbotAPI';
 import conversationMemory from '../utilidades/conversationMemory';
 import realTimeService from '../utilidades/realTimeService';
+import { useTheme } from '../context/ThemeContext'; // 👈 Importar useTheme
 
 // Componente Button con paleta uniforme y modo oscuro
-const Button = ({ 
-  children, 
-  onClick, 
-  variant = "primary", 
-  size = "medium", 
-  className = "",
-  disabled = false,
-  dark = false,
-  ...props 
+const Button = ({
+children,
+onClick,
+variant = "primary",
+size = "medium",
+className = "",
+disabled = false,
+dark = false,
+...props
 }) => {
+const { theme: appTheme } = useTheme();
   const baseClasses = "font-semibold rounded-lg transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants = {
-    primary: dark 
+    primary: appTheme === "dark"
       ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500 focus:ring-opacity-50 shadow-sm hover:shadow-md"
       : "bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white hover:from-[#0d1642] hover:to-[#283593] focus:ring-[#3949ab] focus:ring-opacity-50 shadow-sm hover:shadow-md",
-    secondary: dark
+    secondary: appTheme === "dark"
       ? "bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800 focus:ring-gray-500 focus:ring-opacity-50 shadow-sm hover:shadow-md"
       : "bg-gradient-to-r from-[#283593] to-[#3949ab] text-white hover:from-[#1a237e] hover:to-[#283593] focus:ring-[#283593] focus:ring-opacity-50 shadow-sm hover:shadow-md",
-    outline: dark
+    outline: appTheme === "dark"
       ? "bg-transparent border-2 border-blue-500 text-blue-400 hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white focus:ring-blue-500 focus:ring-opacity-50"
       : "bg-transparent border-2 border-[#1a237e] text-[#1a237e] hover:bg-gradient-to-r hover:from-[#1a237e] hover:to-[#3949ab] hover:text-white focus:ring-[#1a237e] focus:ring-opacity-50"
   };
@@ -61,7 +63,7 @@ const ChatBot = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('unknown');
   const [userContext, setUserContext] = useState(null);
-  const [dark, setDark] = useState(localStorage.getItem("theme") === "dark"); // Estado modo oscuro
+  const { theme: appTheme } = useTheme();
   const [realTimeNotifications, setRealTimeNotifications] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const [quietMode, setQuietMode] = useState(() => {
@@ -71,32 +73,6 @@ const ChatBot = ({
   });
   const messagesEndRef = useRef(null);
   
-  // Detectar cambios en el tema del sistema
-  useEffect(() => {
-    const handleThemeChange = () => {
-      const isDark = localStorage.getItem("theme") === "dark" || 
-                     document.documentElement.classList.contains("dark");
-      setDark(isDark);
-    };
-
-    // Escuchar cambios en localStorage
-    window.addEventListener('storage', handleThemeChange);
-    
-    // Observer para cambios en la clase dark del documento
-    const observer = new MutationObserver(() => {
-      handleThemeChange();
-    });
-    
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => {
-      window.removeEventListener('storage', handleThemeChange);
-      observer.disconnect();
-    };
-  }, []);
   
   useEffect(() => {
     // Obtener contexto del usuario al inicializar
@@ -353,12 +329,12 @@ const ChatBot = ({
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: ${dark ? 'rgba(156, 163, 175, 0.3)' : 'rgba(26, 35, 126, 0.3)'};
+          background: ${appTheme === "dark" ? 'rgba(156, 163, 175, 0.3)' : 'rgba(26, 35, 126, 0.3)'};
           border-radius: 3px;
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: ${dark ? 'rgba(156, 163, 175, 0.6)' : 'rgba(26, 35, 126, 0.6)'};
+          background: ${appTheme === "dark" ? 'rgba(156, 163, 175, 0.6)' : 'rgba(26, 35, 126, 0.6)'};
         }
         
         /* Estilos para mensajes formateados */
@@ -368,7 +344,7 @@ const ChatBot = ({
         
         .formatted-message strong {
           font-weight: 600;
-          color: ${dark ? '#60a5fa' : '#1a237e'};
+          color: ${appTheme === "dark" ? '#60a5fa' : '#1a237e'};
         }
         
         .formatted-message em {
@@ -385,7 +361,7 @@ const ChatBot = ({
         existingStyle.remove();
       }
     };
-  }, [dark]);
+  }, [appTheme]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -588,25 +564,25 @@ const ChatBot = ({
       timestamp: 'text-gray-400'
     },
     professional: {
-      window: dark 
+      window: appTheme === "dark"
         ? 'bg-gray-900 text-gray-100 border border-gray-700 shadow-2xl'
         : 'bg-white text-slate-800 border border-slate-200 shadow-2xl',
-      header: dark
+      header: appTheme === "dark"
         ? 'bg-gradient-to-r from-gray-800 to-gray-700 text-white'
         : 'bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white',
-      botBubble: dark
+      botBubble: appTheme === "dark"
         ? 'bg-gray-800 text-gray-100 border border-gray-700 shadow-sm'
         : 'bg-slate-50 text-slate-800 border border-slate-100 shadow-sm',
-      userBubble: dark
+      userBubble: appTheme === "dark"
         ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-sm'
         : 'bg-gradient-to-r from-[#283593] to-[#3949ab] text-white shadow-sm',
-      input: dark
+      input: appTheme === "dark"
         ? 'bg-gray-800 border-gray-600 text-gray-100 focus:border-blue-500'
         : 'bg-white border-slate-200 text-slate-800 focus:border-[#3949ab]',
-      inputArea: dark
+      inputArea: appTheme === "dark"
         ? 'border-gray-700 bg-gray-800'
         : 'border-slate-100 bg-slate-50',
-      timestamp: dark ? 'text-gray-400' : 'text-slate-500'
+      timestamp: appTheme === "dark" ? 'text-gray-400' : 'text-slate-500'
     }
   };
 
@@ -648,21 +624,21 @@ const ChatBot = ({
   return (
     <div className={`fixed z-[9999] ${getPositionClasses()}`}>
       {!isOpen ? (
-        <button 
+        <button
           className={`
             relative group
-            ${dark 
+            ${appTheme === "dark"
               ? 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500'
               : 'bg-gradient-to-r from-[#1a237e] to-[#3949ab] hover:from-[#0d1642] hover:to-[#283593]'
             }
-            text-white border-none rounded-full 
-            w-16 h-16 flex items-center justify-center cursor-pointer 
+            text-white border-none rounded-full
+            w-16 h-16 flex items-center justify-center cursor-pointer
             shadow-lg hover:shadow-xl
             transition-all duration-300 ease-out
-            hover:scale-110 
-            focus:outline-none focus:ring-4 ${dark ? 'focus:ring-blue-500' : 'focus:ring-[#3949ab]'} focus:ring-opacity-50
+            hover:scale-110
+            focus:outline-none focus:ring-4 ${appTheme === "dark" ? 'focus:ring-blue-500' : 'focus:ring-[#3949ab]'} focus:ring-opacity-50
             max-sm:w-14 max-sm:h-14
-            ${dark ? 'chat-button-pulse-dark' : 'chat-button-pulse'}
+            ${appTheme === "dark" ? 'chat-button-pulse-dark' : 'chat-button-pulse'}
           `}
           onClick={toggleChat}
           aria-label="Abrir chat de asistencia"
@@ -700,7 +676,7 @@ const ChatBot = ({
           
           {/* Tooltip simplificado */}
           <div className={`absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-3 py-2 ${
-            dark ? 'bg-gray-800 border border-gray-600' : 'bg-[#1a237e] border border-white/20'
+            appTheme === "dark" ? 'bg-gray-800 border border-gray-600' : 'bg-[#1a237e] border border-white/20'
           } text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none`}>
             <div className="text-center">
               <div className="font-semibold">🤖 Asistente TransSync</div>
@@ -718,7 +694,7 @@ const ChatBot = ({
               )}
             </div>
             <div className={`absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent ${
-              dark ? 'border-t-gray-800' : 'border-t-[#1a237e]'
+              appTheme === "dark" ? 'border-t-gray-800' : 'border-t-[#1a237e]'
             }`}></div>
           </div>
         </button>
@@ -800,7 +776,7 @@ const ChatBot = ({
                   >
                     {msg.sender === 'bot' && (
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-sm ${
-                        msg.isError ? 'bg-red-500' : dark 
+                        msg.isError ? 'bg-red-500' : appTheme === "dark"
                           ? 'bg-gradient-to-br from-blue-600 to-blue-700'
                           : 'bg-gradient-to-br from-[#1a237e] to-[#3949ab]'
                       }`}>
@@ -814,8 +790,8 @@ const ChatBot = ({
                     
                     <div className={`
                       px-4 py-3 rounded-2xl max-w-[80%] break-words relative
-                      ${msg.sender === 'bot' 
-                        ? `${msg.isError ? (dark ? 'bg-red-900 border-red-700 text-red-200' : 'bg-red-50 border-red-200 text-red-800') : currentTheme.botBubble} rounded-bl-md` 
+                      ${msg.sender === 'bot'
+                        ? `${msg.isError ? (appTheme === "dark" ? 'bg-red-900 border-red-700 text-red-200' : 'bg-red-50 border-red-200 text-red-800') : currentTheme.botBubble} rounded-bl-md`
                         : `${currentTheme.userBubble} rounded-br-md`
                       }
                     `}>
@@ -837,7 +813,7 @@ const ChatBot = ({
                         {formatTimestamp(msg.timestamp)}
                         {msg.intencion && (
                           <span className={`text-xs px-1 rounded ${
-                            dark ? 'bg-white bg-opacity-20' : 'bg-black bg-opacity-10'
+                            appTheme === "dark" ? 'bg-white bg-opacity-20' : 'bg-black bg-opacity-10'
                           }`}>
                             {msg.intencion}
                           </span>
@@ -853,7 +829,7 @@ const ChatBot = ({
                         )}
                         {msg.tiempoProcesamiento && (
                           <span className={`text-xs px-1 rounded ${
-                            dark ? 'bg-blue-500 bg-opacity-20 text-blue-300' : 'bg-blue-500 bg-opacity-20 text-blue-700'
+                            appTheme === "dark" ? 'bg-blue-500 bg-opacity-20 text-blue-300' : 'bg-blue-500 bg-opacity-20 text-blue-700'
                           }`}>
                             {msg.tiempoProcesamiento}ms
                           </span>
@@ -863,7 +839,7 @@ const ChatBot = ({
                     
                     {msg.sender === 'user' && (
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-sm ${
-                        dark 
+                        appTheme === "dark"
                           ? 'bg-gradient-to-br from-blue-600 to-blue-700'
                           : 'bg-gradient-to-br from-[#283593] to-[#3949ab]'
                       }`}>
@@ -880,7 +856,7 @@ const ChatBot = ({
                 {isTyping && (
                   <div className="flex items-end space-x-2 message-fade-in">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm shadow-sm ${
-                      dark 
+                      appTheme === "dark"
                         ? 'bg-gradient-to-br from-blue-600 to-blue-700'
                         : 'bg-gradient-to-br from-[#1a237e] to-[#3949ab]'
                     }`}>
@@ -889,13 +865,13 @@ const ChatBot = ({
                     <div className={`px-4 py-3 rounded-2xl rounded-bl-md ${currentTheme.botBubble}`}>
                       <div className="flex items-center space-x-1">
                         <span className={`w-2 h-2 rounded-full inline-block typing-dot ${
-                          dark ? 'bg-blue-500' : 'bg-[#3949ab]'
+                          appTheme === "dark" ? 'bg-blue-500' : 'bg-[#3949ab]'
                         }`}></span>
                         <span className={`w-2 h-2 rounded-full inline-block typing-dot ${
-                          dark ? 'bg-blue-500' : 'bg-[#3949ab]'
+                          appTheme === "dark" ? 'bg-blue-500' : 'bg-[#3949ab]'
                         }`}></span>
                         <span className={`w-2 h-2 rounded-full inline-block typing-dot ${
-                          dark ? 'bg-blue-500' : 'bg-[#3949ab]'
+                          appTheme === "dark" ? 'bg-blue-500' : 'bg-[#3949ab]'
                         }`}></span>
                       </div>
                     </div>
@@ -913,8 +889,8 @@ const ChatBot = ({
                       className={`
                         w-full px-4 py-3 border rounded-xl text-sm outline-none resize-none
                         transition-all duration-200 ease-in-out
-                        focus:ring-2 ${dark ? 'focus:ring-blue-500' : 'focus:ring-[#3949ab]'} focus:ring-opacity-50
-                        ${dark ? 'placeholder-gray-500' : 'placeholder-gray-400'}
+                        focus:ring-2 ${appTheme === "dark" ? 'focus:ring-blue-500' : 'focus:ring-[#3949ab]'} focus:ring-opacity-50
+                        ${appTheme === "dark" ? 'placeholder-gray-500' : 'placeholder-gray-400'}
                         ${currentTheme.input}
                       `}
                       placeholder="Pregúntame sobre conductores, vehículos, rutas... (Enter para enviar)"
@@ -926,13 +902,13 @@ const ChatBot = ({
                       disabled={isTyping || connectionStatus === 'disconnected'}
                     />
                   </div>
-                  <Button 
+                  <Button
                     variant="primary"
                     size="medium"
                     onClick={handleSendMessage}
                     disabled={!inputText.trim() || isTyping || connectionStatus === 'disconnected'}
                     className="px-4 py-3 rounded-xl font-semibold shadow-sm hover:shadow-md transition-all duration-200"
-                    dark={dark}
+                    dark={appTheme === "dark"}
                   >
                     <span className="max-sm:hidden">Enviar</span>
                     <span className="sm:hidden">📤</span>
@@ -948,7 +924,7 @@ const ChatBot = ({
                         onClick={() => handleSuggestionClick(sugerencia)}
                         disabled={connectionStatus === 'disconnected'}
                         className={`px-3 py-1 text-xs rounded-full transition-colors duration-200 border disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 ${
-                          dark
+                          appTheme === "dark"
                             ? 'bg-gradient-to-r from-blue-600/10 to-blue-700/10 text-blue-400 hover:from-blue-600/20 hover:to-blue-700/20 border-blue-500/30'
                             : 'bg-gradient-to-r from-[#1a237e]/10 to-[#3949ab]/10 text-[#1a237e] hover:from-[#1a237e]/20 hover:to-[#3949ab]/20 border-[#3949ab]/30'
                         }`}
@@ -963,19 +939,19 @@ const ChatBot = ({
                 {/* Indicador de estado de conexión */}
                 {connectionStatus === 'disconnected' && (
                   <div className={`mt-3 p-2 rounded-lg flex items-center gap-2 ${
-                    dark 
-                      ? 'bg-red-900/50 border border-red-700/50' 
+                    appTheme === "dark"
+                      ? 'bg-red-900/50 border border-red-700/50'
                       : 'bg-red-50 border border-red-200'
                   }`}>
                     <span className="text-red-500">⚠️</span>
-                    <span className={`text-xs ${dark ? 'text-red-300' : 'text-red-700'}`}>
+                    <span className={`text-xs ${appTheme === "dark" ? 'text-red-300' : 'text-red-700'}`}>
                       Sin conexión al servidor. Verifica tu internet y reintenta.
                     </span>
-                    <button 
+                    <button
                       onClick={verificarConexion}
                       className={`text-xs underline transition-colors ${
-                        dark 
-                          ? 'text-red-400 hover:text-red-300' 
+                        appTheme === "dark"
+                          ? 'text-red-400 hover:text-red-300'
                           : 'text-red-600 hover:text-red-800'
                       }`}
                     >
@@ -987,11 +963,11 @@ const ChatBot = ({
                 {/* Controles de notificaciones en tiempo real */}
                 {realTimeNotifications.length > 0 && (
                   <div className={`mt-3 p-2 rounded-lg ${
-                    dark ? 'bg-blue-900/30 border border-blue-700/50' : 'bg-blue-50 border border-blue-200'
+                    appTheme === "dark" ? 'bg-blue-900/30 border border-blue-700/50' : 'bg-blue-50 border border-blue-200'
                   }`}>
                     <div className="flex items-center justify-between mb-2">
                       <span className={`text-sm font-medium ${
-                        dark ? 'text-blue-300' : 'text-blue-700'
+                        appTheme === "dark" ? 'text-blue-300' : 'text-blue-700'
                       }`}>
                         🔔 {realTimeNotifications.length} notificación(es) en tiempo real
                       </span>
@@ -999,7 +975,7 @@ const ChatBot = ({
                         <button
                           onClick={viewAllNotifications}
                           className={`text-xs px-2 py-1 rounded ${
-                            dark ? 'bg-blue-700 hover:bg-blue-600 text-blue-100' : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            appTheme === "dark" ? 'bg-blue-700 hover:bg-blue-600 text-blue-100' : 'bg-blue-600 hover:bg-blue-700 text-white'
                           } transition-colors`}
                         >
                           Ver todas
@@ -1007,14 +983,14 @@ const ChatBot = ({
                         <button
                           onClick={clearNotifications}
                           className={`text-xs px-2 py-1 rounded ${
-                            dark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-600 hover:bg-gray-700 text-white'
+                            appTheme === "dark" ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-600 hover:bg-gray-700 text-white'
                           } transition-colors`}
                         >
                           Limpiar
                         </button>
                       </div>
                     </div>
-                    <div className={`text-xs ${dark ? 'text-blue-200' : 'text-blue-600'}`}>
+                    <div className={`text-xs ${appTheme === "dark" ? 'text-blue-200' : 'text-blue-600'}`}>
                       Última: {realTimeNotifications[0]?.title}
                     </div>
                   </div>
@@ -1023,7 +999,7 @@ const ChatBot = ({
                 {/* Información del usuario (opcional) */}
                 {userContext && userContext.esUsuarioAutenticado && (
                   <div className={`mt-2 text-xs text-center ${
-                    dark ? 'text-gray-400' : 'text-gray-600'
+                    appTheme === "dark" ? 'text-gray-400' : 'text-gray-600'
                   } opacity-70`}>
                     Conectado como {userContext.nombreUsuario} • {userContext.empresa}
                   </div>
