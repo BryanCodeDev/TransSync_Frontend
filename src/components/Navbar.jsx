@@ -335,12 +335,12 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   // Mostrar indicador de carga mientras se verifica la autenticación
   if (authLoading) {
     return (
-      <nav className="fixed top-0 left-0 right-0 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg border-b border-gray-200/50 dark:border-gray-700">
+      <nav className="fixed top-0 left-0 right-0 z-[1000] bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-xl shadow-lg border-b border-border-light/50 dark:border-border-dark">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-16">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Verificando sesión...</span>
+              <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark">Verificando sesión...</span>
             </div>
           </div>
         </div>
@@ -351,8 +351,8 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-300 ${
       isScrolled
-        ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-lg border-b border-gray-200/50 dark:border-gray-700'
-        : 'bg-gradient-to-r from-white/95 via-blue-50/30 to-indigo-50/20 dark:from-gray-900/90 dark:via-gray-800/90 dark:to-gray-900/90 backdrop-blur-md shadow-sm border-b border-gray-200/30 dark:border-gray-700'
+        ? 'bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-xl shadow-lg border-b border-border-light/50 dark:border-border-dark'
+        : 'bg-gradient-to-r from-background-light/95 via-primary-50/30 to-primary-100/20 dark:from-background-dark/90 dark:via-surface-dark/90 dark:to-background-dark/90 backdrop-blur-md shadow-sm border-b border-border-light/30 dark:border-border-dark'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -361,7 +361,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
             {!isPublic && isMobile && (
               <button
                 onClick={toggleSidebar}
-                className="p-2 rounded-xl text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+                className="p-2 rounded-xl text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-600 dark:hover:text-white hover:bg-primary-50/80 dark:hover:bg-surface-dark/50 transition-all duration-200 group border border-transparent hover:border-primary-200/50 dark:hover:border-border-dark focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50"
                 aria-label="Abrir menú de navegación"
                 aria-expanded={false}
                 aria-controls="sidebar-navigation"
@@ -385,8 +385,8 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-[#1a237e] dark:to-[#3949ab] bg-clip-text text-transparent">TransSync</span>
-                <span className="text-xs text-slate-500 dark:text-gray-400 -mt-1 opacity-80">Transport Management</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 dark:from-primary-800 dark:to-primary-700 bg-clip-text text-transparent">TransSync</span>
+                <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark -mt-1 opacity-80">Transport Management</span>
               </div>
             </Link>
           </div>

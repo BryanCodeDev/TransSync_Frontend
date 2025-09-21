@@ -27,45 +27,45 @@ const Button = ({
   
   const variantClasses = {
     primary: `
-      bg-gradient-to-r from-[#1a237e] to-[#3949ab] text-white border border-[#3949ab]
-      hover:from-[#0d1642] hover:to-[#283593] hover:border-[#283593] hover:-translate-y-0.5 
+      bg-gradient-to-r from-primary-800 to-primary-700 text-white border border-primary-700
+      hover:from-primary-900 hover:to-primary-800 hover:border-primary-800 hover:-translate-y-0.5
       hover:shadow-[0_4px_12px_rgba(26,35,126,0.3)]
-      focus:ring-[#3949ab] focus:ring-opacity-50
+      focus:ring-primary-700 focus:ring-opacity-50
     `,
     secondary: `
-      bg-gradient-to-r from-[#283593] to-[#3949ab] text-white border border-[#3949ab]
-      hover:from-[#1a237e] hover:to-[#283593] hover:border-[#1a237e] hover:-translate-y-0.5 
+      bg-gradient-to-r from-primary-700 to-primary-600 text-white border border-primary-600
+      hover:from-primary-800 hover:to-primary-700 hover:border-primary-800 hover:-translate-y-0.5
       hover:shadow-[0_4px_12px_rgba(40,53,147,0.3)]
-      focus:ring-[#283593] focus:ring-opacity-50
+      focus:ring-primary-700 focus:ring-opacity-50
     `,
     outline: `
-      bg-transparent text-[#1a237e] border border-[#1a237e]
-      hover:bg-gradient-to-r hover:from-[#1a237e] hover:to-[#3949ab] hover:text-white hover:border-[#3949ab]
+      bg-transparent text-primary-800 border border-primary-800
+      hover:bg-gradient-to-r hover:from-primary-800 hover:to-primary-700 hover:text-white hover:border-primary-700
       hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(26,35,126,0.15)]
-      focus:ring-[#1a237e] focus:ring-opacity-50
+      focus:ring-primary-800 focus:ring-opacity-50
     `,
     danger: `
-      bg-gradient-to-r from-[#c62828] to-[#d32f2f] text-white border border-[#d32f2f]
-      hover:from-[#b71c1c] hover:to-[#c62828] hover:border-[#b71c1c] hover:-translate-y-0.5 
+      bg-gradient-to-r from-error-600 to-error-500 text-white border border-error-500
+      hover:from-error-700 hover:to-error-600 hover:border-error-700 hover:-translate-y-0.5
       hover:shadow-[0_4px_12px_rgba(198,40,40,0.3)]
-      focus:ring-[#c62828] focus:ring-opacity-50
+      focus:ring-error-600 focus:ring-opacity-50
     `,
     success: `
-      bg-gradient-to-r from-[#2e7d32] to-[#388e3c] text-white border border-[#388e3c]
-      hover:from-[#1b5e20] hover:to-[#2e7d32] hover:border-[#1b5e20] hover:-translate-y-0.5 
+      bg-gradient-to-r from-success-600 to-success-500 text-white border border-success-500
+      hover:from-success-700 hover:to-success-600 hover:border-success-700 hover:-translate-y-0.5
       hover:shadow-[0_4px_12px_rgba(46,125,50,0.3)]
-      focus:ring-[#2e7d32] focus:ring-opacity-50
+      focus:ring-success-600 focus:ring-opacity-50
     `,
     white: `
-      bg-white text-[#1a237e] border border-gray-200
-      hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 hover:border-[#283593] hover:-translate-y-0.5 
+      bg-background-light text-primary-800 border border-border-light
+      hover:bg-gradient-to-r hover:from-surface-light hover:to-surface-light hover:border-primary-700 hover:-translate-y-0.5
       hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]
-      focus:ring-[#1a237e] focus:ring-opacity-50
+      focus:ring-primary-800 focus:ring-opacity-50
     `,
     ghost: `
-      bg-transparent text-[#283593] border border-transparent
-      hover:bg-gradient-to-r hover:from-[#1a237e]/5 hover:to-[#3949ab]/5 hover:text-[#1a237e]
-      focus:ring-[#283593] focus:ring-opacity-50
+      bg-transparent text-primary-700 border border-transparent
+      hover:bg-gradient-to-r hover:from-primary-800/5 hover:to-primary-700/5 hover:text-primary-800
+      focus:ring-primary-700 focus:ring-opacity-50
     `
   };
   

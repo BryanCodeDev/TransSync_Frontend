@@ -62,7 +62,7 @@ const ProtectedLayout = ({ children }) => {
   const paddingLeft = !isMobile && sidebarOpen ? 'pl-[280px]' : 'pl-0 md:pl-[70px]';
 
   return (
-    <div className="relative min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="relative min-h-screen bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark">
       <Toaster position="top-right" toastOptions={{ style: { background: '#374151', color: '#F9FAFB' } }}/>
       <Navbar toggleSidebar={toggleSidebar} isMobile={isMobile}/>
 
@@ -86,7 +86,7 @@ const ProtectedLayout = ({ children }) => {
 
 const PublicLayout = ({ children }) => {
   return (
-    <div className="relative min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="relative min-h-screen bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark">
       <Toaster position="top-right" toastOptions={{ style: { background: '#374151', color: '#F9FAFB' } }}/>
       <Navbar isPublic={true} />
       <main className="pt-16">
@@ -99,8 +99,8 @@ const PublicLayout = ({ children }) => {
 // Componente de loading para rutas lazy
 const LazyLoadingFallback = () => (
   <div className="flex flex-col items-center justify-center min-h-[200px]">
-    <div className="w-8 h-8 border-4 border-blue-100 dark:border-blue-600 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-3"></div>
-    <p className="text-gray-600 dark:text-gray-400 text-sm">Cargando...</p>
+    <div className="w-8 h-8 border-4 border-primary-100 dark:border-primary-600 border-t-primary-600 dark:border-t-primary-400 rounded-full animate-spin mb-3"></div>
+    <p className="text-text-secondary-light dark:text-text-secondary-dark text-sm">Cargando...</p>
   </div>
 );
 

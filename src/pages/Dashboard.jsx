@@ -266,24 +266,24 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="p-5 max-w-full overflow-x-hidden bg-gray-50 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+    <div className="p-5 max-w-full overflow-x-hidden bg-surface-light dark:bg-background-dark dark:text-text-primary-dark min-h-screen">
       {/* Breadcrumbs */}
       <BreadcrumbNav />
 
       {/* Header */}
       <div className="flex justify-between items-center mb-8 flex-col md:flex-row md:items-center gap-3">
-        <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-200 m-0">
-          Panel de Control <span className="text-yellow-500">TransSync</span>
+        <h1 className="text-3xl font-bold text-primary-900 dark:text-primary-200 m-0">
+          Panel de Control <span className="text-warning-500">TransSync</span>
         </h1>
         <div className="flex items-center gap-4">
           {realTimeData && (
             <Tooltip content="Los datos se actualizan automáticamente cada 30 segundos desde el servidor">
-              <div className="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900 px-3 py-1 rounded-md cursor-help">
+              <div className="text-sm text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900 px-3 py-1 rounded-md cursor-help">
                 ● En vivo - {new Date(realTimeData.timestamp).toLocaleTimeString('es-CO')}
               </div>
             </Tooltip>
           )}
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-gray-300 bg-slate-50 dark:bg-gray-800 px-4 py-2 rounded-md shadow-sm">
+          <div className="flex items-center gap-2 text-sm text-text-secondary-light dark:text-text-secondary-dark bg-surface-light dark:bg-surface-dark px-4 py-2 rounded-md shadow-sm">
             <Calendar size={18} />
             <span>{new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
@@ -295,14 +295,14 @@ const Dashboard = () => {
         {dashboardStats.map((stat, index) => (
           <div 
             key={index} 
-            className={`flex items-center p-5 rounded-xl shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white dark:bg-gray-800 border-l-4 ${stat.colorClass}`}
+            className={`flex items-center p-5 rounded-xl shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-background-light dark:bg-surface-dark border-l-4 ${stat.colorClass}`}
           >
             <div className={`flex items-center justify-center w-12 h-12 ${stat.iconBg} dark:bg-gray-700 rounded-xl mr-4 ${stat.iconColor}`}>
               {stat.icon}
             </div>
             <div>
-              <h3 className="text-3xl font-bold text-slate-800 dark:text-gray-100 m-0 mb-1">{stat.value}</h3>
-              <p className="text-sm text-slate-500 dark:text-gray-400 m-0">{stat.label}</p>
+              <h3 className="text-3xl font-bold text-text-primary-light dark:text-text-primary-dark m-0 mb-1">{stat.value}</h3>
+              <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark m-0">{stat.label}</p>
               {stat.subtitle && (
                 <p className="text-xs text-slate-400 dark:text-gray-500 m-0 mt-1">{stat.subtitle}</p>
               )}
@@ -316,9 +316,9 @@ const Dashboard = () => {
         {/* First Chart Row */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           {/* Trips Chart */}
-          <div className="xl:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 flex flex-col">
+          <div className="xl:col-span-2 bg-background-light dark:bg-surface-dark rounded-xl shadow-sm p-5 flex flex-col">
             <div className="flex justify-between items-center mb-3 flex-col md:flex-row gap-3">
-              <h3 className="text-lg font-semibold text-slate-700 dark:text-gray-200 m-0">Frecuencia de Viajes</h3>
+              <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0">Frecuencia de Viajes</h3>
               <div className="flex gap-0.5 bg-slate-100 dark:bg-gray-700 rounded-md p-0.5">
                 {[
                   { key: 'semana', label: 'Semana', tooltip: 'Muestra datos de los últimos 7 días' },
@@ -329,8 +329,8 @@ const Dashboard = () => {
                     <button
                       className={`px-3 py-1.5 text-sm rounded transition-all ${
                         selectedPeriod === period.key
-                          ? 'bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-300 shadow-sm'
-                          : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'
+                          ? 'bg-background-light dark:bg-background-dark text-primary-700 dark:text-primary-300 shadow-sm'
+                          : 'text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark'
                       }`}
                       onClick={() => setSelectedPeriod(period.key)}
                     >
@@ -346,13 +346,13 @@ const Dashboard = () => {
           </div>
               
           {/* Routes Distribution Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 flex flex-col">
-            <h3 className="text-lg font-semibold text-slate-700 dark:text-gray-200 m-0 mb-4">Distribución por Rutas</h3>
+          <div className="bg-background-light dark:bg-surface-dark rounded-xl shadow-sm p-5 flex flex-col">
+            <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0 mb-4">Distribución por Rutas</h3>
             <div className="flex-grow h-80 relative">
               {rutasData.labels.length > 0 ? (
                 <Doughnut data={rutasData} options={doughnutOptions} />
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                <div className="flex items-center justify-center h-full text-text-secondary-light dark:text-text-secondary-dark">
                   <div className="text-center">
                     <LayoutGrid className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>No hay datos de rutas</p>
@@ -366,8 +366,8 @@ const Dashboard = () => {
         {/* Second Row - Alerts */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           {/* Vehicle Status */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 flex flex-col">
-            <h3 className="text-lg font-semibold text-slate-700 dark:text-gray-200 m-0 mb-4">Estado de la Flota</h3>
+          <div className="bg-background-light dark:bg-surface-dark rounded-xl shadow-sm p-5 flex flex-col">
+            <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0 mb-4">Estado de la Flota</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900 rounded-lg">
                 <div className="flex items-center gap-2">
@@ -394,9 +394,9 @@ const Dashboard = () => {
           </div>
             
           {/* Alerts List */}
-          <div className="xl:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 flex flex-col overflow-y-auto">
+          <div className="xl:col-span-2 bg-background-light dark:bg-surface-dark rounded-xl shadow-sm p-5 flex flex-col overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-slate-700 dark:text-gray-200 m-0">Alertas del Sistema</h3>
+              <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0">Alertas del Sistema</h3>
               {alerts.length > 0 && (
                 <span className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 text-xs px-2 py-1 rounded-full">
                   {alerts.length} activas
@@ -427,7 +427,7 @@ const Dashboard = () => {
                   ))}
                 </ul>
               ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-slate-500 dark:text-gray-400">
+                <div className="flex flex-col items-center justify-center py-12 text-text-secondary-light dark:text-text-secondary-dark">
                   <AlertTriangle className="w-12 h-12 mb-3 opacity-30" />
                   <p className="text-center italic">No hay alertas activas</p>
                   <p className="text-xs text-center mt-1">Sistema funcionando correctamente</p>

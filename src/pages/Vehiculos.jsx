@@ -251,7 +251,7 @@ const Vehiculos = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 bg-gray-50 dark:bg-slate-900 min-h-screen text-slate-800 dark:text-slate-200">
+    <div className="p-4 md:p-6 bg-surface-light dark:bg-background-dark min-h-screen text-text-primary-light dark:text-text-primary-dark">
       {error && (
         <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4">
           {error}
@@ -259,10 +259,10 @@ const Vehiculos = () => {
       )}
 
       {/* Header con estadísticas */}
-      <div className="mb-6 bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm">
+      <div className="mb-6 bg-background-light dark:bg-surface-dark p-4 md:p-5 rounded-xl shadow-sm">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <h2 className="text-xl md:text-2xl font-semibold flex items-center gap-2 md:gap-3 m-0">
-            <FaBus className="text-blue-500 text-2xl md:text-3xl" />
+            <FaBus className="text-primary-500 text-2xl md:text-3xl" />
             <span>Flota de Vehículos</span>
           </h2>
 
@@ -355,7 +355,7 @@ const Vehiculos = () => {
           const tecnicaVencida = isVencido(vehiculo.fecVenTec);
 
           return (
-            <div key={vehiculo.idVehiculo} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            <div key={vehiculo.idVehiculo} className="bg-background-light dark:bg-surface-dark rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
               <div className="p-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
                 <h3 className="m-0 text-lg text-slate-800 dark:text-slate-200 font-semibold">
                   {vehiculo.marVehiculo} {vehiculo.modVehiculo}
@@ -472,7 +472,7 @@ const Vehiculos = () => {
       {/* Modal para agregar vehículo */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto text-slate-800 dark:text-slate-200">
+          <div className="bg-background-light dark:bg-surface-dark rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto text-text-primary-light dark:text-text-primary-dark">
             <h3 className="mt-0 text-xl font-semibold border-b border-gray-100 dark:border-slate-700 pb-4 mb-4">
               Agregar Nuevo Vehículo
             </h3>
@@ -617,7 +617,7 @@ const Vehiculos = () => {
       {/* Modal para editar vehículo */}
       {showEditModal && selectedVehiculo && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto text-slate-800 dark:text-slate-200">
+          <div className="bg-background-light dark:bg-surface-dark rounded-xl p-6 w-11/12 max-w-3xl max-h-screen overflow-y-auto text-text-primary-light dark:text-text-primary-dark">
             <h3 className="mt-0 text-xl font-semibold border-b border-gray-100 dark:border-slate-700 pb-4 mb-4">
               Editar Vehículo - {selectedVehiculo.plaVehiculo}
             </h3>

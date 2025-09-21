@@ -220,8 +220,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
           fixed left-0 top-16 h-[calc(100vh-64px)] z-[999]
           flex flex-col shadow-2xl transition-all duration-300 ease-in-out
           ${theme === "dark"
-            ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-gray-100 before:from-black/10"
-            : "bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] text-white before:from-white/5"}
+            ? "bg-gradient-to-br from-background-dark via-surface-dark to-background-dark text-text-primary-dark before:from-black/10"
+            : "bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 text-white before:from-white/5"}
           before:absolute before:inset-0 before:bg-gradient-to-r before:to-transparent before:pointer-events-none
           ${isMobile || isTablet
             ? `w-[280px] ${isOpen ? 'translate-x-0' : '-translate-x-full'}`
@@ -233,7 +233,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
       >
         {/* Header del sidebar */}
         <div className={`relative p-4 border-b min-h-[70px] flex items-center justify-between backdrop-blur-sm
-          ${theme === "dark" ? "border-gray-700" : "border-white/20"}`}>
+          ${theme === "dark" ? "border-border-dark" : "border-white/20"}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative">
               <img 
@@ -251,7 +251,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                 <span className="text-xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent whitespace-nowrap">
                   TransSync
                 </span>
-                <span className={`text-xs ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`}>
+                <span className={`text-xs ${theme === "dark" ? "text-text-secondary-dark" : "text-primary-200 opacity-80"}`}>
                   Sistema de Gestión
                 </span>
               </div>

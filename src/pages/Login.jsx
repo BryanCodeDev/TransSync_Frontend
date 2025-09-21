@@ -204,7 +204,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 lg:p-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-surface-light via-primary-50 to-primary-100 dark:from-background-dark dark:via-surface-dark dark:to-background-dark flex items-center justify-center p-4 lg:p-8 transition-colors duration-300">
       {/* Theme toggle button - fixed position */}
       <button
         onClick={toggleTheme}
@@ -219,7 +219,7 @@ const Login = () => {
       </button>
 
       {/* Main container */}
-      <div className="w-full max-w-7xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden transition-colors duration-300">
+      <div className="w-full max-w-7xl bg-background-light dark:bg-surface-dark rounded-3xl shadow-2xl overflow-hidden transition-colors duration-300">
         <div className="flex flex-col xl:flex-row min-h-[80vh]">
           {/* Left side - Brand section */}
           <div className="xl:w-2/5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 lg:p-12 xl:p-16 flex flex-col justify-center relative overflow-hidden">
@@ -253,8 +253,8 @@ const Login = () => {
           <div className="xl:w-3/5 p-8 lg:p-12 xl:p-16 flex flex-col justify-center">
             {/* Header */}
             <div className="text-center mb-10">
-              <h2 className="text-3xl xl:text-4xl font-bold text-slate-800 dark:text-white mb-3">Iniciar Sesión</h2>
-              <p className="text-slate-600 dark:text-slate-300 text-lg">Acceda a su cuenta empresarial</p>
+              <h2 className="text-3xl xl:text-4xl font-bold text-text-primary-light dark:text-text-primary-dark mb-3">Iniciar Sesión</h2>
+              <p className="text-text-secondary-light dark:text-text-secondary-dark text-lg">Acceda a su cuenta empresarial</p>
 
               {serverStatus && (
                 <div className={`mt-4 p-3 rounded-lg text-sm flex items-center justify-center ${serverStatus.status === 'connected'
