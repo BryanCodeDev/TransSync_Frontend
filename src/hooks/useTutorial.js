@@ -68,6 +68,34 @@ export const useTutorial = () => {
       description: t('tutorial.step7.description'),
       target: '[data-tutorial="profile"]',
       placement: 'bottom'
+    },
+    {
+      id: 'chatbot',
+      title: 'ChatBot Inteligente',
+      description: 'Utiliza nuestro asistente virtual con IA para obtener respuestas rápidas sobre cualquier consulta del sistema.',
+      target: '[data-tutorial="chatbot"]',
+      placement: 'left'
+    },
+    {
+      id: 'notifications',
+      title: 'Notificaciones en Tiempo Real',
+      description: 'Recibe alertas instantáneas sobre eventos importantes como retrasos, emergencias o cambios en rutas.',
+      target: '[data-tutorial="notifications"]',
+      placement: 'top'
+    },
+    {
+      id: 'theme',
+      title: 'Configuración de Tema',
+      description: 'Personaliza la apariencia del sistema con temas claros u oscuros según tu preferencia.',
+      target: '[data-tutorial="theme"]',
+      placement: 'bottom'
+    },
+    {
+      id: 'emergency',
+      title: 'Centro de Emergencias',
+      description: 'Accede rápidamente al panel de emergencias para reportar y gestionar situaciones críticas.',
+      target: '[data-tutorial="emergency"]',
+      placement: 'right'
     }
   ], [t]);
 

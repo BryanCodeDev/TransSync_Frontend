@@ -398,6 +398,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
               onClick={toggleTheme}
               className="p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"
               title={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+              data-tutorial="theme"
             >
               {theme === "dark" ? (
                 <FaSun size={16} className="text-amber-500 group-hover:text-amber-600" />
@@ -460,6 +461,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                     aria-controls="notifications-dropdown"
                     aria-haspopup="true"
                     tabIndex={0}
+                    data-tutorial="notifications"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();

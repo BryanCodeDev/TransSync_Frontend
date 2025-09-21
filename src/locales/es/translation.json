@@ -47,6 +47,22 @@
       "title": "Configuración de Perfil",
       "description": "Personaliza tu experiencia configurando tus preferencias, notificaciones y datos personales."
     },
+    "step8": {
+      "title": "ChatBot Inteligente",
+      "description": "Utiliza nuestro asistente virtual con IA para obtener respuestas rápidas sobre cualquier consulta del sistema."
+    },
+    "step9": {
+      "title": "Notificaciones en Tiempo Real",
+      "description": "Recibe alertas instantáneas sobre eventos importantes como retrasos, emergencias o cambios en rutas."
+    },
+    "step10": {
+      "title": "Configuración de Tema",
+      "description": "Personaliza la apariencia del sistema con temas claros u oscuros según tu preferencia."
+    },
+    "step11": {
+      "title": "Centro de Emergencias",
+      "description": "Accede rápidamente al panel de emergencias para reportar y gestionar situaciones críticas."
+    },
     "navigation": {
       "next": "Siguiente",
       "previous": "Anterior",

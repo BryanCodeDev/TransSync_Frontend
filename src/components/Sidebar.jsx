@@ -343,6 +343,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                         path === "/vehiculos" ? "vehicles" :
                         path === "/horarios" ? "schedules" :
                         path === "/informes" ? "reports" :
+                        path === "/emergency" ? "emergency" :
                         null
                       }
                       className={`

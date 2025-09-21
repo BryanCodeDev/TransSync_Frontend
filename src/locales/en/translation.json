@@ -11,5 +11,68 @@
   "login": "Login",
   "register": "Register",
   "logout": "Log out",
-  "home": "Home"
+  "home": "Home",
+  "tutorial": {
+    "welcome": {
+      "title": "Welcome to TransSync!",
+      "description": "We'll guide you through the main features of our transportation management system.",
+      "start": "Start tutorial",
+      "skip": "Skip tutorial"
+    },
+    "step1": {
+      "title": "Dashboard",
+      "description": "Here you'll find a complete overview of all your transportation operations, including active routes, available vehicles, and important statistics."
+    },
+    "step2": {
+      "title": "Driver Management",
+      "description": "Manage all information about your drivers, including their profiles, licenses, trip history, and performance."
+    },
+    "step3": {
+      "title": "Route Management",
+      "description": "Create, modify, and supervise all your transportation routes. Optimize routes and manage schedules efficiently."
+    },
+    "step4": {
+      "title": "Vehicle Management",
+      "description": "Maintain complete control of your vehicle fleet, including maintenance, real-time location, and operational status."
+    },
+    "step5": {
+      "title": "Schedules and Planning",
+      "description": "Organize and manage your route schedules, assign drivers and vehicles, and keep everything synchronized."
+    },
+    "step6": {
+      "title": "Reports and Analytics",
+      "description": "Access detailed reports on your operation's performance, cost analysis, and efficiency metrics."
+    },
+    "step7": {
+      "title": "Profile Settings",
+      "description": "Customize your experience by configuring your preferences, notifications, and personal data."
+    },
+    "step8": {
+      "title": "Smart ChatBot",
+      "description": "Use our AI-powered virtual assistant to get quick answers about any system query."
+    },
+    "step9": {
+      "title": "Real-time Notifications",
+      "description": "Receive instant alerts about important events such as delays, emergencies, or route changes."
+    },
+    "step10": {
+      "title": "Theme Settings",
+      "description": "Customize the system appearance with light or dark themes according to your preference."
+    },
+    "step11": {
+      "title": "Emergency Center",
+      "description": "Quickly access the emergency panel to report and manage critical situations."
+    },
+    "navigation": {
+      "next": "Next",
+      "previous": "Previous",
+      "finish": "Finish tutorial",
+      "skip": "Skip",
+      "step": "Step {{current}} of {{total}}"
+    },
+    "tooltips": {
+      "click_to_continue": "Click to continue",
+      "explore_feature": "Explore this feature"
+    }
+  }
 }
