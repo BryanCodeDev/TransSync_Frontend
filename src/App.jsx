@@ -1,26 +1,28 @@
 // src/App.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from 'react-hot-toast'; 
+import { Toaster } from 'react-hot-toast';
 import { isAuthenticated } from './utilidades/authAPI';
 
-// Componentes y Páginas
+// Componentes principales (no lazy para mejor UX)
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import ChatBot from "./components/ChatBot";
 import "./i18n";
-import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-import Drivers from "./pages/Drivers";
-import Rutas from "./pages/Rutas";
-import Vehiculos from "./pages/Vehiculos";
-import Horarios from "./pages/Horarios";
-import Informes from "./pages/Informes";
-import Emergency from "./pages/Emergency";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+
+// Páginas cargadas bajo demanda (lazy loading)
+const Home = lazy(() => import("./pages/Home"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const Drivers = lazy(() => import("./pages/Drivers"));
+const Rutas = lazy(() => import("./pages/Rutas"));
+const Vehiculos = lazy(() => import("./pages/Vehiculos"));
+const Horarios = lazy(() => import("./pages/Horarios"));
+const Informes = lazy(() => import("./pages/Informes"));
+const Emergency = lazy(() => import("./pages/Emergency"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
 
 // ======================================================
 // Tus componentes y hooks
@@ -92,33 +94,43 @@ const PublicLayout = ({ children }) => {
   );
 };
 
+// Componente de loading para rutas lazy
+const LazyLoadingFallback = () => (
+  <div className="flex flex-col items-center justify-center min-h-[200px]">
+    <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-3"></div>
+    <p className="text-gray-600 dark:text-gray-400 text-sm">Cargando...</p>
+  </div>
+);
+
 // ======================================================
 // COMPONENTE APP
 // ======================================================
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        
-        {/* Rutas públicas usando tu PublicLayout */}
-        <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
-        <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
-        <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
-        
-        {/* Rutas protegidas usando tu ProtectedLayout y ProtectedRoute */}
-        <Route path="/dashboard" element={<ProtectedRoute><ProtectedLayout><Dashboard /></ProtectedLayout></ProtectedRoute>} />
-        <Route path="/admin/dashboard" element={<ProtectedRoute><ProtectedLayout><AdminDashboard /></ProtectedLayout></ProtectedRoute>} />
-        <Route path="/drivers" element={<ProtectedRoute><ProtectedLayout><Drivers /></ProtectedLayout></ProtectedRoute>} />
-        <Route path="/rutas" element={<ProtectedRoute><ProtectedLayout><Rutas /></ProtectedLayout></ProtectedRoute>} />
-        <Route path="/vehiculos" element={<ProtectedRoute><ProtectedLayout><Vehiculos /></ProtectedLayout></ProtectedRoute>} />
-        <Route path="/horarios" element={<ProtectedRoute><ProtectedLayout><Horarios /></ProtectedLayout></ProtectedRoute>} />
-        <Route path="/informes" element={<ProtectedRoute><ProtectedLayout><Informes /></ProtectedLayout></ProtectedRoute>} />
-        <Route path="/emergency" element={<ProtectedRoute><ProtectedLayout><Emergency /></ProtectedLayout></ProtectedRoute>} />
-        
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
-      </Routes>
+      <Suspense fallback={<LazyLoadingFallback />}>
+        <Routes>
+          <Route path="/" element={<Navigate to="/home" replace />} />
+
+          {/* Rutas públicas usando tu PublicLayout */}
+          <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
+          <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
+          <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
+
+          {/* Rutas protegidas usando tu ProtectedLayout y ProtectedRoute */}
+          <Route path="/dashboard" element={<ProtectedRoute><ProtectedLayout><Dashboard /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute><ProtectedLayout><AdminDashboard /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/drivers" element={<ProtectedRoute><ProtectedLayout><Drivers /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/rutas" element={<ProtectedRoute><ProtectedLayout><Rutas /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/vehiculos" element={<ProtectedRoute><ProtectedLayout><Vehiculos /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/horarios" element={<ProtectedRoute><ProtectedLayout><Horarios /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/informes" element={<ProtectedRoute><ProtectedLayout><Informes /></ProtectedLayout></ProtectedRoute>} />
+          <Route path="/emergency" element={<ProtectedRoute><ProtectedLayout><Emergency /></ProtectedLayout></ProtectedRoute>} />
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/home" replace />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

@@ -8,13 +8,13 @@ import {
   Calendar
 } from "lucide-react";
 import { Line, Doughnut } from "react-chartjs-2";
-import { 
-  Chart as ChartJS, 
-  CategoryScale, 
-  LinearScale, 
-  BarElement, 
-  Title, 
-  Tooltip, 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip as ChartTooltip,
   Legend,
   PointElement,
 
@@ -23,14 +23,17 @@ import {
   Filler
 } from 'chart.js';
 import { dashboardAPI } from '../utilidades/dashboardAPI';
+import DashboardSkeleton from '../components/DashboardSkeleton';
+import BreadcrumbNav from '../components/BreadcrumbNav';
+import Tooltip from '../components/Tooltip';
 
 ChartJS.register(
-  CategoryScale, 
-  LinearScale, 
-  BarElement, 
-  Title, 
-  Tooltip, 
-  Legend, 
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  ChartTooltip,
+  Legend,
   PointElement,
   LineElement,
   ArcElement,
@@ -191,12 +194,7 @@ const Dashboard = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-5"></div>
-        <p className="text-gray-600">Cargando información del sistema...</p>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
@@ -269,6 +267,9 @@ const Dashboard = () => {
 
   return (
     <div className="p-5 max-w-full overflow-x-hidden bg-gray-50 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+      {/* Breadcrumbs */}
+      <BreadcrumbNav />
+
       {/* Header */}
       <div className="flex justify-between items-center mb-8 flex-col md:flex-row md:items-center gap-3">
         <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-200 m-0">
@@ -276,9 +277,11 @@ const Dashboard = () => {
         </h1>
         <div className="flex items-center gap-4">
           {realTimeData && (
-            <div className="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900 px-3 py-1 rounded-md">
-              ● En vivo - {new Date(realTimeData.timestamp).toLocaleTimeString('es-CO')}
-            </div>
+            <Tooltip content="Los datos se actualizan automáticamente cada 30 segundos desde el servidor">
+              <div className="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900 px-3 py-1 rounded-md cursor-help">
+                ● En vivo - {new Date(realTimeData.timestamp).toLocaleTimeString('es-CO')}
+              </div>
+            </Tooltip>
           )}
           <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-gray-300 bg-slate-50 dark:bg-gray-800 px-4 py-2 rounded-md shadow-sm">
             <Calendar size={18} />
@@ -317,18 +320,23 @@ const Dashboard = () => {
             <div className="flex justify-between items-center mb-3 flex-col md:flex-row gap-3">
               <h3 className="text-lg font-semibold text-slate-700 dark:text-gray-200 m-0">Frecuencia de Viajes</h3>
               <div className="flex gap-0.5 bg-slate-100 dark:bg-gray-700 rounded-md p-0.5">
-                {['semana', 'mes', 'ano'].map(period => (
-                  <button 
-                    key={period}
-                    className={`px-3 py-1.5 text-sm rounded transition-all ${
-                      selectedPeriod === period 
-                        ? 'bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-300 shadow-sm' 
-                        : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'
-                    }`}
-                    onClick={() => setSelectedPeriod(period)}
-                  >
-                    {period === 'semana' ? 'Semana' : period === 'mes' ? 'Mes' : 'Año'}
-                  </button>
+                {[
+                  { key: 'semana', label: 'Semana', tooltip: 'Muestra datos de los últimos 7 días' },
+                  { key: 'mes', label: 'Mes', tooltip: 'Muestra datos del último mes' },
+                  { key: 'ano', label: 'Año', tooltip: 'Muestra datos del último año' }
+                ].map(period => (
+                  <Tooltip key={period.key} content={period.tooltip}>
+                    <button
+                      className={`px-3 py-1.5 text-sm rounded transition-all ${
+                        selectedPeriod === period.key
+                          ? 'bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-300 shadow-sm'
+                          : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'
+                      }`}
+                      onClick={() => setSelectedPeriod(period.key)}
+                    >
+                      {period.label}
+                    </button>
+                  </Tooltip>
                 ))}
               </div>
             </div>

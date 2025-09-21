@@ -223,12 +223,13 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         />
       )}
 
-      <aside 
+      <aside
+        id="sidebar-navigation"
         className={`
           fixed left-0 top-16 h-[calc(100vh-64px)] z-[999]
           flex flex-col shadow-2xl transition-all duration-300 ease-in-out
-          ${dark 
-            ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-gray-100 before:from-black/10" 
+          ${dark
+            ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-gray-100 before:from-black/10"
             : "bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] text-white before:from-white/5"}
           before:absolute before:inset-0 before:bg-gradient-to-r before:to-transparent before:pointer-events-none
           ${isMobile || isTablet
@@ -236,6 +237,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
             : `${isOpen ? 'w-[280px]' : 'w-[70px]'} translate-x-0`
           }
         `}
+        role="navigation"
+        aria-label="Navegación principal"
       >
         {/* Header del sidebar */}
         <div className={`relative p-4 border-b min-h-[70px] flex items-center justify-between backdrop-blur-sm 
@@ -265,14 +268,23 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
           </div>
           
           {!isMobile && !isTablet && (
-            <button 
-              className={`border-none cursor-pointer w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110 active:scale-95 backdrop-blur-sm shadow-lg
+            <button
+              className={`border-none cursor-pointer w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110 active:scale-95 backdrop-blur-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50
               ${dark ? "bg-gray-700 hover:bg-gray-600 text-gray-200" : "bg-white/10 hover:bg-white/20 text-white"}`}
               onClick={toggleSidebar}
+              aria-label={isOpen ? "Contraer menú lateral" : "Expandir menú lateral"}
+              aria-expanded={isOpen}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleSidebar();
+                }
+              }}
             >
               <div className="relative">
-                <FaChevronLeft className={`transition-all duration-300 ${isOpen ? 'opacity-100 rotate-0' : 'opacity-0 rotate-180'}`} />
-                <FaChevronRight className={`absolute inset-0 transition-all duration-300 ${isOpen ? 'opacity-0 -rotate-180' : 'opacity-100 rotate-0'}`} />
+                <FaChevronLeft className={`transition-all duration-300 ${isOpen ? 'opacity-100 rotate-0' : 'opacity-0 rotate-180'}`} aria-hidden="true" />
+                <FaChevronRight className={`absolute inset-0 transition-all duration-300 ${isOpen ? 'opacity-0 -rotate-180' : 'opacity-100 rotate-0'}`} aria-hidden="true" />
               </div>
             </button>
           )}

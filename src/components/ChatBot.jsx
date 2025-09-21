@@ -64,6 +64,11 @@ const ChatBot = ({
   const [dark, setDark] = useState(localStorage.getItem("theme") === "dark"); // Estado modo oscuro
   const [realTimeNotifications, setRealTimeNotifications] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
+  const [quietMode, setQuietMode] = useState(() => {
+    // Recuperar preferencia del localStorage
+    const saved = localStorage.getItem('chatbotQuietMode');
+    return saved ? JSON.parse(saved) : false;
+  });
   const messagesEndRef = useRef(null);
   
   // Detectar cambios en el tema del sistema
@@ -123,6 +128,12 @@ const ChatBot = ({
 
   // Manejar notificaciones en tiempo real
   const handleRealTimeNotification = useCallback((notification) => {
+    // Si está en modo quiet, solo almacenar notificaciones sin mostrarlas
+    if (quietMode) {
+      setRealTimeNotifications(prev => [notification, ...prev.slice(0, 9)]);
+      return;
+    }
+
     // Agregar notificación al estado
     setRealTimeNotifications(prev => [notification, ...prev.slice(0, 9)]); // Mantener máximo 10
 
@@ -144,7 +155,7 @@ const ChatBot = ({
     setTimeout(() => {
       scrollToBottom();
     }, 100);
-  }, []);
+  }, [quietMode]);
 
   // Configurar WebSocket para notificaciones en tiempo real
   useEffect(() => {
@@ -389,6 +400,17 @@ const ChatBot = ({
 
   const toggleMinimize = () => {
     setIsMinimized(!isMinimized);
+  };
+
+  const toggleQuietMode = () => {
+    const newQuietMode = !quietMode;
+    setQuietMode(newQuietMode);
+    localStorage.setItem('chatbotQuietMode', JSON.stringify(newQuietMode));
+
+    // Limpiar notificaciones si se activa el modo quiet
+    if (newQuietMode) {
+      setRealTimeNotifications([]);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -648,9 +670,16 @@ const ChatBot = ({
           <span className="text-2xl max-sm:text-xl filter drop-shadow-sm">💬</span>
 
           {/* Indicador de notificaciones en tiempo real */}
-          {realTimeNotifications.length > 0 && (
+          {realTimeNotifications.length > 0 && !quietMode && (
             <div className="absolute -top-2 -left-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold animate-pulse">
               {realTimeNotifications.length > 9 ? '9+' : realTimeNotifications.length}
+            </div>
+          )}
+
+          {/* Indicador de modo quiet */}
+          {quietMode && (
+            <div className="absolute -top-2 -left-2 bg-yellow-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+              <span className="text-xs">🔕</span>
             </div>
           )}
 
@@ -669,22 +698,22 @@ const ChatBot = ({
             wsConnected ? 'bg-blue-500' : 'bg-gray-400'
           } border-2 border-white`}></div>
           
-          {/* Tooltip */}
+          {/* Tooltip simplificado */}
           <div className={`absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-3 py-2 ${
             dark ? 'bg-gray-800 border border-gray-600' : 'bg-[#1a237e] border border-white/20'
-          } text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none max-w-xs`}>
+          } text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none`}>
             <div className="text-center">
               <div className="font-semibold">🤖 Asistente TransSync</div>
               <div className="text-xs opacity-90 mt-1">
                 {connectionStatus === 'connected' && wsConnected
-                  ? '✅ API + WebSocket conectados'
+                  ? '✅ Conectado'
                   : connectionStatus === 'connected'
-                  ? '✅ API conectado • WebSocket pendiente'
-                  : '⏳ Verificando conexiones...'}
+                  ? '✅ API conectado'
+                  : '⏳ Verificando...'}
               </div>
               {realTimeNotifications.length > 0 && (
                 <div className="text-xs mt-1 text-yellow-300">
-                  🔔 {realTimeNotifications.length} notificación(es) pendiente(s)
+                  🔔 {realTimeNotifications.length} pendiente{realTimeNotifications.length > 1 ? 's' : ''}
                 </div>
               )}
             </div>
@@ -715,19 +744,31 @@ const ChatBot = ({
                     connectionStatus === 'connected' ? 'bg-green-300' :
                     connectionStatus === 'disconnected' ? 'bg-red-300' : 'bg-yellow-300'
                   }`}></span>
-                  <span className={`w-2 h-2 rounded-full ${
-                    wsConnected ? 'bg-blue-300' : 'bg-gray-400'
-                  }`}></span>
                   {isTyping ? 'Escribiendo...' :
-                   connectionStatus === 'connected' && wsConnected ? 'Conectado (API + WebSocket)' :
-                   connectionStatus === 'connected' ? 'Conectado API • WS desconectado' :
-                   connectionStatus === 'disconnected' ? 'Sin conexión API' : 'Verificando...'}
+                   connectionStatus === 'connected' ? 'Conectado' :
+                   connectionStatus === 'disconnected' ? 'Sin conexión' : 'Verificando...'}
                 </div>
               </div>
             </div>
             
             <div className="flex items-center space-x-2">
-              <button 
+              {/* Botón de modo quiet */}
+              <button
+                className={`rounded-lg p-2 transition-colors duration-200 ${
+                  quietMode
+                    ? 'bg-yellow-500 bg-opacity-30 hover:bg-opacity-40 text-yellow-200'
+                    : 'bg-white bg-opacity-20 hover:bg-opacity-30 text-white'
+                }`}
+                onClick={toggleQuietMode}
+                aria-label={quietMode ? "Desactivar modo silencioso" : "Activar modo silencioso"}
+                title={quietMode ? "Modo silencioso activado" : "Activar modo silencioso"}
+              >
+                <span className="text-sm">
+                  {quietMode ? '🔕' : '🔔'}
+                </span>
+              </button>
+
+              <button
                 className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition-colors duration-200"
                 onClick={toggleMinimize}
                 aria-label={isMinimized ? "Expandir" : "Minimizar"}
@@ -736,7 +777,7 @@ const ChatBot = ({
                   {isMinimized ? '🔼' : '🔽'}
                 </span>
               </button>
-              <button 
+              <button
                 className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-2 transition-colors duration-200"
                 onClick={toggleChat}
                 aria-label="Cerrar chat"

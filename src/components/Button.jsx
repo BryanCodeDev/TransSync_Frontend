@@ -100,20 +100,30 @@ const Button = ({
           }
         }
       `}</style>
-      <button 
+      <button
         type={type}
-        className={classes} 
+        className={classes}
         onClick={onClick}
         disabled={disabled}
+        aria-label={icon ? `${children} ${iconPosition === "left" ? "con icono a la izquierda" : "con icono a la derecha"}` : children}
+        aria-disabled={disabled}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick(e);
+          }
+        }}
       >
         {icon && iconPosition === "left" && (
-          <span className="flex items-center justify-center mr-2">{icon}</span>
+          <span className="flex items-center justify-center mr-2" aria-hidden="true">{icon}</span>
         )}
-        
+
         <span>{children}</span>
-        
+
         {icon && iconPosition === "right" && (
-          <span className="flex items-center justify-center ml-2">{icon}</span>
+          <span className="flex items-center justify-center ml-2" aria-hidden="true">{icon}</span>
         )}
       </button>
     </>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
   FaBars,
   FaUser,
@@ -18,12 +18,15 @@ import {
   FaCheckCircle,
   FaTimes,
   FaBus,
-  FaUserTie
+  FaUserTie,
+  FaHome,
+  FaChartLine
 } from 'react-icons/fa';
 import { isAuthenticated, getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
 
 const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -53,7 +56,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         try {
           const user = getCurrentUser();
           const role = getUserRole();
-          
+
           setCurrentUser(user);
           setUserRole(role);
         } catch (error) {
@@ -64,8 +67,11 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
       };
 
       loadUserData();
+    } else {
+      setCurrentUser(null);
+      setUserRole('');
     }
-  }, [isPublic]);
+  }, [isPublic, location.pathname]);
 
   // Cerrar menús cuando se hace clic fuera
   useEffect(() => {
@@ -196,6 +202,26 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const toggleNotifications = () => {
     setIsNotificationsOpen(prev => !prev);
     setIsUserMenuOpen(false); // Cerrar menú de usuario si está abierto
+  };
+
+  // Función para navegar al dashboard
+  const goToDashboard = () => {
+    const userRole = getUserRole();
+    if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
+      navigate("/admin/dashboard", { replace: true });
+    } else {
+      navigate("/dashboard", { replace: true });
+    }
+  };
+
+  // Función para navegar al home
+  const goToHome = () => {
+    navigate("/home", { replace: true });
+  };
+
+  // Verificar si el usuario está autenticado
+  const isUserAuthenticated = () => {
+    return isAuthenticated();
   };
 
   // Cargar notificaciones iniciales
@@ -367,10 +393,19 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
             {!isPublic && isMobile && (
               <button
                 onClick={toggleSidebar}
-                className="p-2 rounded-xl text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"
-                aria-label="Toggle menu"
+                className="p-2 rounded-xl text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+                aria-label="Abrir menú de navegación"
+                aria-expanded={false}
+                aria-controls="sidebar-navigation"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleSidebar();
+                  }
+                }}
               >
-                <FaBars size={18} className="group-hover:scale-110 transition-transform duration-200" />
+                <FaBars size={18} className="group-hover:scale-110 transition-transform duration-200" aria-hidden="true" />
               </button>
             )}
             
@@ -403,6 +438,33 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
               )}
             </button>
 
+            {/* Botones de navegación inteligente */}
+            {isUserAuthenticated() && (
+              <div className="flex items-center gap-2">
+                {location.pathname === '/home' && (
+                  <button
+                    onClick={goToDashboard}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-xl transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg border border-transparent"
+                    title="Ir al Panel de Control"
+                  >
+                    <FaChartLine size={14} />
+                    <span className="hidden sm:inline">Panel de Control</span>
+                  </button>
+                )}
+
+                {(location.pathname === '/dashboard' || location.pathname.startsWith('/admin')) && (
+                  <button
+                    onClick={goToHome}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-indigo-700 dark:text-gray-200 border border-indigo-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:border-indigo-300 hover:scale-105"
+                    title="Ir al Inicio"
+                  >
+                    <FaHome size={14} />
+                    <span className="hidden sm:inline">Ir a Home</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             {isPublic || !isAuthenticated() ? (
               <div className="flex items-center gap-3">
                 <button onClick={handleLogin} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-indigo-700 dark:text-gray-200 border border-indigo-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:border-indigo-300">
@@ -420,30 +482,51 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                 <div className="relative" ref={notificationsRef}>
                   <button
                     onClick={toggleNotifications}
-                    className="relative p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group min-h-[44px] min-w-[44px] flex items-center justify-center border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"
+                    className="relative p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group min-h-[44px] min-w-[44px] flex items-center justify-center border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
                     title="Notificaciones"
+                    aria-label={`Notificaciones ${unreadCount > 0 ? `(${unreadCount} sin leer)` : '(sin notificaciones nuevas)'}`}
+                    aria-expanded={isNotificationsOpen}
+                    aria-controls="notifications-dropdown"
+                    aria-haspopup="true"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleNotifications();
+                      }
+                    }}
                   >
-                    <FaBell size={16} />
+                    <FaBell size={16} aria-hidden="true" />
                     {unreadCount > 0 && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-md animate-pulse">
+                      <div
+                        className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-xs text-white flex items-center justify-center font-bold shadow-md animate-pulse"
+                        aria-label={`${unreadCount} notificaciones sin leer`}
+                        role="status"
+                      >
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </div>
                     )}
                   </button>
 
                   {/* Notification Dropdown */}
-                  {isNotificationsOpen && (
-                    <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden">
+                   {isNotificationsOpen && (
+                     <div
+                       id="notifications-dropdown"
+                       className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden"
+                       role="dialog"
+                       aria-modal="true"
+                       aria-labelledby="notifications-title"
+                     >
                       {/* Header */}
-                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                          Notificaciones
-                          {unreadCount > 0 && (
-                            <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                              {unreadCount}
-                            </span>
-                          )}
-                        </h3>
+                       <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                         <h3 id="notifications-title" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                           Notificaciones
+                           {unreadCount > 0 && (
+                             <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full" aria-label={`${unreadCount} notificaciones sin leer`}>
+                               {unreadCount}
+                             </span>
+                           )}
+                         </h3>
                         {unreadCount > 0 && (
                           <button
                             onClick={markAllAsRead}

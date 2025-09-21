@@ -60,12 +60,10 @@ const Register = () => {
         if (val.length < 6)
           return "La contraseña debe tener al menos 6 caracteres";
         if (!/(?=.*[a-z])/.test(val))
-          return "Debe incluir al menos una minúscula";
+          return "Debe incluir al menos una letra minúscula";
         if (!/(?=.*[A-Z])/.test(val))
-          return "Debe incluir al menos una mayúscula";
+          return "Debe incluir al menos una letra mayúscula";
         if (!/(?=.*\d)/.test(val)) return "Debe incluir al menos un número";
-        if (!/(?=.*[\W_])/.test(val))
-          return "Debe incluir al menos un símbolo";
         return "";
       },
       confirmPassword: (val) =>
@@ -165,17 +163,16 @@ const Register = () => {
     if (!password) return { score: 0, label: "", color: "" };
 
     const checks = [
-      password.length >= 8,
+      password.length >= 6,
       /[a-z]/.test(password),
       /[A-Z]/.test(password),
-      /\d/.test(password),
-      /[\W_]/.test(password)
+      /\d/.test(password)
     ];
 
     const score = checks.filter(Boolean).length;
 
-    if (score < 3) return { score, label: "Débil", color: "text-red-500" };
-    if (score < 5) return { score, label: "Media", color: "text-yellow-500" };
+    if (score < 2) return { score, label: "Débil", color: "text-red-500" };
+    if (score < 4) return { score, label: "Media", color: "text-yellow-500" };
     return { score, label: "Fuerte", color: "text-green-500" };
   };
 
@@ -432,13 +429,13 @@ const Register = () => {
                       </span>
                     </div>
                     <div className="w-full bg-slate-200 dark:bg-gray-600 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.score < 3 ? 'bg-red-500' :
-                            passwordStrength.score < 5 ? 'bg-yellow-500' : 'bg-green-500'
-                          }`}
-                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
-                      />
-                    </div>
+                       <div
+                         className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.score < 2 ? 'bg-red-500' :
+                             passwordStrength.score < 4 ? 'bg-yellow-500' : 'bg-green-500'
+                           }`}
+                         style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
+                       />
+                     </div>
                   </div>
                 )}
 
@@ -494,22 +491,19 @@ const Register = () => {
               <div className="bg-slate-50 dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-xl p-6">
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-4">Requisitos de contraseña:</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <PasswordRequirement met={formData.password.length >= 8}>
-                    Mínimo 8 caracteres
-                  </PasswordRequirement>
-                  <PasswordRequirement met={/(?=.*[a-z])/.test(formData.password)}>
-                    Una minúscula
-                  </PasswordRequirement>
-                  <PasswordRequirement met={/(?=.*[A-Z])/.test(formData.password)}>
-                    Una mayúscula
-                  </PasswordRequirement>
-                  <PasswordRequirement met={/(?=.*\d)/.test(formData.password)}>
-                    Un número
-                  </PasswordRequirement>
-                  <PasswordRequirement met={/(?=.*[\W_])/.test(formData.password)}>
-                    Un símbolo
-                  </PasswordRequirement>
-                </div>
+                   <PasswordRequirement met={formData.password.length >= 6}>
+                     Mínimo 6 caracteres
+                   </PasswordRequirement>
+                   <PasswordRequirement met={/(?=.*[a-z])/.test(formData.password)}>
+                     Una letra minúscula
+                   </PasswordRequirement>
+                   <PasswordRequirement met={/(?=.*[A-Z])/.test(formData.password)}>
+                     Una letra mayúscula
+                   </PasswordRequirement>
+                   <PasswordRequirement met={/(?=.*\d)/.test(formData.password)}>
+                     Al menos un número
+                   </PasswordRequirement>
+                 </div>
               </div>
 
               {/* Information about process */}
