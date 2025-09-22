@@ -106,7 +106,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   const formatUserRole = (role) => {
     const roles = {
       'SUPERADMIN': 'Super Administrador',
-      'ADMINISTRADOR': 'Administrador',
+      'GESTOR': 'Gestor',
       'CONDUCTOR': 'Conductor',
       'USER': 'Usuario',
       'PENDIENTE': 'Usuario Pendiente'
@@ -141,7 +141,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     switch (userRole) {
       case 'SUPERADMIN':
         return 'from-purple-500 to-purple-700';
-      case 'ADMINISTRADOR':
+      case 'GESTOR':
         return 'from-[#3949ab] to-[#1a237e]';
       case 'CONDUCTOR':
         return 'from-green-500 to-green-700';
@@ -158,7 +158,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     switch (userRole) {
       case 'SUPERADMIN':
         return <FaUserShield size={20} className="text-white" />;
-      case 'ADMINISTRADOR':
+      case 'GESTOR':
         return <FaCogs size={20} className="text-white" />;
       case 'CONDUCTOR':
         return <FaUserTie size={20} className="text-white" />;
@@ -178,15 +178,21 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         '/rutas',
         '/vehiculos',
         '/horarios',
+        '/informes',
+        '/profile'
       ],
-      'ADMINISTRADOR': [
+      'GESTOR': [
         '/dashboard',
         '/drivers',
         '/rutas',
         '/vehiculos',
         '/horarios',
+        '/informes',
+        '/profile'
       ],
-      'CONDUCTOR': [],
+      'CONDUCTOR': [
+        '/profile'
+      ],
       'USER': [],
       'PENDIENTE': []
     };

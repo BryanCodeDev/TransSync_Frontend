@@ -1,6 +1,7 @@
 // src/utilidades/dashboardAPI.js - Servicio completo para dashboard con rutas corregidas
 
 import { apiClient, apiUtils } from '../api/baseAPI';
+import { errorHandler, ERROR_CODES } from './errorHandler';
 
 export const dashboardAPI = {
   // Obtener estadísticas generales del dashboard
@@ -9,8 +10,14 @@ export const dashboardAPI = {
       const response = await apiClient.get('/api/dashboard/estadisticas');
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo estadísticas generales:', error);
-      return { estadisticas: { totalRutas: 0, totalVehiculos: 0, rutasActivas: 0 } };
+      errorHandler.logError(error, 'dashboardAPI.getGeneralStatistics');
+      const processedError = errorHandler.processError(error);
+
+      return {
+        estadisticas: { totalRutas: 0, totalVehiculos: 0, rutasActivas: 0 },
+        error: processedError,
+        userMessage: errorHandler.getUserFriendlyMessage(error)
+      };
     }
   },
 
@@ -19,14 +26,20 @@ export const dashboardAPI = {
     try {
       const validPeriods = ['dia', 'semana', 'mes', 'trimestre', 'ano'];
       if (!validPeriods.includes(period)) {
-        throw new Error('Período inválido');
+        throw errorHandler.createError(ERROR_CODES.VALIDATION_ERROR, 'Período inválido');
       }
 
       const response = await apiClient.get(`/api/dashboard/graficos?periodo=${period}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo datos de gráficos:', error);
-      return { graficos: [] };
+      errorHandler.logError(error, 'dashboardAPI.getChartsData');
+      const processedError = errorHandler.processError(error);
+
+      return {
+        graficos: [],
+        error: processedError,
+        userMessage: errorHandler.getUserFriendlyMessage(error)
+      };
     }
   },
 
@@ -36,8 +49,14 @@ export const dashboardAPI = {
       const response = await apiClient.get('/api/dashboard/alertas');
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo alertas activas:', error);
-      return { alertas: [] };
+      errorHandler.logError(error, 'dashboardAPI.getActiveAlerts');
+      const processedError = errorHandler.processError(error);
+
+      return {
+        alertas: [],
+        error: processedError,
+        userMessage: errorHandler.getUserFriendlyMessage(error)
+      };
     }
   },
 
@@ -47,8 +66,14 @@ export const dashboardAPI = {
       const response = await apiClient.get(`/api/dashboard/actividad?limite=${limit}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo actividad reciente:', error);
-      return { actividades: [] };
+      errorHandler.logError(error, 'dashboardAPI.getRecentActivity');
+      const processedError = errorHandler.processError(error);
+
+      return {
+        actividades: [],
+        error: processedError,
+        userMessage: errorHandler.getUserFriendlyMessage(error)
+      };
     }
   },
 
@@ -81,13 +106,17 @@ export const dashboardAPI = {
       const response = await apiClient.get('/api/dashboard/tiempo-real');
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo datos en tiempo real:', error);
+      errorHandler.logError(error, 'dashboardAPI.getRealTimeData');
+      const processedError = errorHandler.processError(error);
+
       // Retornar datos vacíos si el endpoint no está disponible
       return {
         viajesEnCurso: 0,
         alertasCriticas: 0,
         timestamp: new Date().toISOString(),
-        message: 'Datos en tiempo real no disponibles'
+        message: 'Datos en tiempo real no disponibles',
+        error: processedError,
+        userMessage: errorHandler.getUserFriendlyMessage(error)
       };
     }
   },

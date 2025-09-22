@@ -16,17 +16,29 @@ const StatCard = ({ title, value, colorClass = 'text-white', theme }) => (
     </div>
 );
 
-const InputField = ({ label, theme, ...props }) => (
+const InputField = ({ label, theme, error, ...props }) => (
     <div>
         <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{label}</label>
-        <input {...props} className={`w-full p-2 rounded-md border focus:ring-blue-500 focus:border-blue-500 ${theme === 'dark' ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-300'}`} />
+        <input {...props} className={`w-full p-2 rounded-md border focus:ring-blue-500 focus:border-blue-500 ${
+            error
+                ? 'border-red-500 focus:border-red-500'
+                : theme === 'dark'
+                    ? 'bg-gray-700 text-white border-gray-600'
+                    : 'bg-white text-gray-800 border-gray-300'
+        }`} />
     </div>
 );
 
-const SelectField = ({ label, options, theme, ...props }) => (
+const SelectField = ({ label, options, theme, error, ...props }) => (
     <div>
         <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{label}</label>
-        <select {...props} className={`w-full p-2 rounded-md border focus:ring-blue-500 focus:border-blue-500 ${theme === 'dark' ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-300'}`}>
+        <select {...props} className={`w-full p-2 rounded-md border focus:ring-blue-500 focus:border-blue-500 ${
+            error
+                ? 'border-red-500 focus:border-red-500'
+                : theme === 'dark'
+                    ? 'bg-gray-700 text-white border-gray-600'
+                    : 'bg-white text-gray-800 border-gray-300'
+        }`}>
             {options.map(opt =>
                 typeof opt === 'object'
                 ? <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -38,19 +50,112 @@ const SelectField = ({ label, options, theme, ...props }) => (
 
 const DriverForm = ({ initialData, onSave, onCancel, theme }) => {
     const [formData, setFormData] = useState(initialData);
-    const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    const handleSubmit = (e) => { e.preventDefault(); onSave(formData); };
+    const [errors, setErrors] = useState({});
+
+    // Funciones de validación
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const validateTelefono = (telefono) => {
+        const telefonoRegex = /^[0-9]{7,16}$/;
+        return telefonoRegex.test(telefono.replace(/[\s\-()]/g, ''));
+    };
+
+    const validateDocumento = (documento) => {
+        const documentoRegex = /^[0-9]{6,12}$/;
+        return documentoRegex.test(documento);
+    };
+
+    const validateFechaFutura = (fecha) => {
+        if (!fecha) return false;
+        const fechaVencimiento = new Date(fecha);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        return fechaVencimiento >= hoy;
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Validaciones básicas
+        if (!formData.nomUsuario?.trim()) {
+            newErrors.nomUsuario = 'El nombre es requerido';
+        } else if (formData.nomUsuario.trim().length < 2) {
+            newErrors.nomUsuario = 'El nombre debe tener al menos 2 caracteres';
+        }
+
+        if (!formData.apeUsuario?.trim()) {
+            newErrors.apeUsuario = 'El apellido es requerido';
+        } else if (formData.apeUsuario.trim().length < 2) {
+            newErrors.apeUsuario = 'El apellido debe tener al menos 2 caracteres';
+        }
+
+        if (!formData.email?.trim()) {
+            newErrors.email = 'El email es requerido';
+        } else if (!validateEmail(formData.email)) {
+            newErrors.email = 'Formato de email inválido';
+        }
+
+        if (!formData.numDocUsuario?.trim()) {
+            newErrors.numDocUsuario = 'El documento es requerido';
+        } else if (!validateDocumento(formData.numDocUsuario)) {
+            newErrors.numDocUsuario = 'El documento debe tener entre 6 y 12 dígitos';
+        }
+
+        if (formData.telUsuario && !validateTelefono(formData.telUsuario)) {
+            newErrors.telUsuario = 'Formato de teléfono inválido (7-16 dígitos)';
+        }
+
+        if (!formData.fecVenLicConductor) {
+            newErrors.fecVenLicConductor = 'La fecha de vencimiento de licencia es requerida';
+        } else if (!validateFechaFutura(formData.fecVenLicConductor)) {
+            newErrors.fecVenLicConductor = 'La fecha de vencimiento debe ser futura';
+        }
+
+        if (!formData.tipLicConductor) {
+            newErrors.tipLicConductor = 'El tipo de licencia es requerido';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Limpiar errores cuando el usuario empiece a escribir
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (validateForm()) {
+            onSave(formData);
+        }
+    };
 
     return (
         <form onSubmit={handleSubmit} className={`p-6 space-y-4 text-left ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField label="Nombre" name="nomUsuario" value={formData.nomUsuario} onChange={handleChange} required theme={theme} />
-                <InputField label="Apellido" name="apeUsuario" value={formData.apeUsuario} onChange={handleChange} required theme={theme} />
-                <InputField label="Email" name="email" value={formData.email} onChange={handleChange} type="email" required theme={theme} />
-                <InputField label="Documento" name="numDocUsuario" value={formData.numDocUsuario} onChange={handleChange} required theme={theme} />
-                <InputField label="Teléfono" name="telUsuario" value={formData.telUsuario} onChange={handleChange} theme={theme} />
-                <InputField label="Vencimiento Licencia" name="fecVenLicConductor" value={formData.fecVenLicConductor} onChange={handleChange} type="date" required theme={theme} />
-                <SelectField label="Tipo Licencia" name="tipLicConductor" value={formData.tipLicConductor} onChange={handleChange} options={['B1', 'B2', 'B3', 'C1', 'C2', 'C3']} theme={theme} />
+                <InputField label="Nombre" name="nomUsuario" value={formData.nomUsuario} onChange={handleChange} required theme={theme} error={errors.nomUsuario} />
+                {errors.nomUsuario && <span className="text-red-500 text-xs mt-1">{errors.nomUsuario}</span>}
+                <InputField label="Apellido" name="apeUsuario" value={formData.apeUsuario} onChange={handleChange} required theme={theme} error={errors.apeUsuario} />
+                {errors.apeUsuario && <span className="text-red-500 text-xs mt-1">{errors.apeUsuario}</span>}
+                <InputField label="Email" name="email" value={formData.email} onChange={handleChange} type="email" required theme={theme} error={errors.email} />
+                {errors.email && <span className="text-red-500 text-xs mt-1">{errors.email}</span>}
+                <InputField label="Documento" name="numDocUsuario" value={formData.numDocUsuario} onChange={handleChange} required theme={theme} error={errors.numDocUsuario} />
+                {errors.numDocUsuario && <span className="text-red-500 text-xs mt-1">{errors.numDocUsuario}</span>}
+                <InputField label="Teléfono" name="telUsuario" value={formData.telUsuario} onChange={handleChange} theme={theme} error={errors.telUsuario} />
+                {errors.telUsuario && <span className="text-red-500 text-xs mt-1">{errors.telUsuario}</span>}
+                <InputField label="Vencimiento Licencia" name="fecVenLicConductor" value={formData.fecVenLicConductor} onChange={handleChange} type="date" required theme={theme} error={errors.fecVenLicConductor} min={new Date().toISOString().split('T')[0]} />
+                {errors.fecVenLicConductor && <span className="text-red-500 text-xs mt-1">{errors.fecVenLicConductor}</span>}
+                <SelectField label="Tipo Licencia" name="tipLicConductor" value={formData.tipLicConductor} onChange={handleChange} options={['B1', 'B2', 'B3', 'C1', 'C2', 'C3']} theme={theme} error={errors.tipLicConductor} />
+                {errors.tipLicConductor && <span className="text-red-500 text-xs mt-1">{errors.tipLicConductor}</span>}
                 {initialData.idConductor && (
                     <SelectField label="Estado" name="estConductor" value={formData.estConductor} onChange={handleChange} options={['ACTIVO', 'INACTIVO', 'DIA_DESCANSO', 'INCAPACITADO', 'DE_VACACIONES']} theme={theme} />
                 )}

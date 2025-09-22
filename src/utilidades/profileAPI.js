@@ -18,12 +18,28 @@ const profileAPI = {
     try {
       const response = await apiClient.get('/api/user/profile');
 
+      if (response.data.success === false) {
+        throw new Error(response.data.error?.message || 'Error al obtener perfil');
+      }
+
       // El backend devuelve los datos en response.data.data
       const profileData = response.data.data || response.data;
 
-      return profileData;
+      return {
+        success: true,
+        profile: profileData,
+        error: null
+      };
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      return {
+        success: false,
+        profile: null,
+        error: {
+          code: error.code || 'GET_PROFILE_ERROR',
+          message: apiUtils.formatError(error),
+          details: error.message
+        }
+      };
     }
   },
 
@@ -38,17 +54,114 @@ const profileAPI = {
    */
   updateUserProfile: async (profileData) => {
     try {
-      // Validaciones
+      // Validaciones mejoradas según especificaciones del backend
       if (!profileData.nomUsuario || !profileData.apeUsuario) {
-        throw new Error('Nombres y apellidos son requeridos');
+        return {
+          success: false,
+          profile: null,
+          error: {
+            code: 'MISSING_FIELDS',
+            message: 'Nombres y apellidos son requeridos',
+            details: 'Los campos nomUsuario y apeUsuario son obligatorios'
+          }
+        };
+      }
+
+      // Validar nombres: solo letras y espacios, 2-80 caracteres
+      if (profileData.nomUsuario && (profileData.nomUsuario.length < 2 || profileData.nomUsuario.length > 80)) {
+        return {
+          success: false,
+          profile: null,
+          error: {
+            code: 'INVALID_NAME_LENGTH',
+            message: 'El nombre debe tener entre 2 y 80 caracteres',
+            details: 'Longitud del nombre fuera del rango permitido'
+          }
+        };
+      }
+
+      if (profileData.nomUsuario && !/^[a-zA-ZÀ-ÿ\s]+$/.test(profileData.nomUsuario)) {
+        return {
+          success: false,
+          profile: null,
+          error: {
+            code: 'INVALID_NAME_FORMAT',
+            message: 'El nombre solo puede contener letras y espacios',
+            details: 'Formato de nombre no válido'
+          }
+        };
+      }
+
+      if (profileData.apeUsuario && (profileData.apeUsuario.length < 2 || profileData.apeUsuario.length > 80)) {
+        return {
+          success: false,
+          profile: null,
+          error: {
+            code: 'INVALID_LASTNAME_LENGTH',
+            message: 'Los apellidos deben tener entre 2 y 80 caracteres',
+            details: 'Longitud de apellidos fuera del rango permitido'
+          }
+        };
+      }
+
+      if (profileData.apeUsuario && !/^[a-zA-ZÀ-ÿ\s]+$/.test(profileData.apeUsuario)) {
+        return {
+          success: false,
+          profile: null,
+          error: {
+            code: 'INVALID_LASTNAME_FORMAT',
+            message: 'Los apellidos solo pueden contener letras y espacios',
+            details: 'Formato de apellidos no válido'
+          }
+        };
+      }
+
+      if (profileData.email && profileData.email.length > 80) {
+        return {
+          success: false,
+          profile: null,
+          error: {
+            code: 'INVALID_EMAIL_LENGTH',
+            message: 'El email no puede tener más de 80 caracteres',
+            details: 'Longitud del email excede el límite'
+          }
+        };
       }
 
       if (profileData.email && !apiUtils.isValidEmail(profileData.email)) {
-        throw new Error('Formato de email inválido');
+        return {
+          success: false,
+          profile: null,
+          error: {
+            code: 'INVALID_EMAIL_FORMAT',
+            message: 'Formato de email inválido',
+            details: 'El email debe tener un formato válido'
+          }
+        };
       }
 
-      if (profileData.telUsuario && !/^\+?[\d\s-()]+$/.test(profileData.telUsuario)) {
-        throw new Error('Formato de teléfono inválido');
+      if (profileData.telUsuario && (profileData.telUsuario.length < 7 || profileData.telUsuario.length > 16)) {
+        return {
+          success: false,
+          profile: null,
+          error: {
+            code: 'INVALID_PHONE_LENGTH',
+            message: 'El teléfono debe tener entre 7 y 16 dígitos',
+            details: 'Longitud del teléfono fuera del rango permitido'
+          }
+        };
+      }
+
+      if (profileData.telUsuario && !/^[\d\s\-+()]+$/.test(profileData.telUsuario)) {
+        return {
+          success: false,
+          profile: null,
+          error: {
+            code: 'INVALID_PHONE_FORMAT',
+            message: 'El teléfono solo puede contener números, espacios, guiones, paréntesis y +',
+            details: 'Formato de teléfono no válido'
+          }
+        };
       }
 
       const response = await apiClient.put('/api/user/profile', {
@@ -58,9 +171,25 @@ const profileAPI = {
         telUsuario: profileData.telUsuario?.trim()
       });
 
-      return response.data;
+      if (response.data.success === false) {
+        throw new Error(response.data.error?.message || 'Error al actualizar perfil');
+      }
+
+      return {
+        success: true,
+        profile: response.data,
+        error: null
+      };
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      return {
+        success: false,
+        profile: null,
+        error: {
+          code: error.code || 'UPDATE_PROFILE_ERROR',
+          message: apiUtils.formatError(error),
+          details: error.message
+        }
+      };
     }
   },
 
@@ -78,19 +207,47 @@ const profileAPI = {
 
       // Validaciones
       if (!currentPassword || !newPassword || !confirmPassword) {
-        throw new Error('Todos los campos de contraseña son requeridos');
+        return {
+          success: false,
+          error: {
+            code: 'MISSING_FIELDS',
+            message: 'Todos los campos de contraseña son requeridos',
+            details: 'Se deben proporcionar la contraseña actual, nueva y confirmación'
+          }
+        };
       }
 
       if (newPassword !== confirmPassword) {
-        throw new Error('Las contraseñas no coinciden');
+        return {
+          success: false,
+          error: {
+            code: 'PASSWORDS_NOT_MATCH',
+            message: 'Las contraseñas no coinciden',
+            details: 'La nueva contraseña y su confirmación deben ser idénticas'
+          }
+        };
       }
 
       if (newPassword.length < 6) {
-        throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
+        return {
+          success: false,
+          error: {
+            code: 'PASSWORD_TOO_SHORT',
+            message: 'La nueva contraseña debe tener al menos 6 caracteres',
+            details: 'Longitud mínima requerida: 6 caracteres'
+          }
+        };
       }
 
       if (currentPassword === newPassword) {
-        throw new Error('La nueva contraseña debe ser diferente a la actual');
+        return {
+          success: false,
+          error: {
+            code: 'SAME_PASSWORD',
+            message: 'La nueva contraseña debe ser diferente a la actual',
+            details: 'Debe elegir una contraseña diferente a la actual'
+          }
+        };
       }
 
       const response = await apiClient.put('/api/user/change-password', {
@@ -99,9 +256,24 @@ const profileAPI = {
         confirmPassword
       });
 
-      return response.data;
+      if (response.data.success === false) {
+        throw new Error(response.data.error?.message || 'Error al cambiar contraseña');
+      }
+
+      return {
+        success: true,
+        message: 'Contraseña cambiada exitosamente',
+        error: null
+      };
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      return {
+        success: false,
+        error: {
+          code: error.code || 'CHANGE_PASSWORD_ERROR',
+          message: apiUtils.formatError(error),
+          details: error.message
+        }
+      };
     }
   },
 
