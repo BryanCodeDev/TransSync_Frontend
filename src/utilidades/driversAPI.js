@@ -1,6 +1,7 @@
 // src/utilidades/driversAPI.js
 
 import { apiClient, apiUtils } from '../api/baseAPI';
+import cacheService from './cacheService';
 
 const driversAPI = {
   /**
@@ -27,12 +28,6 @@ const driversAPI = {
 
       // Temporalmente sin cache para debugging
       const response = await apiClient.get(url);
-
-      // Estructura de respuesta consistente
-      if (response.data.success === false) {
-        throw new Error(response.data.error?.message || 'Error al obtener conductores');
-      }
-
       const data = response.data;
 
       // Asegurar que la respuesta sea un array
@@ -49,21 +44,9 @@ const driversAPI = {
         }
       }
 
-      return {
-        success: true,
-        conductores: conductoresArray,
-        error: null
-      };
+      return conductoresArray;
     } catch (error) {
-      return {
-        success: false,
-        conductores: [],
-        error: {
-          code: error.code || 'GET_CONDUCTORES_ERROR',
-          message: apiUtils.formatError(error),
-          details: error.message
-        }
-      };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -74,26 +57,9 @@ const driversAPI = {
   create: async (driverData) => {
     try {
       const response = await apiClient.post('/api/conductores', driverData);
-
-      if (response.data.success === false) {
-        throw new Error(response.data.error?.message || 'Error al crear conductor');
-      }
-
-      return {
-        success: true,
-        conductor: response.data,
-        error: null
-      };
+      return response.data;
     } catch (error) {
-      return {
-        success: false,
-        conductor: null,
-        error: {
-          code: error.code || 'CREATE_CONDUCTOR_ERROR',
-          message: apiUtils.formatError(error),
-          details: error.message
-        }
-      };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -103,39 +69,11 @@ const driversAPI = {
    */
   update: async (idConductor, driverData) => {
     try {
-      if (!idConductor) {
-        return {
-          success: false,
-          conductor: null,
-          error: {
-            code: 'MISSING_ID',
-            message: 'El ID del conductor es requerido para actualizar',
-            details: 'Se debe proporcionar un ID válido'
-          }
-        };
-      }
-
+      if (!idConductor) throw new Error('El ID del conductor es requerido para actualizar.');
       const response = await apiClient.put(`/api/conductores/${idConductor}`, driverData);
-
-      if (response.data.success === false) {
-        throw new Error(response.data.error?.message || 'Error al actualizar conductor');
-      }
-
-      return {
-        success: true,
-        conductor: response.data,
-        error: null
-      };
+      return response.data;
     } catch (error) {
-      return {
-        success: false,
-        conductor: null,
-        error: {
-          code: error.code || 'UPDATE_CONDUCTOR_ERROR',
-          message: apiUtils.formatError(error),
-          details: error.message
-        }
-      };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -145,37 +83,11 @@ const driversAPI = {
    */
   delete: async (idConductor) => {
     try {
-      if (!idConductor) {
-        return {
-          success: false,
-          error: {
-            code: 'MISSING_ID',
-            message: 'El ID del conductor es requerido para eliminar',
-            details: 'Se debe proporcionar un ID válido'
-          }
-        };
-      }
-
+      if (!idConductor) throw new Error('El ID del conductor es requerido para eliminar.');
       const response = await apiClient.delete(`/api/conductores/${idConductor}`);
-
-      if (response.data.success === false) {
-        throw new Error(response.data.error?.message || 'Error al eliminar conductor');
-      }
-
-      return {
-        success: true,
-        message: 'Conductor eliminado exitosamente',
-        error: null
-      };
+      return response.data;
     } catch (error) {
-      return {
-        success: false,
-        error: {
-          code: error.code || 'DELETE_CONDUCTOR_ERROR',
-          message: apiUtils.formatError(error),
-          details: error.message
-        }
-      };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 };

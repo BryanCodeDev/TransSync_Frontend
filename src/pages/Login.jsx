@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -38,8 +38,22 @@ const Login = () => {
   // Usar el contexto de tema
   const { theme, toggleTheme } = useTheme();
 
+  // Verificar si hay credenciales guardadas al cargar el componente
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
+
+    if (savedEmail && savedRememberMe) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+
+    // Verificar estado del servidor al cargar
+    checkServerConnection();
+  }, []);
+
   // Función para verificar conexión con el servidor usando authAPI
-  const checkServerConnection = useCallback(async () => {
+  const checkServerConnection = async () => {
     try {
       const health = await authAPI.checkServerHealth();
       if (health.status === 'OK') {
@@ -53,21 +67,7 @@ const Login = () => {
         message: t('login.messages.serverConnectionError')
       });
     }
-  }, [t]);
-
-  // Verificar si hay credenciales guardadas al cargar el componente
-  useEffect(() => {
-    const savedEmail = localStorage.getItem("rememberedEmail");
-    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
-
-    if (savedEmail && savedRememberMe) {
-      setEmail(savedEmail);
-      setRememberMe(true);
-    }
-
-    // Verificar estado del servidor al cargar
-    checkServerConnection();
-  }, [checkServerConnection]);
+  };
 
   // Función para alternar visibilidad de contraseña
   const togglePasswordVisibility = () => {
@@ -134,7 +134,7 @@ const Login = () => {
         if (from && from !== '/login' && from !== '/register') {
           navigate(from, { replace: true });
         } else {
-          if (userRole === "SUPERADMIN" || userRole === "GESTOR") {
+          if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
             navigate("/admin/dashboard", { replace: true });
           } else {
             navigate("/dashboard", { replace: true });

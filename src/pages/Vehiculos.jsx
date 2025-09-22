@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FaBus, FaCheckCircle, FaTimesCircle, FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaUser, FaExclamationTriangle, FaCogs, FaRoad } from "react-icons/fa";
 import vehiculosAPI from '../utilidades/vehiculosAPI';
 import driversAPI from '../utilidades/driversAPI';
+import { apiClient } from '../api/baseAPI';
 
 const Vehiculos = () => {
   const { t } = useTranslation();
@@ -30,72 +31,7 @@ const Vehiculos = () => {
     idConductorAsignado: ''
   });
 
-  const [errors, setErrors] = useState({});
-
   const [editVehiculo, setEditVehiculo] = useState({});
-
-  // Funciones de validación
-  const validatePlaca = (placa) => {
-    const placaRegex = /^[A-Z]{3}[0-9]{3}$|^[A-Z]{3}[0-9]{2}[A-Z]$/;
-    return placaRegex.test(placa);
-  };
-
-  const validateFechaFutura = (fecha) => {
-    if (!fecha) return false;
-    const fechaVencimiento = new Date(fecha);
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    return fechaVencimiento >= hoy;
-  };
-
-  const validateAnio = (anio) => {
-    const anioActual = new Date().getFullYear();
-    return anio >= 1950 && anio <= anioActual + 1;
-  };
-
-  const validateForm = (formData, isEdit = false) => {
-    const newErrors = {};
-
-    // Validaciones básicas
-    if (!formData.numVehiculo?.trim()) {
-      newErrors.numVehiculo = 'El número interno es requerido';
-    }
-
-    if (!formData.plaVehiculo?.trim()) {
-      newErrors.plaVehiculo = 'La placa es requerida';
-    } else if (!validatePlaca(formData.plaVehiculo)) {
-      newErrors.plaVehiculo = 'Formato de placa inválido (ABC123 o ABC12D)';
-    }
-
-    if (!formData.marVehiculo?.trim()) {
-      newErrors.marVehiculo = 'La marca es requerida';
-    }
-
-    if (!formData.modVehiculo?.trim()) {
-      newErrors.modVehiculo = 'El modelo es requerido';
-    }
-
-    if (!formData.anioVehiculo) {
-      newErrors.anioVehiculo = 'El año es requerido';
-    } else if (!validateAnio(formData.anioVehiculo)) {
-      newErrors.anioVehiculo = 'El año debe estar entre 1950 y ' + (new Date().getFullYear() + 1);
-    }
-
-    if (!formData.fecVenSOAT) {
-      newErrors.fecVenSOAT = 'La fecha de vencimiento SOAT es requerida';
-    } else if (!validateFechaFutura(formData.fecVenSOAT)) {
-      newErrors.fecVenSOAT = 'La fecha de vencimiento SOAT debe ser futura';
-    }
-
-    if (!formData.fecVenTec) {
-      newErrors.fecVenTec = 'La fecha de vencimiento técnica es requerida';
-    } else if (!validateFechaFutura(formData.fecVenTec)) {
-      newErrors.fecVenTec = 'La fecha de vencimiento técnica debe ser futura';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   // Estados de vehículos válidos según la base de datos
   const estadosVehiculo = [
@@ -171,8 +107,10 @@ const Vehiculos = () => {
     try {
       setError('');
 
-      // Validar formulario
-      if (!validateForm(newVehiculo)) {
+      // Validaciones básicas
+      if (!newVehiculo.numVehiculo || !newVehiculo.plaVehiculo || !newVehiculo.marVehiculo ||
+        !newVehiculo.modVehiculo || !newVehiculo.fecVenSOAT || !newVehiculo.fecVenTec) {
+        setError('Por favor, completa todos los campos requeridos.');
         return;
       }
 
@@ -189,7 +127,6 @@ const Vehiculos = () => {
       // Cerrar modal y resetear formulario
       setShowAddModal(false);
       resetNewVehiculo();
-      setErrors({});
 
     } catch (error) {
       console.error('Error al crear vehículo:', error);
@@ -201,11 +138,6 @@ const Vehiculos = () => {
     try {
       setError('');
 
-      // Validar formulario
-      if (!validateForm(editVehiculo, true)) {
-        return;
-      }
-
       await vehiculosAPI.update(selectedVehiculo.idVehiculo, editVehiculo);
 
       // Recargar datos
@@ -215,7 +147,6 @@ const Vehiculos = () => {
       setShowEditModal(false);
       setSelectedVehiculo(null);
       setEditVehiculo({});
-      setErrors({});
 
     } catch (error) {
       console.error('Error al actualizar vehículo:', error);
@@ -284,7 +215,6 @@ const Vehiculos = () => {
       estVehiculo: 'DISPONIBLE',
       idConductorAsignado: ''
     });
-    setErrors({});
   };
 
   const getEstadoInfo = (estado) => {
@@ -565,24 +495,10 @@ const Vehiculos = () => {
                 <input
                   type="text"
                   value={newVehiculo.plaVehiculo}
-                  onChange={(e) => {
-                    const value = e.target.value.toUpperCase();
-                    setNewVehiculo({ ...newVehiculo, plaVehiculo: value });
-                    // Limpiar error cuando el usuario empiece a escribir
-                    if (errors.plaVehiculo) {
-                      setErrors({ ...errors, plaVehiculo: '' });
-                    }
-                  }}
-                  className={`py-3 px-3 rounded-md border bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:ring-2 focus:ring-blue-200 outline-none font-mono ${
-                    errors.plaVehiculo
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 dark:border-slate-600 focus:border-blue-500'
-                  }`}
-                  placeholder="ABC123"
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, plaVehiculo: e.target.value.toUpperCase() })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-mono"
+                  placeholder="ABC-123"
                 />
-                {errors.plaVehiculo && (
-                  <span className="text-red-500 text-xs mt-1">{errors.plaVehiculo}</span>
-                )}
               </div>
             </div>
 
@@ -616,23 +532,11 @@ const Vehiculos = () => {
                 <input
                   type="number"
                   value={newVehiculo.anioVehiculo}
-                  onChange={(e) => {
-                    setNewVehiculo({ ...newVehiculo, anioVehiculo: parseInt(e.target.value) });
-                    if (errors.anioVehiculo) {
-                      setErrors({ ...errors, anioVehiculo: '' });
-                    }
-                  }}
-                  className={`py-3 px-3 rounded-md border bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:ring-2 focus:ring-blue-200 outline-none ${
-                    errors.anioVehiculo
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 dark:border-slate-600 focus:border-blue-500'
-                  }`}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, anioVehiculo: parseInt(e.target.value) })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   min="1950"
                   max={new Date().getFullYear() + 1}
                 />
-                {errors.anioVehiculo && (
-                  <span className="text-red-500 text-xs mt-1">{errors.anioVehiculo}</span>
-                )}
               </div>
 
               <div key="form-estado" className="flex flex-col">
@@ -655,22 +559,10 @@ const Vehiculos = () => {
                 <input
                   type="date"
                   value={newVehiculo.fecVenSOAT}
-                  onChange={(e) => {
-                    setNewVehiculo({ ...newVehiculo, fecVenSOAT: e.target.value });
-                    if (errors.fecVenSOAT) {
-                      setErrors({ ...errors, fecVenSOAT: '' });
-                    }
-                  }}
-                  className={`py-3 px-3 rounded-md border bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:ring-2 focus:ring-blue-200 outline-none ${
-                    errors.fecVenSOAT
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 dark:border-slate-600 focus:border-blue-500'
-                  }`}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, fecVenSOAT: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   min={new Date().toISOString().split('T')[0]}
                 />
-                {errors.fecVenSOAT && (
-                  <span className="text-red-500 text-xs mt-1">{errors.fecVenSOAT}</span>
-                )}
               </div>
 
               <div key="form-tecnica" className="flex flex-col">
@@ -678,22 +570,10 @@ const Vehiculos = () => {
                 <input
                   type="date"
                   value={newVehiculo.fecVenTec}
-                  onChange={(e) => {
-                    setNewVehiculo({ ...newVehiculo, fecVenTec: e.target.value });
-                    if (errors.fecVenTec) {
-                      setErrors({ ...errors, fecVenTec: '' });
-                    }
-                  }}
-                  className={`py-3 px-3 rounded-md border bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:ring-2 focus:ring-blue-200 outline-none ${
-                    errors.fecVenTec
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 dark:border-slate-600 focus:border-blue-500'
-                  }`}
+                  onChange={(e) => setNewVehiculo({ ...newVehiculo, fecVenTec: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   min={new Date().toISOString().split('T')[0]}
                 />
-                {errors.fecVenTec && (
-                  <span className="text-red-500 text-xs mt-1">{errors.fecVenTec}</span>
-                )}
               </div>
             </div>
 
@@ -720,7 +600,6 @@ const Vehiculos = () => {
                   setShowAddModal(false);
                   resetNewVehiculo();
                   setError('');
-                  setErrors({});
                 }}
               >
                 Cancelar
@@ -760,22 +639,9 @@ const Vehiculos = () => {
                 <input
                   type="text"
                   value={editVehiculo.plaVehiculo || ''}
-                  onChange={(e) => {
-                    const value = e.target.value.toUpperCase();
-                    setEditVehiculo({ ...editVehiculo, plaVehiculo: value });
-                    if (errors.plaVehiculo) {
-                      setErrors({ ...errors, plaVehiculo: '' });
-                    }
-                  }}
-                  className={`py-3 px-3 rounded-md border bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:ring-2 focus:ring-blue-200 outline-none font-mono ${
-                    errors.plaVehiculo
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 dark:border-slate-600 focus:border-blue-500'
-                  }`}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, plaVehiculo: e.target.value.toUpperCase() })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none font-mono"
                 />
-                {errors.plaVehiculo && (
-                  <span className="text-red-500 text-xs mt-1">{errors.plaVehiculo}</span>
-                )}
               </div>
             </div>
 
@@ -807,23 +673,11 @@ const Vehiculos = () => {
                 <input
                   type="number"
                   value={editVehiculo.anioVehiculo || ''}
-                  onChange={(e) => {
-                    setEditVehiculo({ ...editVehiculo, anioVehiculo: parseInt(e.target.value) });
-                    if (errors.anioVehiculo) {
-                      setErrors({ ...errors, anioVehiculo: '' });
-                    }
-                  }}
-                  className={`py-3 px-3 rounded-md border bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:ring-2 focus:ring-blue-200 outline-none ${
-                    errors.anioVehiculo
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 dark:border-slate-600 focus:border-blue-500'
-                  }`}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, anioVehiculo: parseInt(e.target.value) })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   min="1950"
                   max={new Date().getFullYear() + 1}
                 />
-                {errors.anioVehiculo && (
-                  <span className="text-red-500 text-xs mt-1">{errors.anioVehiculo}</span>
-                )}
               </div>
 
               <div key="edit-form-estado" className="flex flex-col">
@@ -846,22 +700,9 @@ const Vehiculos = () => {
                 <input
                   type="date"
                   value={editVehiculo.fecVenSOAT || ''}
-                  onChange={(e) => {
-                    setEditVehiculo({ ...editVehiculo, fecVenSOAT: e.target.value });
-                    if (errors.fecVenSOAT) {
-                      setErrors({ ...errors, fecVenSOAT: '' });
-                    }
-                  }}
-                  className={`py-3 px-3 rounded-md border bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:ring-2 focus:ring-blue-200 outline-none ${
-                    errors.fecVenSOAT
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 dark:border-slate-600 focus:border-blue-500'
-                  }`}
-                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, fecVenSOAT: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 />
-                {errors.fecVenSOAT && (
-                  <span className="text-red-500 text-xs mt-1">{errors.fecVenSOAT}</span>
-                )}
               </div>
 
               <div key="edit-form-tecnica" className="flex flex-col">
@@ -869,22 +710,9 @@ const Vehiculos = () => {
                 <input
                   type="date"
                   value={editVehiculo.fecVenTec || ''}
-                  onChange={(e) => {
-                    setEditVehiculo({ ...editVehiculo, fecVenTec: e.target.value });
-                    if (errors.fecVenTec) {
-                      setErrors({ ...errors, fecVenTec: '' });
-                    }
-                  }}
-                  className={`py-3 px-3 rounded-md border bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:ring-2 focus:ring-blue-200 outline-none ${
-                    errors.fecVenTec
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-300 dark:border-slate-600 focus:border-blue-500'
-                  }`}
-                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setEditVehiculo({ ...editVehiculo, fecVenTec: e.target.value })}
+                  className="py-3 px-3 rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 />
-                {errors.fecVenTec && (
-                  <span className="text-red-500 text-xs mt-1">{errors.fecVenTec}</span>
-                )}
               </div>
             </div>
 
@@ -919,7 +747,6 @@ const Vehiculos = () => {
                   setSelectedVehiculo(null);
                   setEditVehiculo({});
                   setError('');
-                  setErrors({});
                 }}
               >
                 Cancelar

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import '../i18n'; // Asegurar que i18n esté inicializado
 import {
   FaUser,
   FaEnvelope,
@@ -31,7 +30,6 @@ const Profile = () => {
   const {
     userProfile,
     loading,
-    error,
     updateProfile,
     changePassword
   } = useUser();
@@ -62,51 +60,6 @@ const Profile = () => {
     telUsuario: ''
   });
 
-  // Estados para errores de validación (solo se muestran después de intentar enviar)
-  const [fieldErrors, setFieldErrors] = useState({});
-
-  // Funciones de validación
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email) && email.length <= 80;
-  };
-
-  const validateTelefono = (telefono) => {
-    if (!telefono) return true; // El teléfono es opcional
-    const telefonoRegex = /^[0-9]{7,16}$/;
-    return telefonoRegex.test(telefono.replace(/[\s\-()]/g, ''));
-  };
-
-  const validateNombreApellido = (texto) => {
-    if (!texto) return false;
-    const textoRegex = /^[a-zA-ZÀ-ÿ\s]{2,80}$/;
-    return textoRegex.test(texto.trim());
-  };
-
-
-  const validateForm = () => {
-    const errors = {};
-
-    if (!validateNombreApellido(editData.nomUsuario)) {
-      errors.nomUsuario = 'El nombre debe tener 2-80 caracteres y solo contener letras y espacios';
-    }
-
-    if (!validateNombreApellido(editData.apeUsuario)) {
-      errors.apeUsuario = 'El apellido debe tener 2-80 caracteres y solo contener letras y espacios';
-    }
-
-    if (!validateEmail(editData.email)) {
-      errors.email = 'Formato de email inválido o excede 80 caracteres';
-    }
-
-    if (!validateTelefono(editData.telUsuario)) {
-      errors.telUsuario = 'El teléfono debe tener entre 7-16 dígitos';
-    }
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
   // Inicializar datos de edición cuando se activa la edición
   useEffect(() => {
     if (isEditing && userProfile) {
@@ -125,11 +78,6 @@ const Profile = () => {
       ...prev,
       [name]: value
     }));
-
-    // Limpiar errores cuando el usuario empiece a escribir
-    if (fieldErrors[name]) {
-      setFieldErrors(prev => ({ ...prev, [name]: '' }));
-    }
   };
 
   const handlePasswordChange = (e) => {
@@ -151,44 +99,19 @@ const Profile = () => {
     try {
       setMessage({ type: '', text: '' });
 
-      // Validar formulario antes de enviar
-      if (!validateForm()) {
-        return;
-      }
-
       await updateProfile(editData);
       setIsEditing(false);
-      setFieldErrors({});
       setMessage({
         type: 'success',
         text: 'Perfil actualizado exitosamente'
       });
 
       // Refrescar datos de autenticación
-      if (refreshAuth) {
-        refreshAuth();
-      }
+      refreshAuth();
     } catch (error) {
-      // Manejar errores específicos del API
-      const errorMessage = error.message || 'Error al actualizar el perfil';
-
-      // Si el error contiene información específica de validación, mostrarla
-      if (errorMessage.includes('nombre') || errorMessage.includes('email') || errorMessage.includes('teléfono')) {
-        // Extraer errores específicos si es posible
-        if (errorMessage.includes('nombre')) {
-          setFieldErrors(prev => ({ ...prev, nomUsuario: errorMessage }));
-        }
-        if (errorMessage.includes('email')) {
-          setFieldErrors(prev => ({ ...prev, email: errorMessage }));
-        }
-        if (errorMessage.includes('teléfono')) {
-          setFieldErrors(prev => ({ ...prev, telUsuario: errorMessage }));
-        }
-      }
-
       setMessage({
         type: 'error',
-        text: errorMessage
+        text: error.message || 'Error al actualizar el perfil'
       });
     }
   };
@@ -197,25 +120,13 @@ const Profile = () => {
     try {
       setMessage({ type: '', text: '' });
 
-      // Validaciones más robustas
-      if (!passwordData.currentPassword) {
-        throw new Error('La contraseña actual es requerida');
-      }
-
-      if (!passwordData.newPassword) {
-        throw new Error('La nueva contraseña es requerida');
-      }
-
-      if (passwordData.newPassword.length < 6) {
-        throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
-      }
-
+      // Validaciones
       if (passwordData.newPassword !== passwordData.confirmPassword) {
         throw new Error('Las contraseñas no coinciden');
       }
 
-      if (passwordData.currentPassword === passwordData.newPassword) {
-        throw new Error('La nueva contraseña debe ser diferente a la actual');
+      if (passwordData.newPassword.length < 6) {
+        throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
       }
 
       await changePassword(passwordData);
@@ -241,7 +152,6 @@ const Profile = () => {
     setIsEditing(false);
     setIsChangingPassword(false);
     setMessage({ type: '', text: '' });
-    setFieldErrors({});
   };
 
   const getRoleDisplayName = (role) => {
@@ -266,7 +176,7 @@ const Profile = () => {
     }
   };
 
-  if (loading && !userProfile) {
+  if (loading.profile && !userProfile) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="flex items-center gap-3">
@@ -307,7 +217,7 @@ const Profile = () => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Mensajes de estado */}
-        {(message.text || error?.profile) && (
+        {message.text && (
           <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
             message.type === 'success'
               ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800'
@@ -318,7 +228,7 @@ const Profile = () => {
             ) : (
               <FaExclamationTriangle className="text-red-500" />
             )}
-            <span className="text-sm font-medium">{message.text || error?.profile}</span>
+            <span className="text-sm font-medium">{message.text}</span>
           </div>
         )}
 
@@ -349,26 +259,14 @@ const Profile = () => {
                     Nombres
                   </label>
                   {isEditing ? (
-                    <>
-                      <input
-                        type="text"
-                        name="nomUsuario"
-                        value={editData.nomUsuario}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                          fieldErrors.nomUsuario
-                            ? 'border-red-500 dark:border-red-400'
-                            : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                        placeholder="Ingresa tus nombres"
-                      />
-                      {fieldErrors.nomUsuario && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                          <FaExclamationTriangle size={12} />
-                          {fieldErrors.nomUsuario}
-                        </p>
-                      )}
-                    </>
+                    <input
+                      type="text"
+                      name="nomUsuario"
+                      value={editData.nomUsuario}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="Ingresa tus nombres"
+                    />
                   ) : (
                     <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <FaUser className="text-gray-400" />
@@ -385,26 +283,14 @@ const Profile = () => {
                     Apellidos
                   </label>
                   {isEditing ? (
-                    <>
-                      <input
-                        type="text"
-                        name="apeUsuario"
-                        value={editData.apeUsuario}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                          fieldErrors.apeUsuario
-                            ? 'border-red-500 dark:border-red-400'
-                            : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                        placeholder="Ingresa tus apellidos"
-                      />
-                      {fieldErrors.apeUsuario && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                          <FaExclamationTriangle size={12} />
-                          {fieldErrors.apeUsuario}
-                        </p>
-                      )}
-                    </>
+                    <input
+                      type="text"
+                      name="apeUsuario"
+                      value={editData.apeUsuario}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="Ingresa tus apellidos"
+                    />
                   ) : (
                     <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <FaUser className="text-gray-400" />
@@ -421,26 +307,14 @@ const Profile = () => {
                     Correo Electrónico
                   </label>
                   {isEditing ? (
-                    <>
-                      <input
-                        type="email"
-                        name="email"
-                        value={editData.email}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                          fieldErrors.email
-                            ? 'border-red-500 dark:border-red-400'
-                            : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                        placeholder="Ingresa tu correo electrónico"
-                      />
-                      {fieldErrors.email && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                          <FaExclamationTriangle size={12} />
-                          {fieldErrors.email}
-                        </p>
-                      )}
-                    </>
+                    <input
+                      type="email"
+                      name="email"
+                      value={editData.email}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="Ingresa tu correo electrónico"
+                    />
                   ) : (
                     <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <FaEnvelope className="text-gray-400" />
@@ -457,26 +331,14 @@ const Profile = () => {
                     Teléfono
                   </label>
                   {isEditing ? (
-                    <>
-                      <input
-                        type="tel"
-                        name="telUsuario"
-                        value={editData.telUsuario}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
-                          fieldErrors.telUsuario
-                            ? 'border-red-500 dark:border-red-400'
-                            : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                        placeholder="Ingresa tu número de teléfono"
-                      />
-                      {fieldErrors.telUsuario && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                          <FaExclamationTriangle size={12} />
-                          {fieldErrors.telUsuario}
-                        </p>
-                      )}
-                    </>
+                    <input
+                      type="tel"
+                      name="telUsuario"
+                      value={editData.telUsuario}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="Ingresa tu número de teléfono"
+                    />
                   ) : (
                     <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <FaPhone className="text-gray-400" />
@@ -509,15 +371,15 @@ const Profile = () => {
                 <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={handleSaveProfile}
-                    disabled={loading.profile}
+                    disabled={loading}
                     className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white rounded-lg transition-colors"
                   >
                     <FaSave size={14} />
-                    {loading.profile ? 'Guardando...' : 'Guardar Cambios'}
+                    {loading ? 'Guardando...' : 'Guardar Cambios'}
                   </button>
                   <button
                     onClick={handleCancel}
-                    disabled={loading.profile}
+                    disabled={loading}
                     className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
                   >
                     <FaTimes size={14} />
@@ -623,15 +485,15 @@ const Profile = () => {
                   <div className="flex gap-2 pt-2">
                     <button
                       onClick={handleChangePassword}
-                      disabled={loading.profile}
+                      disabled={loading}
                       className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white text-sm rounded-lg transition-colors"
                     >
                       <FaSave size={14} />
-                      {loading.profile ? 'Cambiando...' : 'Cambiar'}
+                      {loading ? 'Cambiando...' : 'Cambiar'}
                     </button>
                     <button
                       onClick={handleCancel}
-                      disabled={loading.profile}
+                      disabled={loading}
                       className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-lg transition-colors"
                     >
                       <FaTimes size={14} />

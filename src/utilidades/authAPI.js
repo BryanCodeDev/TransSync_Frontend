@@ -1,7 +1,5 @@
 // api/authAPI.js - Servicio de autenticación integrado
 import { apiClient, apiUtils } from '../api/baseAPI';
-import { errorHandler, ERROR_CODES } from './errorHandler';
-import tokenManager from './tokenManager';
 
 
 const authAPI = {
@@ -46,9 +44,9 @@ const authAPI = {
       return response.data;
 
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.register');
-      const processedError = errorHandler.processError(error);
-      throw errorHandler.createError(processedError.code, processedError.message, processedError.details);
+      // Re-lanzar el error para que sea manejado por el interceptor
+      // o por el componente que llamó a la función.
+      throw error;
     }
   },
   // Login de usuario
@@ -86,37 +84,18 @@ const authAPI = {
 
       return response.data;
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.login');
-      const processedError = errorHandler.processError(error);
-
-      // Manejo específico de errores de login con nuevos códigos
-      if (error.response?.status === 401) {
-        if (error.response?.data?.error?.code === 'NO_TOKEN') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_INVALID, 'Token de autenticación no proporcionado');
-        } else if (error.response?.data?.error?.code === 'INVALID_TOKEN') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_INVALID, 'Token de autenticación inválido');
-        } else if (error.response?.data?.error?.code === 'TOKEN_EXPIRED') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_EXPIRED, 'Token de autenticación expirado');
-        } else {
-          throw errorHandler.createError(ERROR_CODES.AUTH_UNAUTHORIZED, 'Credenciales incorrectas. Verifique su email y contraseña.');
-        }
-      } else if (error.response?.status === 403) {
-        if (error.response?.data?.error?.code === 'UNAUTHORIZED') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_UNAUTHORIZED, 'Acceso no autorizado');
-        } else if (error.response?.data?.error?.code === 'INVALID_USER') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_UNAUTHORIZED, 'Usuario inválido o inactivo');
-        } else if (error.response?.data?.error?.code === 'ACCESS_DENIED') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_ACCESS_DENIED, 'Acceso denegado por permisos insuficientes');
-        } else {
-          throw errorHandler.createError(ERROR_CODES.AUTH_UNAUTHORIZED, 'Su cuenta no está activada. Por favor verifique su correo electrónico.');
-        }
-      } else if (error.response?.status === 400) {
-        if (error.response?.data?.error?.code === 'VALIDATION_ERROR') {
-          throw errorHandler.createError(ERROR_CODES.VALIDATION_ERROR, error.response?.data?.error?.message || 'Error de validación en los datos proporcionados');
-        }
+      // Manejo específico de errores de login
+      if (error.status === 401 || error.response?.status === 401) {
+        throw new Error('Credenciales incorrectas. Verifique su email y contraseña.');
+      } else if (error.status === 403 || error.response?.status === 403) {
+        throw new Error('Su cuenta no está activada. Por favor verifique su correo electrónico.');
+      } else if (error.code === 'ECONNABORTED') {
+        throw new Error("La solicitud tardó demasiado. Verifique su conexión e intente nuevamente.");
+      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        throw new Error("No se puede conectar con el servidor. Verifique que el servidor esté ejecutándose.");
       }
 
-      throw errorHandler.createError(processedError.code, processedError.message, processedError.details);
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -130,26 +109,13 @@ const authAPI = {
       const response = await apiClient.get(`/api/auth/verify?token=${token}`);
       return response.data;
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.verifyAccount');
-      const processedError = errorHandler.processError(error);
-
-      if (error.response?.status === 400) {
-        if (error.response?.data?.error?.code === 'INVALID_TOKEN') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_INVALID, 'Token de verificación inválido');
-        } else if (error.response?.data?.error?.code === 'TOKEN_EXPIRED') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_EXPIRED, 'Token de verificación expirado');
-        } else {
-          throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_INVALID, 'Token de verificación inválido o expirado.');
-        }
-      } else if (error.response?.status === 404) {
-        if (error.response?.data?.error?.code === 'INVALID_USER') {
-          throw errorHandler.createError(ERROR_CODES.USER_NOT_FOUND, 'Usuario no encontrado');
-        } else {
-          throw errorHandler.createError(ERROR_CODES.USER_NOT_FOUND, 'Usuario no encontrado o ya verificado.');
-        }
+      if (error.status === 400 || error.response?.status === 400) {
+        throw new Error('Token de verificación inválido o expirado.');
+      } else if (error.status === 404 || error.response?.status === 404) {
+        throw new Error('Usuario no encontrado o ya verificado.');
       }
 
-      throw errorHandler.createError(processedError.code, processedError.message, processedError.details);
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -173,22 +139,11 @@ const authAPI = {
       });
       return response.data;
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.forgotPassword');
-      const processedError = errorHandler.processError(error);
-
-      if (error.response?.status === 404) {
-        if (error.response?.data?.error?.code === 'INVALID_USER') {
-          throw errorHandler.createError(ERROR_CODES.USER_NOT_FOUND, 'El correo electrónico no está registrado');
-        } else {
-          throw errorHandler.createError(ERROR_CODES.USER_NOT_FOUND, 'El correo electrónico no está registrado.');
-        }
-      } else if (error.response?.status === 400) {
-        if (error.response?.data?.error?.code === 'VALIDATION_ERROR') {
-          throw errorHandler.createError(ERROR_CODES.VALIDATION_ERROR, error.response?.data?.error?.message || 'Error de validación en el correo electrónico');
-        }
+      if (error.status === 404 || error.response?.status === 404) {
+        throw new Error('El correo electrónico no está registrado.');
       }
 
-      throw errorHandler.createError(processedError.code, processedError.message, processedError.details);
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -208,97 +163,14 @@ const authAPI = {
       });
       return response.data;
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.resetPassword');
-      const processedError = errorHandler.processError(error);
-
-      if (error.response?.status === 400) {
-        if (error.response?.data?.error?.code === 'INVALID_TOKEN') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_INVALID, 'Token de restablecimiento inválido');
-        } else if (error.response?.data?.error?.code === 'TOKEN_EXPIRED') {
-          throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_EXPIRED, 'Token de restablecimiento expirado');
-        } else if (error.response?.data?.error?.code === 'VALIDATION_ERROR') {
-          throw errorHandler.createError(ERROR_CODES.VALIDATION_ERROR, error.response?.data?.error?.message || 'Error de validación en la nueva contraseña');
-        } else {
-          throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_INVALID, 'Token de restablecimiento inválido o expirado.');
-        }
-      } else if (error.response?.status === 404) {
-        if (error.response?.data?.error?.code === 'INVALID_USER') {
-          throw errorHandler.createError(ERROR_CODES.USER_NOT_FOUND, 'Usuario no encontrado');
-        } else {
-          throw errorHandler.createError(ERROR_CODES.USER_NOT_FOUND, 'Usuario no encontrado.');
-        }
+      if (error.status === 400 || error.response?.status === 400) {
+        throw new Error('Token de restablecimiento inválido o expirado.');
+      } else if (error.status === 404 || error.response?.status === 404) {
+        throw new Error('Usuario no encontrado.');
       }
 
-      throw errorHandler.createError(processedError.code, processedError.message, processedError.details);
+      throw new Error(apiUtils.formatError(error));
     }
-  },
-
-  // ================================
-  // GESTIÓN DE TOKENS JWT
-  // ================================
-
-  // Renovar token JWT
-  refreshToken: async () => {
-    try {
-      const currentToken = tokenManager.getToken();
-      if (!currentToken) {
-        throw errorHandler.createError(ERROR_CODES.AUTH_TOKEN_INVALID, 'No hay token para renovar');
-      }
-
-      const response = await apiClient.post('/api/auth/refresh', {
-        token: currentToken
-      });
-
-      if (response.data.success === false) {
-        throw new Error(response.data.error?.message || 'Error al renovar token');
-      }
-
-      if (response.data.token) {
-        // Usar tokenManager para guardar el nuevo token
-        tokenManager.setToken(response.data.token);
-
-        // Actualizar datos del usuario si se proporcionan
-        if (response.data.user) {
-          const currentData = authAPI.getCurrentUser() || {};
-          const updatedUser = { ...currentData, ...response.data.user };
-
-          localStorage.setItem('userData', JSON.stringify(updatedUser));
-          localStorage.setItem('userName', updatedUser.name || '');
-          localStorage.setItem('userRole', updatedUser.rol || '');
-          localStorage.setItem('userEmail', updatedUser.email || '');
-          localStorage.setItem('userId', updatedUser.id || '');
-        }
-
-        console.log('✅ Token renovado exitosamente');
-        return {
-          success: true,
-          token: response.data.token,
-          user: response.data.user,
-          error: null
-        };
-      } else {
-        throw new Error('No se recibió token en la respuesta de refresh');
-      }
-
-    } catch (error) {
-      errorHandler.logError(error, 'authAPI.refreshToken');
-
-      // Si el refresh falla, hacer logout
-      console.error('❌ Error renovando token, cerrando sesión...');
-      authAPI.logout();
-
-      return {
-        success: false,
-        token: null,
-        user: null,
-        error: errorHandler.processError(error)
-      };
-    }
-  },
-
-  // Verificar estado del token
-  checkTokenStatus: () => {
-    return tokenManager.getTokenInfo();
   },
 
   // ================================
@@ -337,9 +209,7 @@ const authAPI = {
       const response = await apiClient.get('/api/auth/profile');
       return response.data;
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.getProfile');
-      const processedError = errorHandler.processError(error);
-      throw errorHandler.createError(processedError.code, processedError.message, processedError.details);
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -349,9 +219,7 @@ const authAPI = {
       const response = await apiClient.get('/api/auth/verify-token');
       return response.data;
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.changePassword');
-      const processedError = errorHandler.processError(error);
-      throw errorHandler.createError(processedError.code, processedError.message, processedError.details);
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -362,43 +230,15 @@ const authAPI = {
   // Actualizar perfil de usuario
   updateProfile: async (profileData) => {
     try {
-      const { name, email, phone } = profileData;
+      const { name, email } = profileData;
 
-      // Validaciones mejoradas según especificaciones del backend
-      if (name) {
-        // Validar nombres: solo letras y espacios, 2-80 caracteres
-        if (name.length < 2 || name.length > 80) {
-          throw new Error('El nombre debe tener entre 2 y 80 caracteres');
-        }
-        if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(name)) {
-          throw new Error('El nombre solo puede contener letras y espacios');
-        }
-      }
-
-      if (email) {
-        // Validar email: formato válido, máximo 80 caracteres
-        if (email.length > 80) {
-          throw new Error('El email no puede tener más de 80 caracteres');
-        }
-        if (!apiUtils.isValidEmail(email)) {
-          throw new Error('Formato de email inválido');
-        }
-      }
-
-      if (phone) {
-        // Validar teléfono: formato internacional, 7-16 dígitos
-        if (phone.length < 7 || phone.length > 16) {
-          throw new Error('El teléfono debe tener entre 7 y 16 dígitos');
-        }
-        if (!/^[\d\s\-+()]+$/.test(phone)) {
-          throw new Error('El teléfono solo puede contener números, espacios, guiones, paréntesis y el signo +');
-        }
+      if (email && !apiUtils.isValidEmail(email)) {
+        throw new Error('Formato de email inválido');
       }
 
       const response = await apiClient.put('/api/auth/profile', {
         name: name?.trim(),
-        email: email?.trim().toLowerCase(),
-        phone: phone?.trim()
+        email: email?.trim().toLowerCase()
       });
 
       // Actualizar datos en localStorage
@@ -408,30 +248,12 @@ const authAPI = {
 
         localStorage.setItem('userData', JSON.stringify(updatedUser));
         localStorage.setItem('userName', updatedUser.name || '');
-        localStorage.setItem('userRole', updatedUser.rol || '');
         localStorage.setItem('userEmail', updatedUser.email || '');
-        localStorage.setItem('userId', updatedUser.id || '');
       }
 
       return response.data;
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.updateProfile');
-      const processedError = errorHandler.processError(error);
-
-      // Manejo específico de errores de validación
-      if (error.response?.status === 400) {
-        if (error.response?.data?.error?.code === 'VALIDATION_ERROR') {
-          throw errorHandler.createError(ERROR_CODES.VALIDATION_ERROR, error.response?.data?.error?.message || 'Error de validación en los datos proporcionados');
-        } else if (error.response?.data?.error?.code === 'EMAIL_EXISTS') {
-          throw errorHandler.createError(ERROR_CODES.RESOURCE_ALREADY_EXISTS, 'El email ya está registrado en el sistema');
-        }
-      } else if (error.response?.status === 409) {
-        if (error.response?.data?.error?.code === 'EMAIL_EXISTS') {
-          throw errorHandler.createError(ERROR_CODES.RESOURCE_ALREADY_EXISTS, 'El email ya está registrado en el sistema');
-        }
-      }
-
-      throw errorHandler.createError(processedError.code, processedError.message, processedError.details);
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -460,9 +282,7 @@ const authAPI = {
 
       return response.data;
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.verifyToken');
-      const processedError = errorHandler.processError(error);
-      throw errorHandler.createError(processedError.code, processedError.message, processedError.details);
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -473,9 +293,9 @@ const authAPI = {
   // Verificar si está autenticado
   isAuthenticated: () => {
     try {
-      const token = tokenManager.getToken();
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken');
       const isAuth = localStorage.getItem('isAuthenticated');
-      return !!(token && isAuth === 'true' && tokenManager.isTokenValid(token));
+      return !!(token && isAuth === 'true');
     } catch (error) {
       console.error('Error checking authentication:', error);
       return false;
@@ -501,7 +321,7 @@ const authAPI = {
           id: userId,
           name: userName,
           email: userEmail,
-          rol: userRole
+          role: userRole
         };
       }
 
@@ -533,9 +353,9 @@ const authAPI = {
     return authAPI.hasRole('SUPERADMIN');
   },
 
-  // Verificar si es gestor
+  // Verificar si es administrador
   isAdmin: () => {
-    return authAPI.hasRole('GESTOR');
+    return authAPI.hasRole('ADMINISTRADOR');
   },
 
   // ================================
@@ -546,20 +366,17 @@ const authAPI = {
   saveAuthData: (authData) => {
     try {
       if (authData.token) {
-        // Usar tokenManager para guardar el token
-        tokenManager.setToken(authData.token);
+        localStorage.setItem('authToken', authData.token);
+        localStorage.setItem('userToken', authData.token); // Por compatibilidad
         localStorage.setItem('isAuthenticated', 'true');
 
         if (authData.user) {
           localStorage.setItem('userData', JSON.stringify(authData.user));
           localStorage.setItem('userName', authData.user.name || '');
-          localStorage.setItem('userRole', authData.user.rol || '');
+          localStorage.setItem('userRole', authData.user.role || '');
           localStorage.setItem('userEmail', authData.user.email || '');
           localStorage.setItem('userId', authData.user.id || '');
         }
-
-        // Iniciar gestión automática de tokens
-        tokenManager.startTokenManagement();
       }
     } catch (error) {
       console.error('Error guardando datos de auth:', error);
@@ -569,11 +386,12 @@ const authAPI = {
   // Limpiar datos de autenticación
   clearAuthData: () => {
     try {
-      // Usar tokenManager para limpiar tokens
-      tokenManager.clearTokens();
-      tokenManager.stopTokenManagement();
+      const keysToRemove = [
+        'authToken', 'userToken', 'userData', 'isAuthenticated',
+        'userName', 'userRole', 'userEmail', 'userId', 'rememberedEmail'
+      ];
 
-      // Limpiar datos adicionales
+      keysToRemove.forEach(key => localStorage.removeItem(key));
       localStorage.setItem('rememberMe', 'false');
 
       return true;
@@ -587,7 +405,7 @@ const authAPI = {
 
   // Obtener token de autorización
   getAuthToken: () => {
-    return tokenManager.getToken();
+    return localStorage.getItem('authToken') || localStorage.getItem('userToken');
   },
 
   // ================================
@@ -638,13 +456,10 @@ const authAPI = {
         };
       }
     } catch (error) {
-      errorHandler.logError(error, 'authAPI.checkServerHealth');
-      const processedError = errorHandler.processError(error);
-
       return {
         status: 'ERROR',
         message: 'No se puede conectar con el servidor de autenticación',
-        error: processedError.message,
+        error: apiUtils.formatError(error),
         timestamp: new Date().toISOString(),
         responseTime: null
       };
@@ -659,8 +474,6 @@ export default authAPI;
 export const {
   register,
   login,
-  refreshToken,
-  checkTokenStatus,
   verifyAccount,
   forgotPassword,
   resetPassword,
@@ -673,8 +486,5 @@ export const {
   hasRole,
   isSuperAdmin,
   isAdmin,
-  saveAuthData,
-  clearAuthData,
-  getAuthToken,
   checkServerHealth
 } = authAPI;

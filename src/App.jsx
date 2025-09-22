@@ -3,12 +3,10 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
-import { isAuthenticated, getCurrentUser } from './utilidades/authAPI';
+import { isAuthenticated } from './utilidades/authAPI';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { UserProvider } from './context/UserContext';
-import realTimeService from './utilidades/realTimeService';
-import RoleProtectedRoute from './routes/RoleProtectedRoute';
 
 // Componentes principales (no lazy para mejor UX)
 import Navbar from "./components/Navbar";
@@ -54,6 +52,12 @@ const useSidebar = () => {
   return { sidebarOpen, isMobile, toggleSidebar, closeSidebar };
 };
 
+const ProtectedRoute = ({ children }) => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
 const ProtectedLayout = ({ children }) => {
   const { sidebarOpen, isMobile, toggleSidebar, closeSidebar } = useSidebar();
@@ -107,25 +111,6 @@ const LazyLoadingFallback = () => (
 // COMPONENTE APP
 // ======================================================
 function App() {
-  // Conectar WebSocket cuando el usuario esté autenticado
-  useEffect(() => {
-    if (isAuthenticated()) {
-      const userContext = getCurrentUser();
-      if (userContext) {
-        console.log('🔗 Conectando WebSocket con contexto de usuario:', userContext);
-        realTimeService.connect(userContext);
-
-        // Configurar permisos de notificaciones
-        realTimeService.requestNotificationPermission();
-      }
-    }
-
-    // Limpiar conexión al desmontar
-    return () => {
-      realTimeService.disconnect();
-    };
-  }, []);
-
   return (
     <ThemeProvider>
       <AuthProvider>
@@ -140,49 +125,15 @@ function App() {
               <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
               <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
 
-              {/* Rutas protegidas con control de acceso basado en roles */}
-              {/* SUPERADMIN: acceso a todo */}
-              <Route path="/dashboard" element={
-                <RoleProtectedRoute allowedRoles={['SUPERADMIN', 'GESTOR']}>
-                  <ProtectedLayout><Dashboard /></ProtectedLayout>
-                </RoleProtectedRoute>
-              } />
-              <Route path="/admin/dashboard" element={
-                <RoleProtectedRoute allowedRoles={['SUPERADMIN']}>
-                  <ProtectedLayout><AdminDashboard /></ProtectedLayout>
-                </RoleProtectedRoute>
-              } />
-              <Route path="/drivers" element={
-                <RoleProtectedRoute allowedRoles={['SUPERADMIN', 'GESTOR']}>
-                  <ProtectedLayout><Drivers /></ProtectedLayout>
-                </RoleProtectedRoute>
-              } />
-              <Route path="/rutas" element={
-                <RoleProtectedRoute allowedRoles={['SUPERADMIN', 'GESTOR']}>
-                  <ProtectedLayout><Rutas /></ProtectedLayout>
-                </RoleProtectedRoute>
-              } />
-              <Route path="/vehiculos" element={
-                <RoleProtectedRoute allowedRoles={['SUPERADMIN', 'GESTOR']}>
-                  <ProtectedLayout><Vehiculos /></ProtectedLayout>
-                </RoleProtectedRoute>
-              } />
-              <Route path="/horarios" element={
-                <RoleProtectedRoute allowedRoles={['SUPERADMIN', 'GESTOR']}>
-                  <ProtectedLayout><Horarios /></ProtectedLayout>
-                </RoleProtectedRoute>
-              } />
-              <Route path="/informes" element={
-                <RoleProtectedRoute allowedRoles={['SUPERADMIN', 'GESTOR']}>
-                  <ProtectedLayout><Informes /></ProtectedLayout>
-                </RoleProtectedRoute>
-              } />
-              {/* CONDUCTOR: solo acceso a perfil */}
-              <Route path="/profile" element={
-                <RoleProtectedRoute allowedRoles={['SUPERADMIN', 'GESTOR', 'CONDUCTOR']}>
-                  <ProtectedLayout><Profile /></ProtectedLayout>
-                </RoleProtectedRoute>
-              } />
+              {/* Rutas protegidas usando tu ProtectedLayout y ProtectedRoute */}
+              <Route path="/dashboard" element={<ProtectedRoute><ProtectedLayout><Dashboard /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/admin/dashboard" element={<ProtectedRoute><ProtectedLayout><AdminDashboard /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/drivers" element={<ProtectedRoute><ProtectedLayout><Drivers /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/rutas" element={<ProtectedRoute><ProtectedLayout><Rutas /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/vehiculos" element={<ProtectedRoute><ProtectedLayout><Vehiculos /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/horarios" element={<ProtectedRoute><ProtectedLayout><Horarios /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/informes" element={<ProtectedRoute><ProtectedLayout><Informes /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProtectedLayout><Profile /></ProtectedLayout></ProtectedRoute>} />
 
               {/* Catch-all */}
               <Route path="*" element={<Navigate to="/home" replace />} />
