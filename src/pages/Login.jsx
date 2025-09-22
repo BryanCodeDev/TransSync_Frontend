@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   FaUser,
   FaLock,
@@ -20,6 +21,7 @@ import authAPI from '../utilidades/authAPI';
 import { useTheme } from '../context/ThemeContext';
 
 const Login = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -62,7 +64,7 @@ const Login = () => {
     } catch (error) {
       setServerStatus({
         status: 'disconnected',
-        message: 'No se puede conectar con el servidor'
+        message: t('login.messages.serverConnectionError')
       });
     }
   };
@@ -96,12 +98,12 @@ const Login = () => {
 
     // Validaciones
     if (!isEmailValid(email)) {
-      setError("Por favor ingrese un correo electrónico válido");
+      setError(t('login.messages.emailInvalid'));
       return;
     }
 
     if (!isPasswordValid(password)) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+      setError(t('login.messages.passwordInvalid'));
       return;
     }
 
@@ -113,7 +115,7 @@ const Login = () => {
       // Usar authAPI para el login
       const response = await authAPI.login(email, password);
 
-      setSuccess("¡Inicio de sesión exitoso! Redirigiendo...");
+      setSuccess(t('login.messages.success'));
 
       // Guardar estado de "recordarme"
       if (rememberMe) {
@@ -144,14 +146,14 @@ const Login = () => {
 
       // authAPI ya maneja los errores específicos
       if (err.message.includes('Credenciales incorrectas')) {
-        setError("Credenciales incorrectas. Verifique su email y contraseña.");
+        setError(t('login.messages.credentialsInvalid'));
       } else if (err.message.includes('no está activada')) {
-        setError("Su cuenta no está activada. Por favor verifique su correo electrónico.");
+        setError(t('login.messages.accountNotActivated'));
       } else if (err.message.includes('servidor')) {
         setError(err.message);
-        setServerStatus({ status: 'disconnected', message: 'Sin conexión al servidor' });
+        setServerStatus({ status: 'disconnected', message: t('login.messages.serverError') });
       } else {
-        setError(err.message || "Error de autenticación. Intente nuevamente.");
+        setError(err.message || t('login.messages.authError'));
       }
     } finally {
       setLoading(false);
@@ -162,12 +164,12 @@ const Login = () => {
     e.preventDefault();
 
     if (!email) {
-      setError("Por favor ingrese su correo electrónico primero");
+      setError(t('login.messages.emailRequired'));
       return;
     }
 
     if (!isEmailValid(email)) {
-      setError("Por favor ingrese un correo electrónico válido");
+      setError(t('login.messages.emailInvalid'));
       return;
     }
 
@@ -176,10 +178,10 @@ const Login = () => {
 
     try {
       await authAPI.forgotPassword(email);
-      setSuccess("Se ha enviado un enlace de recuperación a su correo electrónico");
+      setSuccess(t('login.messages.forgotPasswordSuccess'));
     } catch (err) {
       console.error("Error en forgot password:", err);
-      setError(err.message || "Error al enviar el correo de recuperación");
+      setError(err.message || t('login.messages.forgotPasswordError'));
     } finally {
       setLoading(false);
     }
@@ -195,8 +197,8 @@ const Login = () => {
       <button
         onClick={toggleTheme}
         className="fixed top-4 right-4 z-10 p-3 rounded-full bg-background-light dark:bg-surface-dark shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-        title={theme === 'dark' ? "Activar modo claro" : "Activar modo oscuro"}
-        aria-label={theme === 'dark' ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+        title={theme === 'dark' ? t('login.theme.activateLight') : t('login.theme.activateDark')}
+        aria-label={theme === 'dark' ? t('login.theme.changeToLight') : t('login.theme.changeToDark')}
       >
         {theme === 'dark' ? (
           <FaSun className="w-5 h-5 text-yellow-400" />
@@ -217,20 +219,20 @@ const Login = () => {
                 TransSync
               </h1>
               <p className="text-blue-100 text-xl mb-10 leading-relaxed">
-                Sistema de gestión empresarial para el transporte moderno
+                {t('login.brand.description')}
               </p>
               <div className="space-y-6">
                 <div className="flex items-center text-blue-100 text-lg">
                   <FaShieldAlt className="mr-4 text-blue-300 text-xl" />
-                  <span>Acceso seguro y confiable</span>
+                  <span>{t('login.brand.features.security')}</span>
                 </div>
                 <div className="flex items-center text-blue-100 text-lg">
                   <FaUsers className="mr-4 text-blue-300 text-xl" />
-                  <span>Gestión de administradores</span>
+                  <span>{t('login.brand.features.admin')}</span>
                 </div>
                 <div className="flex items-center text-blue-100 text-lg">
                   <FaCogs className="mr-4 text-blue-300 text-xl" />
-                  <span>Panel de control avanzado</span>
+                  <span>{t('login.brand.features.dashboard')}</span>
                 </div>
               </div>
             </div>
@@ -240,8 +242,8 @@ const Login = () => {
           <div className="lg:w-3/5 p-6 md:p-8 lg:p-12 xl:p-16 flex flex-col justify-center animate-slide-in-right">
             {/* Header */}
             <div className="text-center mb-6 md:mb-10">
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-text-primary-light dark:text-text-primary-dark mb-3">Iniciar Sesión</h2>
-              <p className="text-text-secondary-light dark:text-text-secondary-dark text-base md:text-lg">Acceda a su cuenta empresarial</p>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-text-primary-light dark:text-text-primary-dark mb-3">{t('login.title')}</h2>
+              <p className="text-text-secondary-light dark:text-text-secondary-dark text-base md:text-lg">{t('login.subtitle')}</p>
 
               {serverStatus && (
                 <div className={`mt-4 p-3 rounded-lg text-sm flex items-center justify-center ${serverStatus.status === 'connected'
@@ -279,7 +281,7 @@ const Login = () => {
                         className="text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-400 underline font-medium transition-colors duration-200"
                         disabled={loading}
                       >
-                        Verificar conexión nuevamente
+                        {t('login.messages.checkConnection')}
                       </button>
                     </div>
                   )}
@@ -292,14 +294,14 @@ const Login = () => {
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                  Correo electrónico <span className="text-red-500">*</span>
+                  {t('login.form.email')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg" />
                   <input
                     id="email"
                     type="email"
-                    placeholder="Ingrese su correo"
+                    placeholder={t('login.form.emailPlaceholder')}
                     value={email}
                     onChange={handleInputChange(setEmail)}
                     disabled={loading}
@@ -321,14 +323,14 @@ const Login = () => {
                   htmlFor="password"
                   className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3"
                 >
-                  Contraseña <span className="text-red-500">*</span>
+                  {t('login.form.password')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg" />
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Ingrese su contraseña"
+                    placeholder={t('login.form.passwordPlaceholder')}
                     value={password}
                     onChange={handleInputChange(setPassword)}
                     disabled={loading}
@@ -362,7 +364,7 @@ const Login = () => {
                     disabled={loading}
                     className="mr-2"
                   />
-                  <span className="font-medium">Recordarme</span>
+                  <span className="font-medium">{t('login.form.rememberMe')}</span>
                 </label>
                 <button
                   type="button"
@@ -370,7 +372,7 @@ const Login = () => {
                   onClick={handleForgotPassword}
                   disabled={loading}
                 >
-                  ¿Olvidó su contraseña?
+                  {t('login.form.forgotPassword')}
                 </button>
               </div>
 
@@ -385,16 +387,16 @@ const Login = () => {
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <FaSpinner className="w-5 h-5 md:w-6 md:h-6 mr-3 animate-spin" />
-                    Verificando...
+                    {t('login.form.verifying')}
                   </div>
                 ) : (
-                  'Iniciar Sesión'
+                  t('login.form.loginButton')
                 )}
               </button>
 
               {/* Register */}
               <div className="text-center pt-4 md:pt-6 border-t border-slate-200 dark:border-gray-700">
-                <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base mb-3 md:mb-4">¿No tienes una cuenta?</p>
+                <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base mb-3 md:mb-4">{t('login.form.noAccount')}</p>
                 <button
                   type="button"
                   className="w-full sm:w-auto bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-300 border-2 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-600 font-semibold py-2.5 md:py-3 px-6 md:px-8 rounded-xl transition-all duration-300 text-sm md:text-base animate-scale-in hover:animate-bounce-gentle focus:outline-none focus:ring-4 focus:ring-blue-500/50"
@@ -402,7 +404,7 @@ const Login = () => {
                   disabled={loading}
                   aria-label="Ir a la página de registro de cuenta"
                 >
-                  Crear cuenta nueva
+                  {t('login.form.createAccount')}
                 </button>
               </div>
             </div>

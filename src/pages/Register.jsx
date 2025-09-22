@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   FaLock,
   FaEnvelope,
@@ -18,6 +19,7 @@ import {
 import authAPI from '../utilidades/authAPI';
 
 const Register = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -49,25 +51,25 @@ const Register = () => {
       email: (val) =>
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
           ? ""
-          : "Ingrese un correo electrónico válido",
-      nombre: (val) => (val.trim() ? "" : "El nombre es obligatorio"),
-      apellido: (val) => (val.trim() ? "" : "El apellido es obligatorio"),
+          : t('register.validation.emailInvalid'),
+      nombre: (val) => (val.trim() ? "" : t('register.validation.nameRequired')),
+      apellido: (val) => (val.trim() ? "" : t('register.validation.lastnameRequired')),
       numeroDocumento: (val) =>
-        val.trim().length >= 6 ? "" : "Número de documento inválido",
+        val.trim().length >= 6 ? "" : t('register.validation.documentInvalid'),
       telefono: (val) =>
-        val.trim().length >= 7 ? "" : "Número de teléfono inválido",
+        val.trim().length >= 7 ? "" : t('register.validation.phoneInvalid'),
       password: (val) => {
         if (val.length < 6)
-          return "La contraseña debe tener al menos 6 caracteres";
+          return t('register.validation.passwordMinLength');
         if (!/(?=.*[a-z])/.test(val))
-          return "Debe incluir al menos una letra minúscula";
+          return t('register.validation.passwordLowercase');
         if (!/(?=.*[A-Z])/.test(val))
-          return "Debe incluir al menos una letra mayúscula";
-        if (!/(?=.*\d)/.test(val)) return "Debe incluir al menos un número";
+          return t('register.validation.passwordUppercase');
+        if (!/(?=.*\d)/.test(val)) return t('register.validation.passwordNumber');
         return "";
       },
       confirmPassword: (val) =>
-        val !== formData.password ? "Las contraseñas no coinciden" : ""
+        val !== formData.password ? t('register.validation.passwordMismatch') : ""
     };
 
     return validators[name]?.(value) || "";

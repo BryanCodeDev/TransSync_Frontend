@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Calendar, BarChart2, Download, Filter, Printer, Clock, FileText, ChevronDown } from "lucide-react";
 
 const Informes = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("general");
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [loading, setLoading] = useState(false);
@@ -39,10 +41,10 @@ const Informes = () => {
       <div className="mb-6 md:mb-7">
         <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2 md:gap-3 mb-2 text-gray-800">
           <FileText className="text-blue-600 w-6 h-6 md:w-auto md:h-auto" />
-          <span className="leading-tight">Informes y Estadísticas</span>
+          <span className="leading-tight">{t('reports.title')}</span>
         </h1>
         <p className="text-sm md:text-base text-gray-600 mt-0 leading-relaxed">
-          Genera y visualiza informes detallados sobre el sistema de transporte público
+          {t('reports.subtitle')}
         </p>
       </div>
 

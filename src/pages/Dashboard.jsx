@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Bus,
   Users,
@@ -32,7 +33,7 @@ import {
   Filler
 } from 'chart.js';
 import { dashboardAPI } from '../utilidades/dashboardAPI';
-import { useSocket } from '../utilidades/socketService';
+import realTimeService from '../utilidades/realTimeService';
 import { useNotification } from '../utilidades/notificationService';
 import DashboardSkeleton from '../components/DashboardSkeleton';
 import BreadcrumbNav from '../components/BreadcrumbNav';
@@ -53,6 +54,7 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   // Estados principales del dashboard
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -80,19 +82,7 @@ const Dashboard = () => {
   const [showPerformancePanel, setShowPerformancePanel] = useState(false);
 
   // Hooks para servicios mejorados
-  // Obtener datos de autenticación para WebSocket
-  const getAuthData = () => {
-    const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
-    return {
-      token,
-      userId: user?.id,
-      empresaId: user?.empresaId,
-      rol: userRole
-    };
-  };
-
   const { user, userRole } = useAuth();
-  const socket = useSocket(getAuthData());
   const notificationService = useNotification();
 
   // Envolver fetchRealTimeData en useCallback
@@ -107,40 +97,26 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Funciones para actualizaciones automáticas
-  const startRealTimeUpdates = useCallback(async () => {
-    try {
-      await dashboardAPI.startUpdates();
-      setIsRealTimeActive(true);
-      console.log('✅ Actualizaciones automáticas iniciadas');
-    } catch (error) {
-      console.error('❌ Error iniciando actualizaciones automáticas:', error);
-      setIsRealTimeActive(false);
-    }
-  }, []);
-
-  const stopRealTimeUpdates = useCallback(async () => {
-    try {
-      await dashboardAPI.stopUpdates();
-      setIsRealTimeActive(false);
-      console.log('⏸️ Actualizaciones automáticas detenidas');
-    } catch (error) {
-      console.error('❌ Error deteniendo actualizaciones automáticas:', error);
-    }
-  }, []);
-
+  // Funciones para control de actualizaciones
   const toggleRealTimeUpdates = useCallback(async () => {
     if (isRealTimeActive) {
-      await stopRealTimeUpdates();
+      // Cambiar a modo horario
+      realTimeService.setUpdateMode(false, 60); // 1 hora
+      setIsRealTimeActive(false);
+      console.log('⏰ Cambiado a modo horario (cada hora)');
     } else {
-      await startRealTimeUpdates();
+      // Cambiar a modo tiempo real
+      realTimeService.setUpdateMode(true); // tiempo real
+      setIsRealTimeActive(true);
+      console.log('⚡ Cambiado a modo tiempo real');
     }
-  }, [isRealTimeActive, startRealTimeUpdates, stopRealTimeUpdates]);
+  }, [isRealTimeActive]);
 
   // Función para forzar actualización
   const forceUpdate = useCallback(async (dataType = 'all') => {
     try {
-      await dashboardAPI.forceUpdate(dataType);
+      // Forzar actualización inmediata via WebSocket
+      realTimeService.requestDashboardUpdate();
       console.log('🔄 Actualización forzada:', dataType);
     } catch (error) {
       console.error('❌ Error forzando actualización:', error);
@@ -215,13 +191,18 @@ const Dashboard = () => {
         // Inicializar servicio de notificaciones
         await notificationService.initialize();
 
-        // Conectar WebSocket
-        await socket.connect();
+        // Conectar WebSocket con contexto de usuario
+        const userContext = {
+          idUsuario: user?.id,
+          idEmpresa: user?.empresaId,
+          rol: userRole
+        };
+        realTimeService.connect(userContext);
 
-        // Iniciar actualizaciones automáticas
-        await startRealTimeUpdates();
+        // Configurar modo horario (cada hora) en lugar de tiempo real
+        realTimeService.setUpdateMode(false, 60); // 60 minutos = 1 hora
 
-        console.log('✅ Servicios mejorados inicializados');
+        console.log('✅ Servicios mejorados inicializados en modo horario');
       } catch (error) {
         console.error('❌ Error inicializando servicios mejorados:', error);
       }
@@ -231,10 +212,10 @@ const Dashboard = () => {
 
     // Cleanup al desmontar
     return () => {
-      socket.disconnect();
+      realTimeService.disconnect();
       dashboardAPI.stopUpdates();
     };
-  }, [socket, notificationService, startRealTimeUpdates]);
+  }, [user, userRole, notificationService]);
 
   // Configurar listeners para WebSocket
   useEffect(() => {
@@ -271,25 +252,32 @@ const Dashboard = () => {
     const handleConnectionStatus = (status) => {
       console.log('🔗 Estado de conexión actualizado:', status);
       setConnectionStatus(status.connected ? 'connected' : 'disconnected');
+      // En modo horario, isRealTimeActive indica si está conectado pero no en tiempo real continuo
       setIsRealTimeActive(status.connected);
     };
 
-    // Registrar listeners
-    socket.on('dashboard:stats:update', handleStatsUpdate);
-    socket.on('dashboard:realtime:update', handleRealtimeUpdate);
-    socket.on('dashboard:alerts:update', handleAlertsUpdate);
-    socket.on('dashboard:notification', handleNotification);
-    socket.on('connection:status', handleConnectionStatus);
+    // Registrar listeners en realTimeService
+    realTimeService.on('notification:stats_update', handleStatsUpdate);
+    realTimeService.on('notification:realtime_update', handleRealtimeUpdate);
+    realTimeService.on('notification:alerts_update', handleAlertsUpdate);
+    realTimeService.on('notification:chatbot', handleNotification);
+    realTimeService.on('connection:established', handleConnectionStatus);
+    realTimeService.on('connection:error', (error) => {
+      console.error('❌ Error de conexión:', error);
+      setConnectionStatus('error');
+      setIsRealTimeActive(false);
+    });
 
     // Cleanup
     return () => {
-      socket.off('dashboard:stats:update', handleStatsUpdate);
-      socket.off('dashboard:realtime:update', handleRealtimeUpdate);
-      socket.off('dashboard:alerts:update', handleAlertsUpdate);
-      socket.off('dashboard:notification', handleNotification);
-      socket.off('connection:status', handleConnectionStatus);
+      realTimeService.off('notification:stats_update', handleStatsUpdate);
+      realTimeService.off('notification:realtime_update', handleRealtimeUpdate);
+      realTimeService.off('notification:alerts_update', handleAlertsUpdate);
+      realTimeService.off('notification:chatbot', handleNotification);
+      realTimeService.off('connection:established', handleConnectionStatus);
+      realTimeService.off('connection:error');
     };
-  }, [socket, notificationService, notificationsEnabled]);
+  }, [notificationService, notificationsEnabled]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -391,49 +379,49 @@ const Dashboard = () => {
   const { viajesData, rutasData } = prepareChartData();
 
   const dashboardStats = [
-    { 
-      icon: <Bus />, 
-      label: "Buses en servicio", 
+    {
+      icon: <Bus />,
+      label: t('dashboard.stats.busesInService'),
       value: stats.vehiculosDisponibles || 0,
       total: stats.totalVehiculos || 0,
       subtitle: `de ${stats.totalVehiculos} total`,
-      colorClass: "border-blue-500", 
-      iconBg: "bg-blue-50", 
-      iconColor: "text-blue-500" 
+      colorClass: "border-blue-500",
+      iconBg: "bg-blue-50",
+      iconColor: "text-blue-500"
     },
-    { 
-      icon: <Users />, 
-      label: "Conductores activos", 
+    {
+      icon: <Users />,
+      label: t('dashboard.stats.activeDrivers'),
       value: stats.conductoresActivos || 0,
       total: stats.totalConductores || 0,
       subtitle: `de ${stats.totalConductores} total`,
-      colorClass: "border-green-500", 
-      iconBg: "bg-green-50", 
-      iconColor: "text-green-500" 
+      colorClass: "border-green-500",
+      iconBg: "bg-green-50",
+      iconColor: "text-green-500"
     },
-    { 
-      icon: <LayoutGrid />, 
-      label: "Rutas activas", 
+    {
+      icon: <LayoutGrid />,
+      label: t('dashboard.stats.activeRoutes'),
       value: stats.totalRutas || 0,
-      colorClass: "border-purple-500", 
-      iconBg: "bg-purple-50", 
-      iconColor: "text-purple-500" 
+      colorClass: "border-purple-500",
+      iconBg: "bg-purple-50",
+      iconColor: "text-purple-500"
     },
-    { 
-      icon: <Clock />, 
-      label: "Viajes en curso", 
+    {
+      icon: <Clock />,
+      label: t('dashboard.stats.tripsInProgress'),
       value: realTimeData?.viajesEnCurso || stats.viajesEnCurso || 0,
-      colorClass: "border-orange-500", 
-      iconBg: "bg-orange-50", 
-      iconColor: "text-orange-500" 
+      colorClass: "border-orange-500",
+      iconBg: "bg-orange-50",
+      iconColor: "text-orange-500"
     },
-    { 
-      icon: <AlertTriangle />, 
-      label: "Alertas críticas", 
+    {
+      icon: <AlertTriangle />,
+      label: t('dashboard.stats.criticalAlerts'),
       value: realTimeData?.alertasCriticas || alerts.filter(a => a.severity === 'critical').length,
-      colorClass: "border-red-500", 
-      iconBg: "bg-red-50", 
-      iconColor: "text-red-500" 
+      colorClass: "border-red-500",
+      iconBg: "bg-red-50",
+      iconColor: "text-red-500"
     }
   ];
 
@@ -444,8 +432,8 @@ const Dashboard = () => {
 
       {/* Header */}
       <div className="flex justify-between items-center mb-8 flex-col md:flex-row md:items-center gap-3">
-        <h1 className="text-3xl font-bold text-primary-900 dark:text-primary-200 m-0">
-          Panel de Control <span className="text-warning-500">TransSync</span>
+        <h1 className="text-3xl font-bold text-primary-900 dark:text-primary-200 m-0" data-tutorial="dashboard">
+          {t('dashboard.title')}
         </h1>
         <div className="flex items-center gap-4 flex-wrap">
           {/* Indicador de estado en tiempo real */}
@@ -501,12 +489,12 @@ const Dashboard = () => {
           {/* Trips Chart */}
           <div className="xl:col-span-2 bg-background-light dark:bg-surface-dark rounded-xl shadow-sm p-5 flex flex-col">
             <div className="flex justify-between items-center mb-3 flex-col md:flex-row gap-3">
-              <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0">Frecuencia de Viajes</h3>
+              <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0">{t('dashboard.charts.tripFrequency')}</h3>
               <div className="flex gap-0.5 bg-slate-100 dark:bg-gray-700 rounded-md p-0.5">
                 {[
-                  { key: 'semana', label: 'Semana', tooltip: 'Muestra datos de los últimos 7 días' },
-                  { key: 'mes', label: 'Mes', tooltip: 'Muestra datos del último mes' },
-                  { key: 'ano', label: 'Año', tooltip: 'Muestra datos del último año' }
+                  { key: 'semana', label: t('dashboard.charts.periods.week'), tooltip: t('dashboard.charts.periodTooltips.week') },
+                  { key: 'mes', label: t('dashboard.charts.periods.month'), tooltip: t('dashboard.charts.periodTooltips.month') },
+                  { key: 'ano', label: t('dashboard.charts.periods.year'), tooltip: t('dashboard.charts.periodTooltips.year') }
                 ].map(period => (
                   <Tooltip key={period.key} content={period.tooltip}>
                     <button
@@ -530,7 +518,7 @@ const Dashboard = () => {
               
           {/* Routes Distribution Chart */}
           <div className="bg-background-light dark:bg-surface-dark rounded-xl shadow-sm p-5 flex flex-col">
-            <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0 mb-4">Distribución por Rutas</h3>
+            <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0 mb-4">{t('dashboard.charts.routeDistribution')}</h3>
             <div className="flex-grow h-80 relative">
               {rutasData.labels.length > 0 ? (
                 <Doughnut data={rutasData} options={doughnutOptions} />
@@ -550,26 +538,26 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           {/* Vehicle Status */}
           <div className="bg-background-light dark:bg-surface-dark rounded-xl shadow-sm p-5 flex flex-col">
-            <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0 mb-4">Estado de la Flota</h3>
+            <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0 mb-4">{t('dashboard.fleetStatus.title')}</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">Disponibles</span>
+                  <span className="text-sm">{t('dashboard.fleetStatus.available')}</span>
                 </div>
                 <span className="font-semibold text-green-700 dark:text-green-300">{stats.vehiculosDisponibles}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm">En ruta</span>
+                  <span className="text-sm">{t('dashboard.fleetStatus.inRoute')}</span>
                 </div>
                 <span className="font-semibold text-blue-700 dark:text-blue-300">{stats.vehiculosEnRuta}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span className="text-sm">En mantenimiento</span>
+                  <span className="text-sm">{t('dashboard.fleetStatus.maintenance')}</span>
                 </div>
                 <span className="font-semibold text-orange-700 dark:text-orange-300">{stats.vehiculosEnMantenimiento || 0}</span>
               </div>
@@ -579,10 +567,10 @@ const Dashboard = () => {
           {/* Alerts List */}
           <div className="xl:col-span-2 bg-background-light dark:bg-surface-dark rounded-xl shadow-sm p-5 flex flex-col overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0">Alertas del Sistema</h3>
+              <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark m-0">{t('dashboard.alerts.title')}</h3>
               {alerts.length > 0 && (
                 <span className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 text-xs px-2 py-1 rounded-full">
-                  {alerts.length} activas
+                  {alerts.length} {t('dashboard.alerts.active')}
                 </span>
               )}
             </div>
@@ -612,8 +600,8 @@ const Dashboard = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-text-secondary-light dark:text-text-secondary-dark">
                   <AlertTriangle className="w-12 h-12 mb-3 opacity-30" />
-                  <p className="text-center italic">No hay alertas activas</p>
-                  <p className="text-xs text-center mt-1">Sistema funcionando correctamente</p>
+                  <p className="text-center italic">{t('dashboard.alerts.noAlerts')}</p>
+                  <p className="text-xs text-center mt-1">{t('dashboard.alerts.systemOk')}</p>
                 </div>
               )}
             </div>
@@ -638,11 +626,19 @@ const RealTimeIndicator = ({ isActive, connectionStatus, onToggle }) => {
   const getStatusInfo = () => {
     if (connectionStatus === 'connected' && isActive) {
       return {
-        icon: <Wifi className="w-4 h-4" />,
-        text: 'En vivo',
+        icon: <Zap className="w-4 h-4" />,
+        text: 'Tiempo Real',
         color: 'text-green-600 dark:text-green-400',
         bgColor: 'bg-green-50 dark:bg-green-900',
         pulse: true
+      };
+    } else if (connectionStatus === 'connected' && !isActive) {
+      return {
+        icon: <Clock className="w-4 h-4" />,
+        text: 'Cada Hora',
+        color: 'text-blue-600 dark:text-blue-400',
+        bgColor: 'bg-blue-50 dark:bg-blue-900',
+        pulse: false
       };
     } else if (connectionStatus === 'connecting') {
       return {
@@ -668,8 +664,8 @@ const RealTimeIndicator = ({ isActive, connectionStatus, onToggle }) => {
   return (
     <Tooltip content={
       isActive
-        ? "Click para pausar actualizaciones automáticas"
-        : "Click para reanudar actualizaciones automáticas"
+        ? "Click para cambiar a actualizaciones cada hora"
+        : "Click para cambiar a actualizaciones en tiempo real"
     }>
       <button
         onClick={onToggle}

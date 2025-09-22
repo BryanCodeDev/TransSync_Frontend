@@ -7,9 +7,20 @@ class RealTimeService {
     this.isConnected = false;
     this.eventListeners = new Map();
     this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 1000; // 1 segundo
+    this.maxReconnectAttempts = 10; // Aumentado
+    this.reconnectDelay = 5000; // 5 segundos inicial
+    this.maxReconnectDelay = 300000; // 5 minutos máximo
     this.userContext = null;
+
+    // Control de frecuencia de actualizaciones
+    this.updateInterval = 60 * 60 * 1000; // 1 hora por defecto
+    this.lastUpdateTime = 0;
+    this.updateTimer = null;
+    this.isRealTimeMode = false; // Por defecto modo horario
+
+    // Throttling para eventos
+    this.eventThrottleTimers = new Map();
+    this.eventThrottleDelay = 5000; // 5 segundos entre eventos del mismo tipo
   }
 
   /**
@@ -25,9 +36,9 @@ class RealTimeService {
 
     try {
       // Conectar al servidor WebSocket
-      this.socket = io(process.env.REACT_APP_WS_URL || 'http://localhost:5000', {
+      this.socket = io(process.env.REACT_APP_WS_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000', {
         transports: ['websocket', 'polling'],
-        timeout: 5000,
+        timeout: 10000, // Aumentado
         forceNew: true,
         auth: {
           token: localStorage.getItem('authToken'),
@@ -40,12 +51,23 @@ class RealTimeService {
       this.setupEventListeners();
       this.setupReconnection();
 
-      console.log('🔗 Conectando a WebSocket...');
+      // Iniciar en modo horario por defecto (no tiempo real)
+      this.setUpdateMode(false, 60); // 60 minutos = 1 hora
+
+      console.log('🔗 Conectando a WebSocket en modo horario...');
 
     } catch (error) {
       console.error('❌ Error conectando a WebSocket:', error);
       this.handleConnectionError(error);
     }
+  }
+
+  /**
+   * Configurar delay de throttling para eventos
+   */
+  setThrottleDelay(delayMs = 5000) {
+    this.eventThrottleDelay = delayMs;
+    console.log(`⏱️ Throttling de eventos configurado a ${delayMs}ms`);
   }
 
   /**
@@ -68,6 +90,13 @@ class RealTimeService {
         userId: this.userContext?.idUsuario,
         empresaId: this.userContext?.idEmpresa,
         timestamp: new Date()
+      });
+
+      // Emitir evento de dashboard conectado (compatibilidad con socketService)
+      this.emit('dashboard:connected', {
+        timestamp: new Date().toISOString(),
+        userId: this.userContext?.idUsuario || null,
+        empresaId: this.userContext?.idEmpresa || null
       });
     });
 
@@ -101,6 +130,9 @@ class RealTimeService {
 
     // Eventos de datos en tiempo real
     this.setupDataEventListeners();
+
+    // Eventos del dashboard
+    this.setupDashboardListeners();
   }
 
   /**
@@ -165,6 +197,55 @@ class RealTimeService {
     this.socket.on('chatbot:notification', (data) => {
       console.log('🤖 Notificación del chatbot:', data);
       this.handleChatbotNotification(data);
+    });
+  }
+
+  /**
+   * Configurar listeners para eventos del dashboard
+   */
+  setupDashboardListeners() {
+    if (!this.socket) return;
+
+    // Estadísticas actualizadas
+    this.socket.on('dashboard:stats:update', (data) => {
+      console.log('📊 Estadísticas actualizadas:', data);
+      this.emit('dashboard:stats:update', data);
+    });
+
+    // Datos en tiempo real actualizados
+    this.socket.on('dashboard:realtime:update', (data) => {
+      console.log('⚡ Datos en tiempo real:', data);
+      this.emit('dashboard:realtime:update', data);
+    });
+
+    // Alertas actualizadas
+    this.socket.on('dashboard:alerts:update', (data) => {
+      console.log('🚨 Alertas actualizadas:', data);
+      this.emit('dashboard:alerts:update', data);
+    });
+
+    // Nueva notificación
+    this.socket.on('dashboard:notification', (data) => {
+      console.log('📱 Nueva notificación:', data);
+      this.emit('dashboard:notification', data);
+    });
+
+    // Estado de actualizaciones automáticas
+    this.socket.on('dashboard:updates:status', (data) => {
+      console.log('🔄 Estado de actualizaciones:', data);
+      this.emit('dashboard:updates:status', data);
+    });
+
+    // Métricas de rendimiento
+    this.socket.on('dashboard:performance', (data) => {
+      console.log('📈 Métricas de rendimiento:', data);
+      this.emit('dashboard:performance', data);
+    });
+
+    // Eventos de cache
+    this.socket.on('dashboard:cache:invalidated', (data) => {
+      console.log('💾 Cache invalidado:', data);
+      this.emit('dashboard:cache:invalidated', data);
     });
   }
 
@@ -239,9 +320,25 @@ class RealTimeService {
 
     // Intentar reconectar si no se ha alcanzado el límite
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+
+      // Calcular delay con backoff exponencial pero limitado
+      const delay = Math.min(
+        this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+        this.maxReconnectDelay
+      );
+
+      console.log(`🔄 Reintentando conexión en ${delay / 1000} segundos (intento ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
       setTimeout(() => {
         this.reconnect();
-      }, this.reconnectDelay * Math.pow(2, this.reconnectAttempts)); // Exponential backoff
+      }, delay);
+    } else {
+      console.error('❌ Máximo número de intentos de reconexión alcanzado');
+      this.emit('connection:failed', {
+        attempts: this.reconnectAttempts,
+        timestamp: new Date()
+      });
     }
   }
 
@@ -264,6 +361,70 @@ class RealTimeService {
       this.socket.disconnect();
       this.isConnected = false;
     }
+
+    // Limpiar timers
+    if (this.updateTimer) {
+      clearInterval(this.updateTimer);
+      this.updateTimer = null;
+    }
+
+    // Limpiar throttling timers
+    this.eventThrottleTimers.clear();
+  }
+
+  /**
+   * Configurar modo de actualización (tiempo real vs horario)
+   */
+  setUpdateMode(realTime = false, intervalMinutes = 60) {
+    this.isRealTimeMode = realTime;
+    this.updateInterval = intervalMinutes * 60 * 1000;
+
+    if (realTime) {
+      this.stopScheduledUpdates();
+      console.log('⚡ Modo tiempo real activado');
+    } else {
+      this.startScheduledUpdates();
+      console.log(`⏰ Modo horario activado (${intervalMinutes} minutos)`);
+    }
+  }
+
+  /**
+   * Iniciar actualizaciones programadas cada hora
+   */
+  startScheduledUpdates() {
+    this.stopScheduledUpdates(); // Limpiar timer anterior
+
+    this.updateTimer = setInterval(() => {
+      if (this.isConnected) {
+        console.log('⏰ Actualización horaria programada');
+        this.requestDashboardUpdate();
+      }
+    }, this.updateInterval);
+
+    console.log(`⏰ Actualizaciones programadas cada ${this.updateInterval / (60 * 1000)} minutos`);
+  }
+
+  /**
+   * Detener actualizaciones programadas
+   */
+  stopScheduledUpdates() {
+    if (this.updateTimer) {
+      clearInterval(this.updateTimer);
+      this.updateTimer = null;
+      console.log('⏸️ Actualizaciones programadas detenidas');
+    }
+  }
+
+  /**
+   * Solicitar actualización manual del dashboard
+   */
+  requestDashboardUpdate() {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('dashboard:request_update', {
+        timestamp: new Date(),
+        userId: this.userContext?.idUsuario
+      });
+    }
   }
 
   /**
@@ -274,9 +435,18 @@ class RealTimeService {
   }
 
   /**
-   * Enviar evento personalizado
+   * Enviar evento personalizado con throttling
    */
   emit(event, data) {
+    // Verificar si el evento debe ser throttled
+    const throttleKey = `${event}_${JSON.stringify(data).slice(0, 100)}`; // Key única por evento y datos similares
+
+    if (this.eventThrottleTimers.has(throttleKey)) {
+      // Evento ya emitido recientemente, ignorar
+      return;
+    }
+
+    // Emitir el evento
     const listeners = this.eventListeners.get(event) || [];
     listeners.forEach(callback => {
       try {
@@ -285,6 +455,11 @@ class RealTimeService {
         console.error(`❌ Error en listener de evento ${event}:`, error);
       }
     });
+
+    // Configurar throttling para este tipo de evento
+    this.eventThrottleTimers.set(throttleKey, setTimeout(() => {
+      this.eventThrottleTimers.delete(throttleKey);
+    }, this.eventThrottleDelay));
   }
 
   /**
@@ -665,10 +840,46 @@ class RealTimeService {
       return null;
     }
   }
+
+  /**
+   * Obtener estado del servicio
+   */
+  getServiceStatus() {
+    return {
+      isConnected: this.isConnected,
+      isRealTimeMode: this.isRealTimeMode,
+      updateInterval: this.updateInterval,
+      reconnectAttempts: this.reconnectAttempts,
+      maxReconnectAttempts: this.maxReconnectAttempts,
+      eventThrottleDelay: this.eventThrottleDelay,
+      activeThrottledEvents: this.eventThrottleTimers.size
+    };
+  }
 }
 
 // Crear instancia singleton
 const realTimeService = new RealTimeService();
+
+// Hook para usar el servicio WebSocket (compatibilidad con socketService)
+export const useSocket = (authData = null) => {
+  return {
+    socket: realTimeService.socket,
+    isConnected: realTimeService.isConnected,
+    connect: (customAuthData = null) => realTimeService.connect(customAuthData || authData),
+    disconnect: () => realTimeService.disconnect(),
+    emit: (event, data) => realTimeService.emit(event, data),
+    on: (event, callback) => realTimeService.on(event, callback),
+    off: (event, callback) => realTimeService.off(event, callback),
+    getConnectionStatus: () => ({
+      connected: realTimeService.isConnected,
+      socketId: realTimeService.socket?.id,
+      reconnectAttempts: realTimeService.reconnectAttempts,
+      maxReconnectAttempts: realTimeService.maxReconnectAttempts
+    }),
+    reconnect: () => realTimeService.reconnect(),
+    getStats: () => realTimeService.getServiceStatus()
+  };
+};
 
 export default realTimeService;
 

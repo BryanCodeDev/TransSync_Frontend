@@ -1,6 +1,7 @@
 // src/pages/AdminDashboard.jsx
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaUsers, FaCog, FaUserShield, FaSearch, FaEdit, FaTrash, FaArrowLeft } from 'react-icons/fa';
 import { getUserRole } from '../utilidades/authAPI';
 import adminAPI from '../utilidades/adminAPI';
@@ -11,6 +12,7 @@ import { useTheme } from '../context/ThemeContext';
 // COMPONENTE DEL FORMULARIO DE EDICIÓN (NUEVO)
 // ====================================================================
 const EditUserForm = ({ user, onSave, onCancel, theme }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState(user);
 
   const handleChange = (e) => {
@@ -24,30 +26,30 @@ const EditUserForm = ({ user, onSave, onCancel, theme }) => {
   };
 
   return (
-    <div>
-      <button onClick={onCancel} className={`flex items-center gap-2 mb-6 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}>
-        <FaArrowLeft /> Volver a la lista
-      </button>
-      <div className={`p-8 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-        <h2 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Editar Usuario</h2>
-        <p className={`mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Modificando el perfil de <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{user.nomUsuario} {user.apeUsuario}</span>.</p>
+      <div>
+        <button onClick={onCancel} className={`flex items-center gap-2 mb-6 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}>
+          <FaArrowLeft /> {t('adminDashboard.editUser.backToList')}
+        </button>
+        <div className={`p-8 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+          <h2 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{t('adminDashboard.editUser.title')}</h2>
+          <p className={`mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('adminDashboard.editUser.modifying')} <span className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{user.nomUsuario} {user.apeUsuario}</span>.</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Fila 1: Nombre y Apellido (no editables por ahora) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className={`block mb-2 text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Nombre</label>
+              <label className={`block mb-2 text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('adminDashboard.editUser.name')}</label>
               <input type="text" value={formData.nomUsuario} disabled className={`text-sm rounded-lg block w-full p-2.5 cursor-not-allowed ${theme === 'dark' ? 'bg-gray-700 border border-gray-600 text-gray-400' : 'bg-gray-100 border border-gray-300 text-gray-500'}`} />
             </div>
             <div>
-              <label className={`block mb-2 text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Apellido</label>
+              <label className={`block mb-2 text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('adminDashboard.editUser.lastname')}</label>
               <input type="text" value={formData.apeUsuario} disabled className={`text-sm rounded-lg block w-full p-2.5 cursor-not-allowed ${theme === 'dark' ? 'bg-gray-700 border border-gray-600 text-gray-400' : 'bg-gray-100 border border-gray-300 text-gray-500'}`} />
             </div>
           </div>
 
           {/* Fila 2: Rol (editable) */}
           <div>
-            <label htmlFor="role-select" className={`block mb-2 text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Asignar Rol</label>
+            <label htmlFor="role-select" className={`block mb-2 text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('adminDashboard.editUser.role')}</label>
             <select
               id="role-select"
               name="rol"
@@ -55,15 +57,15 @@ const EditUserForm = ({ user, onSave, onCancel, theme }) => {
               onChange={handleChange}
               className={`text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ${theme === 'dark' ? 'bg-gray-700 border border-gray-600 text-white' : 'bg-white border border-gray-300 text-gray-800'}`}
             >
-              <option value="CONDUCTOR">Conductor</option>
-              <option value="GESTOR">Gestor</option>
+              <option value="CONDUCTOR">{t('adminDashboard.editUser.conductor')}</option>
+              <option value="GESTOR">{t('adminDashboard.editUser.gestor')}</option>
             </select>
           </div>
 
           {/* Botones de Acción */}
           <div className="flex justify-end gap-4 pt-4">
-            <button type="button" onClick={onCancel} className={`py-2 px-6 rounded-lg transition ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}>Cancelar</button>
-            <button type="submit" className="py-2 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 transition font-semibold text-white">Actualizar Rol Usuario</button>
+            <button type="button" onClick={onCancel} className={`py-2 px-6 rounded-lg transition ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}>{t('adminDashboard.editUser.cancel')}</button>
+            <button type="submit" className="py-2 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 transition font-semibold text-white">{t('adminDashboard.editUser.updateRole')}</button>
           </div>
         </form>
       </div>
@@ -76,6 +78,7 @@ const EditUserForm = ({ user, onSave, onCancel, theme }) => {
 // COMPONENTE PRINCIPAL DEL DASHBOARD
 // ====================================================================
 const AdminDashboard = () => {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const [usuarios, setUsuarios] = useState([]);
   const [filteredUsuarios, setFilteredUsuarios] = useState([]);
@@ -90,7 +93,7 @@ const AdminDashboard = () => {
       loadUsers();
     } else {
       setLoading(false);
-      setError("No tienes permiso para ver esta página.");
+      setError(t('adminDashboard.messages.noPermission'));
     }
   }, []);
 
@@ -184,7 +187,7 @@ const AdminDashboard = () => {
     activosCount: usuarios.filter(u => u.estActivo).length,
   });
 
-  if (loading) return <div className={`p-8 min-h-screen text-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>Cargando...</div>;
+  if (loading) return <div className={`p-8 min-h-screen text-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>{t('adminDashboard.messages.loading')}</div>;
 
   const stats = getStats();
 
@@ -201,29 +204,29 @@ const AdminDashboard = () => {
       ) : (
         // VISTA DE LISTA DE USUARIOS
         <>
-          <h1 className={`text-2xl md:text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Gestión de Usuarios</h1>
-          <p className={`mb-6 md:mb-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Administra los roles y el estado de los usuarios del sistema.</p>
+          <h1 className={`text-2xl md:text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{t('adminDashboard.title')}</h1>
+          <p className={`mb-6 md:mb-8 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t('adminDashboard.subtitle')}</p>
 
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             <div className={`p-4 md:p-6 rounded-lg min-h-[100px] flex flex-col justify-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
               <FaUsers className="text-blue-500 mb-2 mx-auto md:mx-0" size={20} />
               <h3 className={`text-xl md:text-2xl font-semibold text-center md:text-left ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{stats.total}</h3>
-              <p className={`text-sm text-center md:text-left ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Total Usuarios</p>
+              <p className={`text-sm text-center md:text-left ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{t('adminDashboard.stats.totalUsers')}</p>
             </div>
             <div className={`p-4 md:p-6 rounded-lg min-h-[100px] flex flex-col justify-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
               <FaUserShield className="text-green-500 mb-2 mx-auto md:mx-0" size={20} />
               <h3 className={`text-xl md:text-2xl font-semibold text-center md:text-left ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{stats.gestorCount}</h3>
-              <p className={`text-sm text-center md:text-left ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Gestores</p>
+              <p className={`text-sm text-center md:text-left ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{t('adminDashboard.stats.managers')}</p>
             </div>
             <div className={`p-4 md:p-6 rounded-lg min-h-[100px] flex flex-col justify-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
               <FaCog className="text-yellow-500 mb-2 mx-auto md:mx-0" size={20} />
               <h3 className={`text-xl md:text-2xl font-semibold text-center md:text-left ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{stats.conductorCount}</h3>
-              <p className={`text-sm text-center md:text-left ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Conductores</p>
+              <p className={`text-sm text-center md:text-left ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{t('adminDashboard.stats.drivers')}</p>
             </div>
             <div className={`p-4 md:p-6 rounded-lg min-h-[100px] flex flex-col justify-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
               <div className="text-purple-500 mb-2 mx-auto md:mx-0 text-xl">✅</div>
               <h3 className={`text-xl md:text-2xl font-semibold text-center md:text-left ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{stats.activosCount}</h3>
-              <p className={`text-sm text-center md:text-left ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Activos</p>
+              <p className={`text-sm text-center md:text-left ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{t('adminDashboard.stats.active')}</p>
             </div>
           </div>
 
@@ -232,7 +235,7 @@ const AdminDashboard = () => {
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por nombre, email o documento..."
+                placeholder={t('adminDashboard.search.placeholder')}
                 className={`pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full min-h-[44px] ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-gray-50 text-gray-800'}`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -321,12 +324,12 @@ const AdminDashboard = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Nombre</th>
-                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Email</th>
-                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Documento</th>
-                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Rol</th>
-                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Estado</th>
-                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Acciones</th>
+                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('adminDashboard.table.name')}</th>
+                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('adminDashboard.table.email')}</th>
+                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('adminDashboard.table.document')}</th>
+                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('adminDashboard.table.role')}</th>
+                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('adminDashboard.table.status')}</th>
+                  <th className={`p-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t('adminDashboard.table.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -361,7 +364,7 @@ const AdminDashboard = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className={`text-center p-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>No se encontraron usuarios.</td>
+                    <td colSpan="6" className={`text-center p-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}`}>{t('adminDashboard.messages.noUsersFound')}</td>
                   </tr>
                 )}
               </tbody>

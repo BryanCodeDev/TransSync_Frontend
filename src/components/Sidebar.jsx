@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   FaChartLine, FaUserTie, FaRoute, FaBus,
   FaClock, FaExclamationTriangle, FaFileAlt,
@@ -10,6 +11,7 @@ import { getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
 import { useTheme } from '../context/ThemeContext';
 
 const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp }) => {
+  const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -69,7 +71,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
 
 
   const handleLogout = async () => {
-    if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+    if (window.confirm(t('sidebar.logout'))) {
       try {
         await logout();
         navigate("/home");
@@ -193,14 +195,14 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   };
 
   const allMenuItems = [
-    { path: "/dashboard", icon: <FaChartLine />, label: "Dashboard", description: "Panel principal" },
+    { path: "/dashboard", icon: <FaChartLine />, label: t('sidebar.dashboard'), description: "Panel principal" },
     { path: "/admin/dashboard", icon: <FaCogs />, label: "Admin Dashboard", description: "Panel de administración", superAdminOnly: true },
-    { path: "/drivers", icon: <FaUserTie />, label: "Conductores", description: "Gestión de conductores" },
-    { path: "/rutas", icon: <FaRoute />, label: "Rutas", description: "Gestión de rutas" },
-    { path: "/vehiculos", icon: <FaBus />, label: "Vehículos", description: "Gestión de vehículos" }, 
-    { path: "/horarios", icon: <FaClock />, label: "Horarios", description: "Gestión de horarios" }, 
+    { path: "/drivers", icon: <FaUserTie />, label: t('sidebar.drivers'), description: "Gestión de conductores" },
+    { path: "/rutas", icon: <FaRoute />, label: t('sidebar.routes'), description: "Gestión de rutas" },
+    { path: "/vehiculos", icon: <FaBus />, label: t('sidebar.vehicles'), description: "Gestión de vehículos" },
+    { path: "/horarios", icon: <FaClock />, label: t('sidebar.schedules'), description: "Gestión de horarios" },
     { path: "/emergency", icon: <FaExclamationTriangle />, label: "Emergencias", description: "Centro de emergencias" },
-    { path: "/informes", icon: <FaFileAlt />, label: "Informes", description: "Reportes y estadísticas" },
+    { path: "/informes", icon: <FaFileAlt />, label: t('sidebar.reports'), description: "Reportes y estadísticas" },
   ];
 
   const menuItems = allMenuItems.filter(item => hasPermissionForRoute(item.path));
@@ -426,7 +428,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
             </div>
             {(isOpen || (!isMobile && !isTablet)) && (
               <span className={`transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                Cerrar Sesión
+                {t('sidebar.logout')}
               </span>
             )}
           </button>

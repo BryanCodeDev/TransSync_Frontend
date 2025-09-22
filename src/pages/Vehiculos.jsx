@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaBus, FaCheckCircle, FaTimesCircle, FaSearch, FaFilter, FaPlus, FaEdit, FaTrash, FaUser, FaExclamationTriangle, FaCogs, FaRoad } from "react-icons/fa";
 import vehiculosAPI from '../utilidades/vehiculosAPI';
+import driversAPI from '../utilidades/driversAPI';
 import { apiClient } from '../api/baseAPI';
 
 const Vehiculos = () => {
+  const { t } = useTranslation();
   const [vehiculos, setVehiculos] = useState([]);
   const [filteredVehiculos, setFilteredVehiculos] = useState([]);
   const [conductoresDisponibles, setConductoresDisponibles] = useState([]);
@@ -82,10 +85,10 @@ const Vehiculos = () => {
       setVehiculos(vehiculosData.vehiculos || []);
       setEstadisticas(estadisticasData.estadisticas || {});
 
-      // Cargar conductores disponibles - ajustar según tu API de conductores
+      // Cargar conductores disponibles
       try {
-        const conductoresResponse = await apiClient.get('/api/conductores/disponibles');
-        setConductoresDisponibles(conductoresResponse.data.conductoresDisponibles || []);
+        const conductoresData = await driversAPI.getAll();
+        setConductoresDisponibles(Array.isArray(conductoresData) ? conductoresData : (conductoresData?.conductores ?? []));
       } catch (error) {
         console.error('Error al cargar conductores:', error);
         setConductoresDisponibles([]);
@@ -259,28 +262,28 @@ const Vehiculos = () => {
       {/* Header con estadísticas */}
       <div className="mb-6 bg-background-light dark:bg-surface-dark p-4 md:p-5 rounded-xl shadow-sm">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <h2 className="text-xl md:text-2xl font-semibold flex items-center gap-2 md:gap-3 m-0">
+          <h2 className="text-xl md:text-2xl font-semibold flex items-center gap-2 md:gap-3 m-0" data-tutorial="vehicles">
             <FaBus className="text-primary-500 text-2xl md:text-3xl" />
-            <span>Flota de Vehículos</span>
+            <span>{t('vehicles.title')}</span>
           </h2>
 
           {/* Mobile Stats Grid */}
           <div className="grid grid-cols-2 lg:hidden gap-3 w-full lg:w-auto">
             <div key="stats-total" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
               <span className="text-lg md:text-2xl font-bold text-blue-500">{estadisticas.total || 0}</span>
-              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">Total</span>
+              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">{t('vehicles.filters.all')}</span>
             </div>
             <div key="stats-disponibles" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
               <span className="text-lg md:text-2xl font-bold text-green-500">{estadisticas.disponibles || 0}</span>
-              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">Disponibles</span>
+              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">{t('vehicles.status.active')}</span>
             </div>
             <div key="stats-enRuta" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
               <span className="text-lg md:text-2xl font-bold text-blue-500">{estadisticas.enRuta || 0}</span>
-              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">En Ruta</span>
+              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">{t('vehicles.status.maintenance')}</span>
             </div>
             <div key="stats-mantenimiento" className="flex flex-col items-center bg-gray-50 dark:bg-slate-700 p-3 rounded-lg min-h-[60px] justify-center">
               <span className="text-lg md:text-2xl font-bold text-orange-500">{estadisticas.enMantenimiento || 0}</span>
-              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">Mantenimiento</span>
+              <span className="text-xs md:text-sm text-slate-500 dark:text-slate-300">{t('vehicles.status.maintenance')}</span>
             </div>
           </div>
 
@@ -583,8 +586,8 @@ const Vehiculos = () => {
               >
                 <option value="">Sin conductor asignado</option>
                 {conductoresDisponibles.map(conductor => (
-                  <option key={conductor.idConductor} value={conductor.idConductor}>
-                    {conductor.nomConductor} {conductor.apeConductor} - {conductor.numDocConductor}
+                  <option key={conductor.idConductor || conductor.id} value={conductor.idConductor || conductor.id}>
+                    {(conductor.nomUsuario || conductor.nomConductor || conductor.nombre || "")} {(conductor.apeUsuario || conductor.apeConductor || conductor.apellido || "")} - {(conductor.numDocUsuario || conductor.numDocConductor || conductor.documento || "")}
                   </option>
                 ))}
               </select>
@@ -722,15 +725,15 @@ const Vehiculos = () => {
               >
                 <option value="">Sin conductor asignado</option>
                 {selectedVehiculo.conductor && (
-                  <option value={selectedVehiculo.conductor.idConductor}>
-                    {selectedVehiculo.conductor.nombre} (Actual)
+                  <option value={selectedVehiculo.conductor.idConductor || selectedVehiculo.conductor.id}>
+                    {(selectedVehiculo.conductor.nomUsuario || selectedVehiculo.conductor.nomConductor || selectedVehiculo.conductor.nombre)} {(selectedVehiculo.conductor.apeUsuario || selectedVehiculo.conductor.apeConductor || selectedVehiculo.conductor.apellido)} (Actual)
                   </option>
                 )}
                 {conductoresDisponibles
-                  .filter(c => !selectedVehiculo.conductor || c.idConductor !== selectedVehiculo.conductor.idConductor)
+                  .filter(c => !selectedVehiculo.conductor || (c.idConductor || c.id) !== (selectedVehiculo.conductor.idConductor || selectedVehiculo.conductor.id))
                   .map(conductor => (
-                    <option key={conductor.idConductor} value={conductor.idConductor}>
-                      {conductor.nomConductor} {conductor.apeConductor} - {conductor.numDocConductor}
+                    <option key={conductor.idConductor || conductor.id} value={conductor.idConductor || conductor.id}>
+                      {(conductor.nomUsuario || conductor.nomConductor || conductor.nombre || "")} {(conductor.apeUsuario || conductor.apeConductor || conductor.apellido || "")} - {(conductor.numDocUsuario || conductor.numDocConductor || conductor.documento || "")}
                     </option>
                   ))}
               </select>

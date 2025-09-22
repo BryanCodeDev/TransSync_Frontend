@@ -1,5 +1,6 @@
 // src/pages/Horarios.jsx
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Clock,
   Search,
@@ -14,8 +15,10 @@ import {
   RefreshCw
 } from "lucide-react";
 import apiClient from "../api/baseAPI";
+import driversAPI from "../utilidades/driversAPI";
 
 const Horarios = () => {
+  const { t } = useTranslation();
   // Estados principales
   const [filtroRuta, setFiltroRuta] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("all");
@@ -132,26 +135,26 @@ const Horarios = () => {
   const getConductorLabel = (viajeObj) => {
     const idCond = getField(viajeObj, ["idConductor", "id_conductor", "conductorId"]);
     if (!idCond) return "-";
-    
+
     const nom = getField(viajeObj, ["nomConductor", "nombreConductor"]);
     const ape = getField(viajeObj, ["apeConductor", "apellidoConductor"]);
-    
+
     if (nom || ape) {
       return `${nom || ""} ${ape || ""}`.trim() || `Cond#${idCond}`;
     }
-    
-    const c = conductores.find(x => 
+
+    const c = conductores.find(x =>
       Number(getField(x, ["idConductor", "id"])) === Number(idCond)
     );
-    
+
     if (!c) return `Cond#${idCond}`;
-    
-    const cNom = getField(c, ["nombreConductor", "nomConductor", "nom_conductor"]);
-    const cApe = getField(c, ["apellidoConductor", "apeConductor", "ape_conductor", "apellido"]);
-    
+
+    const cNom = getField(c, ["nomUsuario", "nomConductor", "nom_conductor"]);
+    const cApe = getField(c, ["apeUsuario", "apeConductor", "ape_conductor", "apellido"]);
+
     if (cNom && cApe) return `${cNom} ${cApe}`;
     if (cNom) return cNom;
-    
+
     return getField(c, ["nombreCompleto", "nombre"]) || `Cond#${idCond}`;
   };
 
@@ -225,8 +228,8 @@ const Horarios = () => {
 
   const fetchConductores = useCallback(async () => {
     try {
-      const res = await apiClient.get("/api/conductores");
-      setConductores(Array.isArray(res.data) ? res.data : (res.data?.conductores ?? []));
+      const data = await driversAPI.getAll();
+      setConductores(Array.isArray(data) ? data : (data?.conductores ?? []));
     } catch (err) {
       console.error("Error cargando conductores", err);
       setConductores([]);
@@ -458,7 +461,7 @@ const Horarios = () => {
       <div className="p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm m-6">
         <div className="flex items-center justify-center py-12">
           <Loader className="w-8 h-8 animate-spin text-indigo-600 mr-3" />
-          <span className="text-lg text-gray-600 dark:text-gray-300">Cargando datos del sistema...</span>
+          <span className="text-lg text-gray-600 dark:text-gray-300">{t('schedules.messages.loading')}</span>
         </div>
       </div>
     );
@@ -470,7 +473,7 @@ const Horarios = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h2 className="text-xl lg:text-2xl font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
           <Clock className="text-indigo-600 w-6 h-6 lg:w-7 lg:h-7" />
-          Horarios de Servicio
+          {t('schedules.title')}
           <span className="text-sm lg:text-base font-normal text-gray-500 dark:text-gray-400 ml-2">
             ({filtered.length} viajes)
           </span>
@@ -482,15 +485,15 @@ const Horarios = () => {
             className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 min-h-[44px]"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Actualizar</span>
+            <span className="hidden sm:inline">{t('schedules.form.save')}</span>
           </button>
           <button
             onClick={openCreate}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors min-h-[44px]"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nuevo</span>
-            <span className="sm:hidden">Viaje</span>
+            <span className="hidden sm:inline">{t('schedules.form.create')}</span>
+            <span className="sm:hidden">{t('schedules.form.create')}</span>
           </button>
         </div>
       </div>
@@ -516,7 +519,7 @@ const Horarios = () => {
           <Search className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
           <input
             type="text"
-            placeholder="Buscar por ruta, conductor o vehículo..."
+            placeholder={t('schedules.filters.route')}
             className="border-none bg-transparent w-full text-sm text-gray-800 dark:text-gray-200 outline-none"
             value={filtroRuta}
             onChange={(e) => setFiltroRuta(e.target.value)}
@@ -529,11 +532,11 @@ const Horarios = () => {
             onChange={(e) => setFiltroEstado(e.target.value)}
             className="border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 min-w-32 min-h-[44px]"
           >
-            <option value="all">Todos los estados</option>
-            <option value="PROGRAMADO">Programado</option>
-            <option value="EN_CURSO">En Curso</option>
-            <option value="FINALIZADO">Finalizado</option>
-            <option value="CANCELADO">Cancelado</option>
+            <option value="all">{t('schedules.filters.all')}</option>
+            <option value="PROGRAMADO">{t('schedules.status.scheduled')}</option>
+            <option value="EN_CURSO">{t('schedules.status.inProgress')}</option>
+            <option value="FINALIZADO">{t('schedules.status.completed')}</option>
+            <option value="CANCELADO">{t('schedules.status.cancelled')}</option>
           </select>
         </div>
       </div>
@@ -719,7 +722,7 @@ const Horarios = () => {
           <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg w-full max-w-lg relative max-h-full overflow-y-auto text-gray-900 dark:text-gray-100">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">
-                {editId ? "Editar Viaje" : "Nuevo Viaje"}
+                {editId ? t('schedules.form.edit') : t('schedules.form.create')}
               </h3>
               <button 
                 onClick={() => {
@@ -742,7 +745,7 @@ const Horarios = () => {
             <form onSubmit={onSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Vehículo *
+                  {t('schedules.form.vehicle')} *
                 </label>
                 <select 
                   name="idVehiculo" 
@@ -751,7 +754,7 @@ const Horarios = () => {
                   className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
                   required
                 >
-                  <option value="">Seleccione Vehículo</option>
+                  <option value="">{t('schedules.form.selectVehicle')}</option>
                   {vehiculos.map((v) => (
                     <option key={getField(v, ["idVehiculo", "id"])} value={getField(v, ["idVehiculo", "id"])}>
                       {getField(v, ["placaVehiculo", "plaVehiculo", "placa"]) || getField(v, ["numVehiculo"])} 
@@ -763,19 +766,19 @@ const Horarios = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Conductor *
+                  {t('schedules.form.driver')} *
                 </label>
-                <select 
-                  name="idConductor" 
-                  value={formData.idConductor} 
-                  onChange={onInput} 
-                  className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                <select
+                  name="idConductor"
+                  value={formData.idConductor}
+                  onChange={onInput}
+                  className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   required
                 >
-                  <option value="">Seleccione Conductor</option>
+                  <option value="">{t('schedules.form.selectDriver')}</option>
                   {conductores.map((c) => (
                     <option key={getField(c, ["idConductor", "id"])} value={getField(c, ["idConductor", "id"])}>
-                      {(getField(c, ["nombreConductor", "nomConductor", "nom"]) || "")} {(getField(c, ["apellidoConductor", "apeConductor", "ape"]) || "")}
+                      {(getField(c, ["nomUsuario", "nomConductor", "nom"]) || "")} {(getField(c, ["apeUsuario", "apeConductor", "ape"]) || "")}
                     </option>
                   ))}
                 </select>
@@ -783,16 +786,16 @@ const Horarios = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Ruta *
+                  {t('schedules.form.route')} *
                 </label>
-                <select 
-                  name="idRuta" 
-                  value={formData.idRuta} 
-                  onChange={onInput} 
-                  className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                <select
+                  name="idRuta"
+                  value={formData.idRuta}
+                  onChange={onInput}
+                  className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   required
                 >
-                  <option value="">Seleccione Ruta</option>
+                  <option value="">{t('schedules.form.selectRoute')}</option>
                   {rutas.map((r) => (
                     <option key={getField(r, ["idRuta", "id"])} value={getField(r, ["idRuta", "id"])}>
                       {getField(r, ["nomRuta", "nombreRuta"])} 
@@ -805,7 +808,7 @@ const Horarios = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Fecha y Hora de Salida *
+                    {t('schedules.form.departureTime')} *
                   </label>
                   <input 
                     type="datetime-local" 
@@ -819,7 +822,7 @@ const Horarios = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Fecha y Hora de Llegada
+                    {t('schedules.form.arrivalTime')}
                   </label>
                   <input 
                     type="datetime-local" 
@@ -833,7 +836,7 @@ const Horarios = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Estado del Viaje
+                  {t('schedules.form.status')}
                 </label>
                 <select 
                   name="estViaje" 
@@ -850,7 +853,7 @@ const Horarios = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Observaciones
+                  {t('schedules.form.observations')}
                 </label>
                 <textarea 
                   name="obsViaje" 
@@ -871,15 +874,15 @@ const Horarios = () => {
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Cancelar
+                  {t('schedules.form.cancel')}
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={submitting}
                   className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting && <Loader className="w-4 h-4 animate-spin" />}
-                  {editId ? "Actualizar" : "Crear"}
+                  {editId ? t('schedules.form.save') : t('schedules.form.create')}
                 </button>
               </div>
             </form>

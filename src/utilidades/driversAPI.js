@@ -1,6 +1,7 @@
 // src/utilidades/driversAPI.js
 
 import { apiClient, apiUtils } from '../api/baseAPI';
+import cacheService from './cacheService';
 
 const driversAPI = {
   /**
@@ -9,10 +10,41 @@ const driversAPI = {
    */
   getAll: async (filters = {}) => {
     try {
+      // Validación frontend
+      if (typeof filters !== 'object' || filters === null) {
+        throw new Error('Los filtros deben ser un objeto válido');
+      }
+
+      // Validar campos específicos
+      const validFields = ['estConductor', 'tipLicConductor', 'conVehiculo', 'nomUsuario', 'apeUsuario'];
+      for (const key in filters) {
+        if (!validFields.includes(key)) {
+          console.warn(`Campo de filtro no válido: ${key}`);
+        }
+      }
+
       const params = new URLSearchParams(filters).toString();
-      // Asegúrate de que la ruta base en apiClient sea correcta (ej: http://localhost:5000)
-      const response = await apiClient.get(`/api/conductores?${params}`);
-      return response.data;
+      const url = `/api/conductores?${params}`;
+
+      // Temporalmente sin cache para debugging
+      const response = await apiClient.get(url);
+      const data = response.data;
+
+      // Asegurar que la respuesta sea un array
+      let conductoresArray = [];
+      if (Array.isArray(data)) {
+        conductoresArray = data;
+      } else if (data && typeof data === 'object') {
+        if (data.conductores && Array.isArray(data.conductores)) {
+          conductoresArray = data.conductores;
+        } else if (data.idConductor || data.nomUsuario) {
+          conductoresArray = [data];
+        } else {
+          conductoresArray = [];
+        }
+      }
+
+      return conductoresArray;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }

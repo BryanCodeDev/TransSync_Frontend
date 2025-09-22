@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -81,6 +82,7 @@ const MapControl = ({ center, zoom }) => {
 };
 
 const InteractiveMap = () => {
+  const { t } = useTranslation();
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [stops, setStops] = useState([]);
@@ -266,7 +268,7 @@ const InteractiveMap = () => {
       <div className="w-full h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Cargando datos del sistema...</p>
+          <p className="text-gray-600">{t('routes.messages.loading')}</p>
         </div>
       </div>
     );
@@ -298,7 +300,7 @@ const InteractiveMap = () => {
             <div className="flex items-center gap-2">
               <Bus className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
               <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">
-                Sistema de Rutas TransSync</h1>
+                {t('routes.title')}</h1>
             </div>
             <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600 dark:text-gray-400">
               <div className={`w-2 h-2 rounded-full ${refreshing ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>

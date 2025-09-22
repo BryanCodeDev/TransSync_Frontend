@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import chatbotAPI from '../utilidades/chatbotAPI';
 import conversationMemory from '../utilidades/conversationMemory';
 import realTimeService from '../utilidades/realTimeService';
@@ -48,7 +49,7 @@ const { theme: appTheme } = useTheme();
   );
 };
 
-const ChatBot = ({ 
+const ChatBot = ({
   title = "Asistente TransSync",
   initialMessage = "Hola! Soy el asistente virtual de TransSync. Puedo ayudarte con información actual sobre conductores, vehículos, rutas y mucho más. ¿En qué puedo ayudarte hoy?",
   position = "bottom-right",
@@ -56,6 +57,7 @@ const ChatBot = ({
   agentAvatar = "🤖",
   userAvatar = "👤"
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -83,7 +85,7 @@ const ChatBot = ({
     if (messages.length === 0) {
       const mensajeInicial = context.esUsuarioAutenticado
         ? `Hola ${context.nombreUsuario}! Soy el asistente de ${context.empresa}. Tengo acceso a datos actuales del sistema y puedo ayudarte con información sobre conductores, vehículos, rutas, horarios y más. ¿Qué necesitas consultar?`
-        : initialMessage;
+        : t('chatbot.initialMessage');
 
       setMessages([
         {
@@ -116,7 +118,7 @@ const ChatBot = ({
     // Crear mensaje del bot con la notificación
     const botMessage = {
       id: Date.now() + Math.random(),
-      text: `🔔 **Notificación en Tiempo Real**\n\n${notification.title}\n${notification.message}`,
+      text: `🔔 **${t('chatbot.realTimeNotification')}**\n\n${notification.title}\n${notification.message}`,
       sender: 'bot',
       timestamp: new Date(),
       intencion: 'realtime_notification',
@@ -406,7 +408,7 @@ const ChatBot = ({
       // Mostrar error de validación
       const errorMessage = {
         id: Date.now(),
-        text: `Error: ${validacion.error}`,
+        text: `${t('chatbot.error')}: ${validacion.error}`,
         sender: 'bot',
         timestamp: new Date(),
         isError: true
@@ -467,7 +469,7 @@ const ChatBot = ({
 
       const errorMessage = {
         id: Date.now() + 1,
-        text: 'Lo siento, ocurrió un error procesando tu consulta. Por favor verifica tu conexión e intenta nuevamente.',
+        text: t('chatbot.processingError'),
         sender: 'bot',
         timestamp: new Date(),
         isError: true
@@ -507,7 +509,7 @@ const ChatBot = ({
 
     const botMessage = {
       id: Date.now() + Math.random(),
-      text: `📋 **Todas las Notificaciones (${realTimeNotifications.length})**\n\n${notificationsText}`,
+      text: `📋 **${t('chatbot.allNotifications')} (${realTimeNotifications.length})**\n\n${notificationsText}`,
       sender: 'bot',
       timestamp: new Date(),
       intencion: 'view_notifications',
@@ -893,7 +895,7 @@ const ChatBot = ({
                         ${appTheme === "dark" ? 'placeholder-gray-500' : 'placeholder-gray-400'}
                         ${currentTheme.input}
                       `}
-                      placeholder="Pregúntame sobre conductores, vehículos, rutas... (Enter para enviar)"
+                      placeholder={t('chatbot.placeholder')}
                       value={inputText}
                       onChange={handleInputChange}
                       onKeyPress={handleKeyPress}
@@ -910,7 +912,7 @@ const ChatBot = ({
                     className="px-4 py-3 rounded-xl font-semibold shadow-sm hover:shadow-md transition-all duration-200"
                     dark={appTheme === "dark"}
                   >
-                    <span className="max-sm:hidden">Enviar</span>
+                    <span className="max-sm:hidden">{t('chatbot.send')}</span>
                     <span className="sm:hidden">📤</span>
                   </Button>
                 </div>
@@ -945,7 +947,7 @@ const ChatBot = ({
                   }`}>
                     <span className="text-red-500">⚠️</span>
                     <span className={`text-xs ${appTheme === "dark" ? 'text-red-300' : 'text-red-700'}`}>
-                      Sin conexión al servidor. Verifica tu internet y reintenta.
+                      {t('chatbot.connectionError')}
                     </span>
                     <button
                       onClick={verificarConexion}
@@ -955,7 +957,7 @@ const ChatBot = ({
                           : 'text-red-600 hover:text-red-800'
                       }`}
                     >
-                      Reintentar
+                      {t('chatbot.retry')}
                     </button>
                   </div>
                 )}
@@ -969,7 +971,7 @@ const ChatBot = ({
                       <span className={`text-sm font-medium ${
                         appTheme === "dark" ? 'text-blue-300' : 'text-blue-700'
                       }`}>
-                        🔔 {realTimeNotifications.length} notificación(es) en tiempo real
+                        🔔 {realTimeNotifications.length} {t('chatbot.notifications')}
                       </span>
                       <div className="flex gap-2">
                         <button
@@ -978,7 +980,7 @@ const ChatBot = ({
                             appTheme === "dark" ? 'bg-blue-700 hover:bg-blue-600 text-blue-100' : 'bg-blue-600 hover:bg-blue-700 text-white'
                           } transition-colors`}
                         >
-                          Ver todas
+                          {t('chatbot.viewAll')}
                         </button>
                         <button
                           onClick={clearNotifications}
@@ -986,12 +988,12 @@ const ChatBot = ({
                             appTheme === "dark" ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-600 hover:bg-gray-700 text-white'
                           } transition-colors`}
                         >
-                          Limpiar
+                          {t('chatbot.clear')}
                         </button>
                       </div>
                     </div>
                     <div className={`text-xs ${appTheme === "dark" ? 'text-blue-200' : 'text-blue-600'}`}>
-                      Última: {realTimeNotifications[0]?.title}
+                      {t('chatbot.lastNotification')} {realTimeNotifications[0]?.title}
                     </div>
                   </div>
                 )}
@@ -1001,7 +1003,7 @@ const ChatBot = ({
                   <div className={`mt-2 text-xs text-center ${
                     appTheme === "dark" ? 'text-gray-400' : 'text-gray-600'
                   } opacity-70`}>
-                    Conectado como {userContext.nombreUsuario} • {userContext.empresa}
+                    {t('chatbot.connectedAs')} {userContext.nombreUsuario} • {userContext.empresa}
                   </div>
                 )}
               </div>

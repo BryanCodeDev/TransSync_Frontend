@@ -212,6 +212,30 @@ export const apiUtils = {
       timeout = setTimeout(later, wait);
     };
   },
+
+  // Configuración de debounce por tipo de dato
+  debounceConfig: {
+    search: 300,      // Búsquedas rápidas
+    filter: 500,      // Filtros
+    realtime: 100,    // Datos en tiempo real
+    heavy: 1000,      // Consultas pesadas
+    default: 500,     // Por defecto
+  },
+
+  // Cache de funciones debounced
+  debouncedCache: new Map(),
+
+  // Consultas debounced con configuración por tipo
+  debouncedQuery: (queryKey, queryFunction, dataType = 'default') => {
+    const cacheKey = `${queryKey}_${dataType}`;
+    const delay = apiUtils.debounceConfig[dataType] || apiUtils.debounceConfig.default;
+
+    if (!apiUtils.debouncedCache.has(cacheKey)) {
+      apiUtils.debouncedCache.set(cacheKey, apiUtils.debounce(queryFunction, delay));
+    }
+
+    return apiUtils.debouncedCache.get(cacheKey);
+  },
 };
 
 // ================================

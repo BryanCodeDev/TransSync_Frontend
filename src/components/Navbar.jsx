@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   FaBars,
   FaUser,
@@ -24,15 +25,18 @@ import { getUserRole } from '../utilidades/authAPI';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import { useNotification } from '../utilidades/notificationService';
-import { useSocket } from '../utilidades/socketService';
+import { useSocket } from '../utilidades/realTimeService';
 import { dashboardAPI } from '../utilidades/dashboardAPI';
+import { useTutorial } from '../hooks/useTutorial';
 import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { isLoggedIn, user, userRole, logout: handleLogoutAuth, loading: authLoading } = useAuth();
   const { theme, toggleTheme: toggleThemeContext } = useTheme();
+  const { startTutorial } = useTutorial();
 
   // Obtener datos de autenticación para WebSocket (definido primero)
   const getAuthData = useCallback(() => {
@@ -215,7 +219,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
 
   const handleLogout = async () => {
-    if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+    if (window.confirm(t('navbar.confirmLogout'))) {
       try {
         await handleLogoutAuth();
         navigate("/home");
@@ -459,7 +463,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
           <div className="flex items-center justify-center h-16">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark">Verificando sesión...</span>
+              <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark">{t('navbar.verifyingSession')}</span>
             </div>
           </div>
         </div>
@@ -481,7 +485,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
               <button
                 onClick={toggleSidebar}
                 className="p-2 rounded-xl text-text-secondary-light dark:text-text-secondary-dark hover:text-primary-600 dark:hover:text-white hover:bg-primary-50/80 dark:hover:bg-surface-dark/50 transition-all duration-200 group border border-transparent hover:border-primary-200/50 dark:hover:border-border-dark focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50"
-                aria-label="Abrir menú de navegación"
+                aria-label={t('navbar.home')}
                 aria-expanded={false}
                 aria-controls="sidebar-navigation"
                 tabIndex={0}
@@ -516,7 +520,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
             <button
               onClick={toggleTheme}
               className="p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"
-              title={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+              title={theme === "dark" ? t('navbar.theme.activateLight') : t('navbar.theme.activateDark')}
               data-tutorial="theme"
             >
               {theme === "dark" ? (
@@ -536,10 +540,10 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                   <button
                     onClick={goToDashboard}
                     className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-xl transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg border border-transparent"
-                    title="Ir al Panel de Control"
+                    title={t('navbar.dashboard')}
                   >
                     <FaChartLine size={14} />
-                    <span className="hidden sm:inline">Panel de Control</span>
+                    <span className="hidden sm:inline">{t('navbar.dashboard')}</span>
                   </button>
                 )}
 
@@ -547,10 +551,10 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                   <button
                     onClick={goToHome}
                     className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-indigo-700 dark:text-gray-200 border border-indigo-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:border-indigo-300 hover:scale-105"
-                    title="Ir al Inicio"
+                    title={t('navbar.goToHome')}
                   >
                     <FaHome size={14} />
-                    <span className="hidden sm:inline">Ir a Home</span>
+                    <span className="hidden sm:inline">{t('navbar.goToHome')}</span>
                   </button>
                 )}
               </div>
@@ -560,11 +564,11 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
               <div className="flex items-center gap-3">
                 <button onClick={handleLogin} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-indigo-700 dark:text-gray-200 border border-indigo-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:bg-indigo-50 dark:hover:bg-gray-800 hover:border-indigo-300">
                   <FaSignInAlt size={14} />
-                  <span className="hidden sm:inline">Iniciar Sesión</span>
+                  <span className="hidden sm:inline">{t('navbar.login')}</span>
                 </button>
                 <button onClick={handleRegister} className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-[#1a237e] dark:to-[#3949ab] rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200">
                   <FaUserCircle size={14} />
-                  <span className="hidden sm:inline">Registrarse</span>
+                  <span className="hidden sm:inline">{t('navbar.register')}</span>
                 </button>
               </div>
             ) : (
@@ -612,7 +616,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                       {/* Header */}
                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                          <h3 id="notifications-title" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                           Notificaciones
+                           {t('navbar.notifications')}
                            {unreadCount > 0 && (
                              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full" aria-label={`${unreadCount} notificaciones sin leer`}>
                                {unreadCount}
@@ -624,7 +628,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                             onClick={markAllAsRead}
                             className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                           >
-                            Marcar todas como leídas
+                            {t('navbar.markAllRead')}
                           </button>
                         )}
                       </div>
@@ -673,7 +677,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                                         onClick={() => markAsRead(notification.id)}
                                         className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                                       >
-                                        Marcar como leída
+                                        {t('navbar.markAsRead')}
                                       </button>
                                     )}
                                   </div>
@@ -685,7 +689,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                           <div className="px-4 py-8 text-center">
                             <FaBell className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                              No hay notificaciones
+                              {t('navbar.noNotifications')}
                             </p>
                           </div>
                         )}
@@ -695,7 +699,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                       {notifications.length > 0 && (
                         <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
                           <button className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
-                            Ver todas las notificaciones
+                            {t('navbar.viewAllNotifications')}
                           </button>
                         </div>
                       )}
@@ -703,7 +707,14 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                   )}
                 </div>
 
-                <button className="p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group min-h-[44px] min-w-[44px] flex items-center justify-center border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600">
+                <button
+                  onClick={() => {
+                    console.log('Tutorial button clicked');
+                    startTutorial();
+                  }}
+                  className="p-2.5 text-slate-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group min-h-[44px] min-w-[44px] flex items-center justify-center border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"
+                  title={t('navbar.tutorial')}
+                >
                   <FaQuestionCircle size={16} />
                 </button>
 
@@ -713,6 +724,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                     onClick={toggleUserMenu}
                     className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 transition-all duration-200 group border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-700"
                     aria-label="User menu"
+                    data-tutorial="user-menu"
                   >
                     <div className="relative">
                       <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-md ring-2 ring-white`}>
@@ -743,14 +755,15 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
                         <button
                           onClick={() => navigate('/profile')}
                           className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                          data-tutorial="profile-menu-item"
                         >
                           <FaUser />
-                          <span>Mi Perfil</span>
+                          <span>{t('navbar.profile')}</span>
                         </button>
                         <div className="border-t border-gray-100 dark:border-gray-700 my-2" />
                         <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900">
                           <FaSignOutAlt />
-                          <span>Cerrar Sesión</span>
+                          <span>{t('navbar.logout')}</span>
                         </button>
                       </div>
                     </div>

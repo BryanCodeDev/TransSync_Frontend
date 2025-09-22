@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target } from 'lucide-react';
 
 const Home = () => {
+  const { t } = useTranslation();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [, setDark] = useState(localStorage.getItem("theme") === "dark");
@@ -9,51 +11,75 @@ const Home = () => {
   const caracteristicas = [
     {
       icono: Bus,
-      titulo: "Gestión de Flota Inteligente",
-      descripcion: "Monitoreo en tiempo real con IA predictiva que anticipa problemas antes de que ocurran.",
-      beneficios: ["GPS de alta precisión", "Mantenimiento predictivo", "Alertas automáticas"],
+      titulo: t('homePage.features.items.0.title'),
+      descripcion: t('homePage.features.items.0.description'),
+      beneficios: [
+        t('homePage.features.items.0.benefits.0'),
+        t('homePage.features.items.0.benefits.1'),
+        t('homePage.features.items.0.benefits.2')
+      ],
       color: "from-[#1a237e] to-[#3949ab]",
-      stats: "99.8% precisión"
+      stats: t('homePage.features.items.0.stats')
     },
     {
       icono: Clock,
-      titulo: "Optimización IA Avanzada",
-      descripcion: "Algoritmos de machine learning que optimizan rutas y horarios basados en datos históricos y patrones de demanda.",
-      beneficios: ["IA predictiva", "Optimización automática", "Reducción de esperas"],
+      titulo: t('homePage.features.items.1.title'),
+      descripcion: t('homePage.features.items.1.description'),
+      beneficios: [
+        t('homePage.features.items.1.benefits.0'),
+        t('homePage.features.items.1.benefits.1'),
+        t('homePage.features.items.1.benefits.2')
+      ],
       color: "from-[#3949ab] to-[#5c6bc0]",
-      stats: "40% menos tiempo de espera"
+      stats: t('homePage.features.items.1.stats')
     },
     {
       icono: Shield,
-      titulo: "Seguridad Enterprise",
-      descripcion: "Protocolos de seguridad de nivel bancario con encriptación end-to-end y monitoreo 24/7.",
-      beneficios: ["Encriptación AES-256", "Monitoreo 24/7", "Cumplimiento GDPR"],
+      titulo: t('homePage.features.items.2.title'),
+      descripcion: t('homePage.features.items.2.description'),
+      beneficios: [
+        t('homePage.features.items.2.benefits.0'),
+        t('homePage.features.items.2.benefits.1'),
+        t('homePage.features.items.2.benefits.2')
+      ],
       color: "from-[#1a237e] to-[#283593]",
-      stats: "100% seguro"
+      stats: t('homePage.features.items.2.stats')
     },
     {
       icono: Map,
-      titulo: "Geolocalización Ultra-Precisa",
-      descripcion: "Sistema GPS de precisión submétrica optimizado para entornos urbanos complejos.",
-      beneficios: ["Precisión <1 metro", "Cobertura total", "Actualización en vivo"],
+      titulo: t('homePage.features.items.3.title'),
+      descripcion: t('homePage.features.items.3.description'),
+      beneficios: [
+        t('homePage.features.items.3.benefits.0'),
+        t('homePage.features.items.3.benefits.1'),
+        t('homePage.features.items.3.benefits.2')
+      ],
       color: "from-[#283593] to-[#3949ab]",
-      stats: "<1m precisión"
+      stats: t('homePage.features.items.3.stats')
     },
     {
       icono: BarChart,
-      titulo: "Analytics en Tiempo Real",
-      descripcion: "Dashboard inteligente con métricas avanzadas y reportes automatizados para decisiones estratégicas.",
-      beneficios: ["KPIs en tiempo real", "Reportes automáticos", "Predicciones precisas"],
+      titulo: t('homePage.features.items.4.title'),
+      descripcion: t('homePage.features.items.4.description'),
+      beneficios: [
+        t('homePage.features.items.4.benefits.0'),
+        t('homePage.features.items.4.benefits.1'),
+        t('homePage.features.items.4.benefits.2')
+      ],
       color: "from-[#3949ab] to-[#5c6bc0]",
-      stats: "24/7 monitoreo"
+      stats: t('homePage.features.items.4.stats')
     },
     {
       icono: CalendarClock,
-      titulo: "Planificación Dinámica",
-      descripcion: "Sistema automatizado que se adapta en tiempo real a cambios en la demanda y condiciones del tráfico.",
-      beneficios: ["Adaptación automática", "Optimización continua", "Flexibilidad total"],
+      titulo: t('homePage.features.items.5.title'),
+      descripcion: t('homePage.features.items.5.description'),
+      beneficios: [
+        t('homePage.features.items.5.benefits.0'),
+        t('homePage.features.items.5.benefits.1'),
+        t('homePage.features.items.5.benefits.2')
+      ],
       color: "from-[#1a237e] to-[#3949ab]",
-      stats: "95% eficiencia"
+      stats: t('homePage.features.items.5.stats')
     }
   ];
 
@@ -101,10 +127,10 @@ const Home = () => {
   ];
 
   const estadisticas = [
-    { numero: "5+", etiqueta: "Ciudades piloto", icono: Globe },
-    { numero: "150K+", etiqueta: "Pasajeros impactados", icono: Users },
-    { numero: "95%", etiqueta: "Satisfacción usuarios", icono: Clock },
-    { numero: "25%", etiqueta: "Mejora eficiencia", icono: TrendingUp }
+    { numero: "5+", etiqueta: t('homePage.hero.stats.cities'), icono: Globe },
+    { numero: "150K+", etiqueta: t('homePage.hero.stats.passengers'), icono: Users },
+    { numero: "95%", etiqueta: t('homePage.hero.stats.satisfaction'), icono: Clock },
+    { numero: "25%", etiqueta: t('homePage.hero.stats.efficiency'), icono: TrendingUp }
   ];
 
   const premios = [
@@ -122,23 +148,35 @@ const Home = () => {
 
   const casosDeUso = [
     {
-      titulo: "Transporte Público Urbano",
-      descripcion: "Optimización de rutas de buses y metro para ciudades con alta densidad poblacional",
-      beneficios: ["Reducción de tiempos de espera", "Mejor distribución de flota", "Ahorro de combustible"],
+      titulo: t('homePage.useCases.items.0.title'),
+      descripcion: t('homePage.useCases.items.0.description'),
+      beneficios: [
+        t('homePage.useCases.items.0.benefits.0'),
+        t('homePage.useCases.items.0.benefits.1'),
+        t('homePage.useCases.items.0.benefits.2')
+      ],
       icono: Bus,
       color: "from-blue-500 to-purple-600"
     },
     {
-      titulo: "Sistemas BRT",
-      descripcion: "Gestión integral de sistemas de tránsito rápido con prioridad de señalización",
-      beneficios: ["Prioridad en semáforos", "Flujo continuo de tráfico", "Mayor capacidad"],
+      titulo: t('homePage.useCases.items.1.title'),
+      descripcion: t('homePage.useCases.items.1.description'),
+      beneficios: [
+        t('homePage.useCases.items.1.benefits.0'),
+        t('homePage.useCases.items.1.benefits.1'),
+        t('homePage.useCases.items.1.benefits.2')
+      ],
       icono: Zap,
       color: "from-green-500 to-teal-600"
     },
     {
-      titulo: "Transporte Intermunicipal",
-      descripcion: "Coordinación de rutas entre ciudades con horarios sincronizados",
-      beneficios: ["Conexiones optimizadas", "Horarios coordinados", "Transferencias eficientes"],
+      titulo: t('homePage.useCases.items.2.title'),
+      descripcion: t('homePage.useCases.items.2.description'),
+      beneficios: [
+        t('homePage.useCases.items.2.benefits.0'),
+        t('homePage.useCases.items.2.benefits.1'),
+        t('homePage.useCases.items.2.benefits.2')
+      ],
       icono: Map,
       color: "from-orange-500 to-red-600"
     }
@@ -175,7 +213,7 @@ const Home = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20 mb-8 hover:bg-white/15 transition-all duration-300">
             <Award className="w-5 h-5 text-primary-500" />
-            <span className="text-sm font-medium">🚀 Startup Innovadora en Transporte Inteligente</span>
+            <span className="text-sm font-medium">{t('homePage.hero.badge')}</span>
           </div>
 
           {/* Main Title */}
@@ -184,7 +222,7 @@ const Home = () => {
           </h1>
 
           <p className={`text-2xl max-w-4xl mx-auto mb-12 text-blue-100 dark:text-gray-300 leading-relaxed transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            La plataforma emergente de IA que está revolucionando la gestión del transporte público en Colombia
+            {t('homePage.hero.subtitle')}
           </p>
 
           {/* CTA Buttons */}
@@ -198,10 +236,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#1a237e] to-[#3949ab] bg-clip-text text-transparent">
-              Impacto Real en el Transporte Público
+              {t('homePage.hero.title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Nuestros primeros resultados demuestran el potencial. Estamos transformando el transporte público con proyectos piloto exitosos.
+              {t('homePage.hero.subtitle')}
             </p>
           </div>
 
@@ -220,7 +258,7 @@ const Home = () => {
       {/* Ciudades que Confían en Nosotros */}
       <section className="py-16 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <h3 className="text-2xl font-bold mb-8 text-gray-800 dark:text-gray-100">Ciudades que Confían en TranSync</h3>
+          <h3 className="text-2xl font-bold mb-8 text-gray-800 dark:text-gray-100">{t('homePage.cities.title')}</h3>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-6">
             {ciudades.slice(0, 12).map((ciudad, i) => (
               <div key={i} className={`p-4 rounded-xl bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-600 transform transition-all duration-300 hover:scale-105 hover:shadow-lg ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`} style={{ transitionDelay: `${i * 50}ms` }}>
@@ -229,7 +267,7 @@ const Home = () => {
             ))}
           </div>
           <div className="mt-8 text-center">
-            <span className="text-gray-500 dark:text-gray-400">Y muchas más ciudades en toda Latinoamérica</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('homePage.cities.subtitle')}</span>
           </div>
         </div>
       </section>
@@ -239,10 +277,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#1a237e] to-[#3949ab] bg-clip-text text-transparent">
-              Tecnología de Vanguardia
+              {t('homePage.features.title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Características avanzadas diseñadas para revolucionar la gestión del transporte público
+              {t('homePage.features.subtitle')}
             </p>
           </div>
 
@@ -285,10 +323,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#1a237e] to-[#3949ab] bg-clip-text text-transparent">
-              Soluciones para Cada Necesidad
+              {t('homePage.useCases.title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Adaptamos nuestra tecnología a diferentes tipos de sistemas de transporte
+              {t('homePage.useCases.subtitle')}
             </p>
           </div>
 
@@ -320,10 +358,10 @@ const Home = () => {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#1a237e] to-[#3949ab] bg-clip-text text-transparent">
-              Lo que Dicen Nuestros Clientes
+              {t('homePage.testimonials.title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Historias reales de transformación digital en el transporte público
+              {t('homePage.testimonials.subtitle')}
             </p>
           </div>
 
@@ -379,10 +417,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#1a237e] to-[#3949ab] bg-clip-text text-transparent">
-              Premios y Reconocimientos
+              {t('homePage.awards.title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Reconocidos por nuestra innovación y potencial en el sector
+              {t('homePage.awards.subtitle')}
             </p>
           </div>
 
@@ -409,35 +447,35 @@ const Home = () => {
 
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <h2 className={`text-5xl font-bold mb-6 transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            ¿Listo para Transformar tu Sistema de Transporte?
+            {t('homePage.cta.title')}
           </h2>
           <p className={`text-xl text-blue-100 dark:text-gray-300 mb-12 leading-relaxed transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            Sé parte de la revolución del transporte inteligente. Únete a nuestro programa de adopción temprana y transforma tu operación
+            {t('homePage.cta.subtitle')}
           </p>
 
           <div className={`flex flex-col sm:flex-row gap-6 justify-center items-center transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <button className="group bg-gradient-to-r from-primary-500 to-secondary-600 hover:from-primary-600 hover:to-secondary-700 text-black font-bold py-5 px-10 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-3 hover:scale-105 text-lg">
               <Play className="w-6 h-6" />
-              Solicitar Demo Gratuita
+              {t('homePage.cta.buttons.demo')}
               <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
             </button>
             <button className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-semibold py-5 px-10 rounded-2xl border border-white/30 transition-all duration-300 hover:scale-105 text-lg">
-              Hablar con un Experto
+              {t('homePage.cta.buttons.expert')}
             </button>
           </div>
 
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-blue-100 dark:text-gray-300">
             <div className="flex items-center gap-2">
               <Check className="w-5 h-5 text-green-400" />
-              <span>Implementación en 30 días</span>
+              <span>{t('homePage.cta.features.0')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-5 h-5 text-green-400" />
-              <span>Soporte 24/7 incluido</span>
+              <span>{t('homePage.cta.features.1')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-5 h-5 text-green-400" />
-              <span>Garantía de resultados</span>
+              <span>{t('homePage.cta.features.2')}</span>
             </div>
           </div>
         </div>

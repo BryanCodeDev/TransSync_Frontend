@@ -2,6 +2,29 @@ import React, { useEffect, useState } from 'react';
 import { useTutorial } from '../hooks/useTutorial';
 import Button from './Button';
 
+// Estilos CSS para el tutorial
+const tutorialStyles = `
+  .tutorial-highlight {
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .tutorial-highlight:hover {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.7), 0 0 0 12px rgba(59, 130, 246, 0.3);
+  }
+`;
+
+// Inyectar estilos en el head
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.type = 'text/css';
+  styleSheet.innerText = tutorialStyles;
+  document.head.appendChild(styleSheet);
+}
+
 const Tutorial = () => {
   const {
     isActive,
@@ -11,18 +34,99 @@ const Tutorial = () => {
     nextStep,
     previousStep,
     skipTutorial,
+    isPaused,
     texts
   } = useTutorial();
 
   const [showWelcome, setShowWelcome] = useState(false);
+  const [highlightedElement, setHighlightedElement] = useState(null);
+  const [showArrow, setShowArrow] = useState(false);
+  const [arrowPosition, setArrowPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     // Mostrar pantalla de bienvenida en el primer paso
     setShowWelcome(currentStep === 0);
   }, [currentStep]);
 
-  // No renderizar si el tutorial no está activo
-  if (!isActive) {
+  // Efecto para resaltar elementos del tutorial
+  useEffect(() => {
+    if (currentStepData?.target && !showWelcome) {
+      const element = document.querySelector(currentStepData.target);
+      if (element) {
+        // Para el menú de usuario, abrirlo automáticamente si está cerrado
+        if (currentStepData.target === '[data-tutorial="user-menu"]') {
+          const userMenuButton = element;
+          const isMenuOpen = document.querySelector('[data-tutorial="profile-menu-item"]') !== null;
+          if (!isMenuOpen) {
+            // Simular clic para abrir el menú
+            userMenuButton.click();
+            // Esperar un poco para que se renderice el menú
+            setTimeout(() => {
+              const profileItem = document.querySelector('[data-tutorial="profile-menu-item"]');
+              if (profileItem) {
+                profileItem.classList.add('tutorial-highlight');
+                setHighlightedElement(profileItem);
+                setShowArrow(currentStepData.isNavigation || false);
+
+                // Calcular posición de la flecha
+                const rect = profileItem.getBoundingClientRect();
+                const arrowTop = rect.top + rect.height / 2 - 16;
+                const arrowLeft = rect.left - 40;
+                setArrowPosition({ top: arrowTop, left: arrowLeft });
+
+                // Función para manejar clics
+                const handleElementClick = (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  nextStep();
+                };
+
+                profileItem.addEventListener('click', handleElementClick);
+
+                return () => {
+                  profileItem.classList.remove('tutorial-highlight');
+                  profileItem.removeEventListener('click', handleElementClick);
+                  setHighlightedElement(null);
+                  setShowArrow(false);
+                };
+              }
+            }, 100);
+            return;
+          }
+        }
+
+        // Añadir clase de resaltado
+        element.classList.add('tutorial-highlight');
+        setHighlightedElement(element);
+        setShowArrow(currentStepData.isNavigation || false);
+
+        // Calcular posición de la flecha
+        const rect = element.getBoundingClientRect();
+        const arrowTop = rect.top + rect.height / 2 - 16; // Centrar verticalmente
+        const arrowLeft = rect.left - 40; // A la izquierda del elemento
+        setArrowPosition({ top: arrowTop, left: arrowLeft });
+
+        // Función para manejar clics en elementos resaltados
+        const handleElementClick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          nextStep();
+        };
+
+        element.addEventListener('click', handleElementClick);
+
+        return () => {
+          element.classList.remove('tutorial-highlight');
+          element.removeEventListener('click', handleElementClick);
+          setHighlightedElement(null);
+          setShowArrow(false);
+        };
+      }
+    }
+  }, [currentStepData, showWelcome, nextStep]);
+
+  // No renderizar si el tutorial no está activo o está pausado
+  if (!isActive || isPaused) {
     return null;
   }
 
@@ -72,7 +176,7 @@ const Tutorial = () => {
 
   // Overlay para los pasos del tutorial
   return (
-    <div className="fixed inset-0 z-40 pointer-events-none">
+    <div className="fixed inset-0 z-[100] pointer-events-none">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black bg-opacity-30 pointer-events-auto" />
 
@@ -153,10 +257,28 @@ const Tutorial = () => {
       </div>
 
       {/* Tooltip para elementos específicos */}
-      {currentStepData?.target && (
+      {currentStepData?.target && highlightedElement && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
           <div className="bg-primary-600 text-white px-3 py-1 rounded-lg text-sm shadow-lg animate-pulse">
-            {texts.clickToContinue}
+            {texts.clickToContinue || 'Haz clic en el elemento resaltado para continuar'}
+          </div>
+        </div>
+      )}
+
+      {/* Flecha animada para navegación */}
+      {showArrow && highlightedElement && (
+        <div
+          className="fixed pointer-events-none z-[150]"
+          style={{ top: `${arrowPosition.top}px`, left: `${arrowPosition.left}px` }}
+        >
+          <div className="relative">
+            <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center animate-bounce shadow-lg">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </div>
+            {/* Línea punteada hacia el elemento */}
+            <div className="absolute top-4 left-8 w-16 h-0.5 bg-primary-600 opacity-50 animate-pulse"></div>
           </div>
         </div>
       )}

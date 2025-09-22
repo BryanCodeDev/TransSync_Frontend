@@ -1,6 +1,7 @@
 // src/pages/Drivers.jsx
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import { Search, Plus, Edit, Trash2, Filter, Phone, Calendar } from "lucide-react";
 import driversAPI from "../utilidades/driversAPI";
 import toast from 'react-hot-toast';
@@ -76,6 +77,7 @@ const getStatusStyles = (status) => {
 
 // --- COMPONENTE PRINCIPAL ---
 const Drivers = () => {
+    const { t } = useTranslation();
     const { theme } = useTheme();
     const [drivers, setDrivers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -89,8 +91,11 @@ const Drivers = () => {
         try {
             const activeFilters = Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== ''));
             const data = await driversAPI.getAll(activeFilters);
+            console.log('Drivers data received:', data);
+            console.log('Drivers data length:', data?.length);
             setDrivers(data || []);
         } catch (err) {
+            console.error('Error loading drivers:', err);
             toast.error("Error al cargar los conductores.");
         } finally {
             setLoading(false);
@@ -171,30 +176,30 @@ const Drivers = () => {
 
     return (
         <div className={`p-4 md:p-8 min-h-full ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
-            <h1 className={`text-2xl md:text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Gestión de Conductores</h1>
+            <h1 className={`text-2xl md:text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`} data-tutorial="drivers">{t('drivers.title')}</h1>
 
             {/* === BLOQUE DE TARJETAS AÑADIDO === */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 my-6">
-                <StatCard title="Total" value={stats.total} theme={theme} />
-                <StatCard title="Activos" value={stats.activos} colorClass="text-green-400" theme={theme} />
-                <StatCard title="Con Vehículo" value={stats.conVehiculo} colorClass="text-blue-400" theme={theme} />
-                <StatCard title="Licencia por Vencer" value={stats.licenciaPorVencer} colorClass="text-yellow-400" theme={theme} />
-                <StatCard title="Licencia Vencida" value={stats.licenciaVencida} colorClass="text-red-400" theme={theme} />
-                <StatCard title="Inactivos" value={stats.inactivos} theme={theme} />
+                <StatCard title={t('drivers.stats.total')} value={stats.total} theme={theme} />
+                <StatCard title={t('drivers.stats.active')} value={stats.activos} colorClass="text-green-400" theme={theme} />
+                <StatCard title={t('drivers.stats.withVehicle')} value={stats.conVehiculo} colorClass="text-blue-400" theme={theme} />
+                <StatCard title={t('drivers.stats.licenseExpiring')} value={stats.licenciaPorVencer} colorClass="text-yellow-400" theme={theme} />
+                <StatCard title={t('drivers.stats.licenseExpired')} value={stats.licenciaVencida} colorClass="text-red-400" theme={theme} />
+                <StatCard title={t('drivers.stats.inactive')} value={stats.inactivos} theme={theme} />
             </div>
 
             <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
                 <div className="flex flex-wrap justify-between items-center gap-4">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16}/>
-                        <input type="text" placeholder="Buscar por nombre o documento..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`w-full sm:w-72 pl-10 pr-4 py-2 rounded-lg border min-h-[44px] ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'}`}/>
+                        <input type="text" placeholder={t('drivers.search.placeholder')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`w-full sm:w-72 pl-10 pr-4 py-2 rounded-lg border min-h-[44px] ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'}`}/>
                     </div>
                     <div className="flex items-center gap-2">
                         <button onClick={() => setShowFilters(!showFilters)} className={`px-4 py-2 rounded-lg flex items-center gap-2 min-h-[44px] ${showFilters ? 'bg-blue-600 text-white' : theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}>
-                            <Filter size={16} /> Filtros
+                            <Filter size={16} /> {t('drivers.search.filters')}
                         </button>
                         <button onClick={() => setModal({ type: 'create', data: { nomUsuario: '', apeUsuario: '', email: '', numDocUsuario: '', telUsuario: '', tipLicConductor: 'B1', fecVenLicConductor: '' }})} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center gap-2 min-h-[44px] text-white">
-                            <Plus size={16} /> Nuevo Conductor
+                            <Plus size={16} /> {t('drivers.search.newDriver')}
                         </button>
                     </div>
                 </div>

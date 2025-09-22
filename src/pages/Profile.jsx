@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   FaUser,
   FaEnvelope,
@@ -23,6 +24,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useUser } from '../context/UserContext';
 
 const Profile = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, userRole, refreshAuth } = useAuth();
   const {
@@ -199,8 +201,8 @@ const Profile = () => {
                 <FaArrowLeft size={18} />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Mi Perfil</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Gestiona tu información personal y seguridad</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('profile.title')}</h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('profile.subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -237,7 +239,7 @@ const Profile = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-3">
                   <FaUser className="text-primary-600" />
-                  Información Personal
+                  {t('profile.personalInfo')}
                 </h2>
                 {!isEditing && !isChangingPassword && (
                   <button
@@ -394,7 +396,7 @@ const Profile = () => {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <FaLock className="text-primary-600" />
-                Seguridad
+                {t('profile.security')}
               </h3>
 
               {!isChangingPassword ? (
