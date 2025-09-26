@@ -72,18 +72,82 @@ const authAPI = {
         throw new Error('Formato de email inválido');
       }
 
+      console.log('🔐 Attempting login for:', email);
+
       const response = await apiClient.post('/api/auth/login', {
         email: email.trim().toLowerCase(),
         password: finalPassword
       });
 
+      console.log('📡 Login response received:', {
+        status: response.status,
+        hasData: !!response.data,
+        hasToken: !!response.data?.token,
+        hasUser: !!response.data?.user,
+        userKeys: response.data?.user ? Object.keys(response.data.user) : [],
+        fullResponse: response.data
+      });
+
+      // Verificar que la respuesta tenga la estructura esperada
+      if (!response.data) {
+        console.error('❌ No response data received from server');
+        throw new Error('No se recibió respuesta del servidor');
+      }
+
+      if (!response.data.token) {
+        console.error('❌ No token received in response:', response.data);
+        throw new Error('No se recibió token de autenticación');
+      }
+
+      // Buscar datos del usuario en diferentes ubicaciones de la respuesta
+      let user = response.data.user;
+      if (!user) {
+        // Intentar buscar en otras ubicaciones comunes
+        user = response.data.userData || response.data.profile || response.data.data;
+        console.log('🔍 User data found in alternative location:', user ? 'YES' : 'NO');
+      }
+
+      if (!user) {
+        console.error('❌ No user data received in response:', {
+          hasUser: !!response.data.user,
+          hasUserData: !!response.data.userData,
+          hasProfile: !!response.data.profile,
+          hasData: !!response.data.data,
+          fullResponse: response.data
+        });
+        throw new Error('No se recibieron datos del usuario');
+      }
+
+      // Verificar que el usuario tenga los campos requeridos
+      if (!user.id || !user.email) {
+        console.error('❌ User data incomplete:', {
+          user,
+          hasId: !!user.id,
+          hasEmail: !!user.email,
+          hasName: !!user.name,
+          hasRole: !!user.role
+        });
+        throw new Error('Los datos del usuario están incompletos');
+      }
+
       // Guardar datos de autenticación automáticamente
-      if (response.data.token) {
+      try {
         authAPI.saveAuthData(response.data);
+        console.log('✅ Authentication data saved successfully');
+      } catch (saveError) {
+        console.error('❌ Error saving auth data:', saveError);
+        throw new Error('Error al guardar los datos de autenticación');
       }
 
       return response.data;
     } catch (error) {
+      console.error('❌ Login error:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        fullError: error
+      });
+
       // Manejo específico de errores de login
       if (error.status === 401 || error.response?.status === 401) {
         throw new Error('Credenciales incorrectas. Verifique su email y contraseña.');
@@ -307,7 +371,20 @@ const authAPI = {
     try {
       const userData = localStorage.getItem('userData');
       if (userData) {
-        return JSON.parse(userData);
+        try {
+          const parsed = JSON.parse(userData);
+          // Validar que el objeto parseado tenga la estructura mínima
+          if (parsed && typeof parsed === 'object') {
+            return {
+              id: parsed.id || parsed.userId || parsed._id,
+              name: parsed.name || parsed.userName || parsed.fullName || 'Usuario',
+              email: parsed.email || parsed.userEmail,
+              role: parsed.role || parsed.userRole || parsed.type || 'USER'
+            };
+          }
+        } catch (parseError) {
+          console.warn('⚠️ Error parsing userData JSON, attempting recovery:', parseError);
+        }
       }
 
       // Fallback con datos separados
@@ -318,16 +395,16 @@ const authAPI = {
 
       if (userName || userRole || userEmail || userId) {
         return {
-          id: userId,
-          name: userName,
-          email: userEmail,
-          role: userRole
+          id: userId || 'unknown',
+          name: userName || 'Usuario',
+          email: userEmail || 'user@example.com',
+          role: userRole || 'USER'
         };
       }
 
       return null;
     } catch (error) {
-      console.error('Error parseando userData:', error);
+      console.error('Error getting current user:', error);
       return null;
     }
   },
@@ -353,9 +430,19 @@ const authAPI = {
     return authAPI.hasRole('SUPERADMIN');
   },
 
-  // Verificar si es administrador
+  // Verificar si es gestor
+  isGestor: () => {
+    return authAPI.hasRole('GESTOR');
+  },
+
+  // Verificar si es conductor
+  isConductor: () => {
+    return authAPI.hasRole('CONDUCTOR');
+  },
+
+  // Verificar si es administrador (mantiene compatibilidad)
   isAdmin: () => {
-    return authAPI.hasRole('ADMINISTRADOR');
+    return authAPI.hasRole('ADMINISTRADOR') || authAPI.hasRole('SUPERADMIN') || authAPI.hasRole('GESTOR');
   },
 
   // ================================
@@ -370,16 +457,91 @@ const authAPI = {
         localStorage.setItem('userToken', authData.token); // Por compatibilidad
         localStorage.setItem('isAuthenticated', 'true');
 
-        if (authData.user) {
-          localStorage.setItem('userData', JSON.stringify(authData.user));
-          localStorage.setItem('userName', authData.user.name || '');
-          localStorage.setItem('userRole', authData.user.role || '');
-          localStorage.setItem('userEmail', authData.user.email || '');
-          localStorage.setItem('userId', authData.user.id || '');
+        // Buscar datos del usuario en múltiples ubicaciones posibles
+        let userData = null;
+        let userSource = '';
+
+        // 1. Intentar obtener de authData.user
+        if (authData.user && typeof authData.user === 'object') {
+          userData = authData.user;
+          userSource = 'authData.user';
         }
+        // 2. Intentar obtener de authData.userData
+        else if (authData.userData && typeof authData.userData === 'object') {
+          userData = authData.userData;
+          userSource = 'authData.userData';
+        }
+        // 3. Intentar obtener de authData.profile
+        else if (authData.profile && typeof authData.profile === 'object') {
+          userData = authData.profile;
+          userSource = 'authData.profile';
+        }
+        // 4. Intentar obtener de authData.data
+        else if (authData.data && typeof authData.data === 'object') {
+          userData = authData.data;
+          userSource = 'authData.data';
+        }
+
+        if (userData) {
+          // Crear objeto de usuario con valores por defecto seguros
+          const finalUserData = {
+            id: userData.id || userData.userId || userData._id,
+            name: userData.name || userData.userName || userData.fullName || userData.displayName,
+            email: userData.email || userData.userEmail,
+            role: userData.role || userData.userRole || userData.type || 'USER'
+          };
+
+          // Validar que al menos tengamos id y email
+          if (finalUserData.id && finalUserData.email) {
+            localStorage.setItem('userData', JSON.stringify(finalUserData));
+            localStorage.setItem('userName', finalUserData.name || '');
+            localStorage.setItem('userRole', finalUserData.role || '');
+            localStorage.setItem('userEmail', finalUserData.email || '');
+            localStorage.setItem('userId', finalUserData.id || '');
+
+            console.log('✅ User data saved successfully:', finalUserData, 'from:', userSource);
+          } else {
+            console.warn('⚠️ User data incomplete, creating minimal user object:', finalUserData);
+            // Crear usuario mínimo con datos disponibles
+            const minimalUserData = {
+              id: finalUserData.id || 'unknown',
+              name: finalUserData.name || 'Usuario',
+              email: finalUserData.email || 'user@example.com',
+              role: finalUserData.role || 'USER'
+            };
+
+            localStorage.setItem('userData', JSON.stringify(minimalUserData));
+            localStorage.setItem('userName', minimalUserData.name);
+            localStorage.setItem('userRole', minimalUserData.role);
+            localStorage.setItem('userEmail', minimalUserData.email);
+            localStorage.setItem('userId', minimalUserData.id);
+
+            console.log('✅ Minimal user data saved successfully:', minimalUserData);
+          }
+        } else {
+          console.warn('⚠️ No user data found in response, creating fallback user');
+          // Crear usuario de fallback
+          const fallbackUserData = {
+            id: 'fallback',
+            name: 'Usuario',
+            email: 'user@example.com',
+            role: 'USER'
+          };
+
+          localStorage.setItem('userData', JSON.stringify(fallbackUserData));
+          localStorage.setItem('userName', fallbackUserData.name);
+          localStorage.setItem('userRole', fallbackUserData.role);
+          localStorage.setItem('userEmail', fallbackUserData.email);
+          localStorage.setItem('userId', fallbackUserData.id);
+
+          console.log('✅ Fallback user data saved successfully:', fallbackUserData);
+        }
+      } else {
+        throw new Error('No authentication token provided');
       }
     } catch (error) {
-      console.error('Error guardando datos de auth:', error);
+      console.error('❌ Error saving auth data:', error);
+      throw new Error(`Failed to save authentication data: ${error.message}`);
     }
   },
 
@@ -406,6 +568,181 @@ const authAPI = {
   // Obtener token de autorización
   getAuthToken: () => {
     return localStorage.getItem('authToken') || localStorage.getItem('userToken');
+  },
+
+  // ================================
+  // UTILIDADES DE DEBUGGING
+  // ================================
+
+  // Limpiar datos corruptos de localStorage
+  clearCorruptedData: () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('userData');
+      const isAuth = localStorage.getItem('isAuthenticated');
+
+      let corrupted = false;
+
+      if (token && isAuth === 'true') {
+        if (!userData) {
+          console.warn('⚠️ Token exists but no user data - clearing corrupted data');
+          corrupted = true;
+        } else {
+          try {
+            const parsedUser = JSON.parse(userData);
+            if (!parsedUser.id || !parsedUser.email) {
+              console.warn('⚠️ User data incomplete - clearing corrupted data');
+              corrupted = true;
+            }
+          } catch (e) {
+            console.warn('⚠️ User data corrupted JSON - clearing corrupted data');
+            corrupted = true;
+          }
+        }
+      }
+
+      if (corrupted) {
+        authAPI.clearAuthData();
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('❌ Error checking for corrupted data:', error);
+      return false;
+    }
+  },
+
+  // ================================
+  // DIAGNÓSTICO DE CONEXIÓN
+  // ================================
+
+  // Función para diagnosticar problemas de conexión
+  diagnoseConnection: async () => {
+    const diagnostics = {
+      timestamp: new Date().toISOString(),
+      frontend: {},
+      backend: {},
+      issues: []
+    };
+
+    try {
+      // Verificar configuración del frontend
+      diagnostics.frontend = {
+        apiUrl: process.env.REACT_APP_API_URL || "https://transyncbackend-production.up.railway.app",
+        timeout: parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000,
+        environment: process.env.NODE_ENV || 'development'
+      };
+
+      // Verificar localStorage
+      const token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('userData');
+      const isAuth = localStorage.getItem('isAuthenticated');
+
+      diagnostics.frontend.localStorage = {
+        hasToken: !!token,
+        hasUserData: !!userData,
+        isAuthenticated: isAuth === 'true'
+      };
+
+      if (token) {
+        diagnostics.frontend.localStorage.tokenLength = token.length;
+      }
+
+      // Verificar conectividad básica
+      const apiUrl = diagnostics.frontend.apiUrl;
+      try {
+        const response = await fetch(`${apiUrl}/api/health`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: AbortSignal.timeout(5000)
+        });
+
+        diagnostics.backend.health = {
+          status: response.status,
+          ok: response.ok,
+          statusText: response.statusText
+        };
+
+        if (response.ok) {
+          const data = await response.json();
+          diagnostics.backend.health.data = data;
+        }
+      } catch (error) {
+        diagnostics.backend.health = {
+          error: error.message,
+          code: error.code || 'UNKNOWN'
+        };
+        diagnostics.issues.push('No se puede conectar al endpoint de health');
+      }
+
+      // Verificar endpoint de login
+      try {
+        const response = await fetch(`${apiUrl}/api/auth/login`, {
+          method: 'OPTIONS',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: AbortSignal.timeout(5000)
+        });
+
+        diagnostics.backend.loginEndpoint = {
+          status: response.status,
+          ok: response.ok,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
+        };
+      } catch (error) {
+        diagnostics.backend.loginEndpoint = {
+          error: error.message,
+          code: error.code || 'UNKNOWN'
+        };
+        diagnostics.issues.push('No se puede acceder al endpoint de login');
+      }
+
+      // Verificar CORS
+      try {
+        const response = await fetch(`${apiUrl}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: 'test@example.com',
+            password: 'test123'
+          }),
+          signal: AbortSignal.timeout(5000)
+        });
+
+        diagnostics.backend.corsTest = {
+          status: response.status,
+          ok: response.ok,
+          statusText: response.statusText
+        };
+
+        if (response.status === 401) {
+          diagnostics.backend.corsTest.note = 'CORS funciona correctamente (401 es respuesta esperada para credenciales inválidas)';
+        }
+      } catch (error) {
+        diagnostics.backend.corsTest = {
+          error: error.message,
+          code: error.code || 'UNKNOWN'
+        };
+
+        if (error.message.includes('CORS') || error.message.includes('Access-Control')) {
+          diagnostics.issues.push('Problema de CORS detectado');
+        }
+      }
+
+    } catch (error) {
+      diagnostics.error = error.message;
+      diagnostics.issues.push('Error general en el diagnóstico');
+    }
+
+    console.log('🔍 Connection Diagnostics:', diagnostics);
+    return diagnostics;
   },
 
   // ================================
@@ -486,6 +823,10 @@ export const {
   getUserRole,
   hasRole,
   isSuperAdmin,
+  isGestor,
+  isConductor,
   isAdmin,
-  checkServerHealth
+  checkServerHealth,
+  diagnoseConnection,
+  clearCorruptedData
 } = authAPI;

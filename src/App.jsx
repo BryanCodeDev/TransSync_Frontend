@@ -3,10 +3,10 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
-import { isAuthenticated } from './utilidades/authAPI';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { UserProvider } from './context/UserContext';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 // Componentes principales (no lazy para mejor UX)
 import Navbar from "./components/Navbar";
@@ -27,6 +27,8 @@ const Informes = lazy(() => import("./pages/Informes"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // ======================================================
 // Tus componentes y hooks
@@ -50,13 +52,6 @@ const useSidebar = () => {
   const closeSidebar = () => { if (isMobile) setSidebarOpen(false); };
 
   return { sidebarOpen, isMobile, toggleSidebar, closeSidebar };
-};
-
-const ProtectedRoute = ({ children }) => {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
 };
 
 const ProtectedLayout = ({ children }) => {
@@ -115,7 +110,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <UserProvider>
-          <Router>
+          <Router basename="/">
           <Suspense fallback={<LazyLoadingFallback />}>
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
@@ -124,16 +119,18 @@ function App() {
               <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
               <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
               <Route path="/register" element={<PublicLayout><Register /></PublicLayout>} />
+              <Route path="/forgot-password" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
+              <Route path="/reset-password" element={<PublicLayout><ResetPassword /></PublicLayout>} />
 
               {/* Rutas protegidas usando tu ProtectedLayout y ProtectedRoute */}
-              <Route path="/dashboard" element={<ProtectedRoute><ProtectedLayout><Dashboard /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/admin/dashboard" element={<ProtectedRoute><ProtectedLayout><AdminDashboard /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/drivers" element={<ProtectedRoute><ProtectedLayout><Drivers /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/rutas" element={<ProtectedRoute><ProtectedLayout><Rutas /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/vehiculos" element={<ProtectedRoute><ProtectedLayout><Vehiculos /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/horarios" element={<ProtectedRoute><ProtectedLayout><Horarios /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/informes" element={<ProtectedRoute><ProtectedLayout><Informes /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><ProtectedLayout><Profile /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute requiredRoles={['SUPERADMIN', 'ADMINISTRADOR']}><ProtectedLayout><Dashboard /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/admin/dashboard" element={<ProtectedRoute requiredRoles={['SUPERADMIN']}><ProtectedLayout><AdminDashboard /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/drivers" element={<ProtectedRoute requiredRoles={['SUPERADMIN', 'ADMINISTRADOR']}><ProtectedLayout><Drivers /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/rutas" element={<ProtectedRoute requiredRoles={['SUPERADMIN', 'ADMINISTRADOR', 'CONDUCTOR']}><ProtectedLayout><Rutas /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/vehiculos" element={<ProtectedRoute requiredRoles={['SUPERADMIN', 'ADMINISTRADOR']}><ProtectedLayout><Vehiculos /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/horarios" element={<ProtectedRoute requiredRoles={['SUPERADMIN', 'ADMINISTRADOR']}><ProtectedLayout><Horarios /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/informes" element={<ProtectedRoute requiredRoles={['SUPERADMIN', 'ADMINISTRADOR']}><ProtectedLayout><Informes /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute requiredRoles={['SUPERADMIN', 'ADMINISTRADOR', 'CONDUCTOR']}><ProtectedLayout><Profile /></ProtectedLayout></ProtectedRoute>} />
 
               {/* Catch-all */}
               <Route path="*" element={<Navigate to="/home" replace />} />

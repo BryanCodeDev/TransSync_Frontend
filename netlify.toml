@@ -1,52 +1,99 @@
 [build]
-   command = "npm install --legacy-peer-deps && npm run build"
-   publish = "build"
-   ignore = "/bin/false"
+  command = "npm run build"
+  publish = "build"
 
 [build.environment]
-   NODE_VERSION = "20"
-   NPM_FLAGS = "--legacy-peer-deps"
-   NODE_OPTIONS = "--max_old_space_size=4096"
+  NODE_VERSION = "20"
 
-# Headers for better SEO and performance
+# Headers para todos los archivos estáticos
 [[headers]]
-  for = "/*"
+  for = "/static/js/*.js"
   [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=(self)"
-
-# Cache static assets
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
     Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
-  for = "/*.js"
+  for = "/admin/static/js/*.js"
   [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
     Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
-  for = "/*.css"
+  for = "/static/css/*.css"
   [headers.values]
+    Content-Type = "text/css; charset=utf-8"
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Security headers for HTML pages
 [[headers]]
-  for = "/*.html"
+  for = "/admin/static/css/*.css"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
+    Content-Type = "text/css; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
 
-# Redirect rules for SPA
+# Headers CRÍTICOS para chunks dinámicos - FIXED PATTERNS
+[[headers]]
+  for = "/static/js/*.chunk.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/admin/static/js/*.chunk.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.chunk.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/admin/*.chunk.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers for main JS file
+[[headers]]
+  for = "/static/js/main.*.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/admin/static/js/main.*.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers para archivos críticos
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+
+[[headers]]
+  for = "/favicon.ico"
+  [headers.values]
+    Content-Type = "image/x-icon"
+
+# API proxy - handle both root and admin paths
 [[redirects]]
   from = "/api/*"
   to = "https://transyncbackend-production.up.railway.app/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/admin/api/*"
+  to = "https://transyncbackend-production.up.railway.app/:splat"
+  status = 200
+
+# SPA fallback - DEBE SER EL ÚLTIMO (only if _redirects doesn't handle it)
+[[redirects]]
+  from = "/admin/*"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
@@ -54,11 +101,5 @@
   to = "/index.html"
   status = 200
 
-# Environment variables
 [context.production.environment]
   REACT_APP_API_URL = "https://transyncbackend-production.up.railway.app"
-  REACT_APP_WS_URL = "wss://transyncbackend-production.up.railway.app"
-  REACT_APP_NAME = "TransSync"
-  REACT_APP_VERSION = "1.1.0"
-  REACT_APP_DEBUG_MODE = "false"
-  REACT_APP_DEFAULT_COUNTRY = "co"

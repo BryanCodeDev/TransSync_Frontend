@@ -265,10 +265,10 @@ const InteractiveMap = () => {
 
   if (loading) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-surface-light dark:bg-gray-100">
+      <div className="w-full h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
         <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-text-secondary-light dark:text-gray-600">{t('routes.messages.loading')}</p>
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-primary-600 dark:text-primary-400" />
+          <p className="text-text-secondary-light dark:text-text-secondary-dark">{t('routes.messages.loading')}</p>
         </div>
       </div>
     );
@@ -276,13 +276,13 @@ const InteractiveMap = () => {
 
   if (error) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-surface-light dark:bg-gray-100">
+      <div className="w-full h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
         <div className="text-center">
-          <AlertCircle className="w-8 h-8 mx-auto mb-4 text-red-600" />
-          <p className="text-red-600 mb-4">{error}</p>
+          <AlertCircle className="w-8 h-8 mx-auto mb-4 text-error-600 dark:text-error-400" />
+          <p className="text-error-600 dark:text-error-400 mb-4">{error}</p>
           <button
             onClick={loadInitialData}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-primary-600 dark:bg-primary-700 text-white px-4 py-2 rounded hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
           >
             Reintentar
           </button>
@@ -292,95 +292,99 @@ const InteractiveMap = () => {
   }
 
   return (
-    <div className="w-full h-screen flex flex-col bg-surface-light dark:bg-gray-100">
+    <div className="w-full h-screen flex flex-col bg-background-light dark:bg-background-dark">
       {/* Header de Control */}
-      <div className="bg-background-light dark:bg-gray-900 shadow-sm border-b border-border-light dark:border-gray-700 p-2 md:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 md:gap-4">
-            <div className="flex items-center gap-2">
-              <Bus className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
-              <h1 className="text-lg md:text-xl font-bold text-text-primary-light dark:text-gray-100">
-                {t('routes.title')}</h1>
+      <div className="bg-background-light dark:bg-background-dark shadow-sm border-b border-border-light dark:border-border-dark p-3 sm:p-4">
+        <div className="flex flex-col gap-4">
+          {/* Primera fila - Título y estado */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <Bus className="w-6 h-6 sm:w-7 sm:h-7 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+              <h1 className="text-xl sm:text-2xl font-bold text-text-primary-light dark:text-text-primary-dark truncate" data-tutorial="routes">
+                {t('routes.title')}
+              </h1>
             </div>
-            <div className="flex items-center gap-2 text-xs md:text-sm text-text-secondary-light dark:text-gray-400">
-              <div className={`w-2 h-2 rounded-full ${refreshing ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
-              <span>{refreshing ? 'Actualizando...' : 'En tiempo real'}</span>
+            <div className="flex items-center gap-2 text-sm text-text-secondary-light dark:text-text-secondary-dark">
+              <div className={`w-2 h-2 rounded-full ${refreshing ? 'bg-warning-500 animate-pulse' : 'bg-success-500'}`}></div>
+              <span className="hidden sm:inline truncate">{refreshing ? 'Actualizando...' : 'En tiempo real'}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+          {/* Segunda fila - Controles */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             {/* Botón de menú móvil */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden bg-gray-500 text-white p-2 rounded hover:bg-gray-600 transition-colors"
+              className="sm:hidden bg-secondary-600 dark:bg-secondary-700 text-white p-3 rounded-lg hover:bg-secondary-700 dark:hover:bg-secondary-600 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center self-start"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Filtros de visualización - responsive */}
-            <div className="flex flex-wrap items-center gap-1 md:gap-2">
-              <label key="filter-buses" className="flex items-center gap-1 text-xs md:text-sm text-text-primary-light dark:text-gray-300">
+            {/* Filtros de visualización - más touch-friendly */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-1">
+              <label className="flex items-center gap-3 text-sm sm:text-base text-text-primary-light dark:text-text-primary-dark bg-surface-light dark:bg-surface-dark px-4 py-3 rounded-lg border border-border-light dark:border-border-dark min-h-[48px] flex-1 sm:flex-initial">
                 <input
                   type="checkbox"
                   checked={showBuses}
                   onChange={(e) => setShowBuses(e.target.checked)}
-                  className="rounded w-3 h-3 md:w-4 md:h-4"
+                  className="rounded w-5 h-5 text-primary-600 dark:text-primary-400"
                 />
-                <Bus className="w-3 h-3 md:w-4 md:h-4 text-text-primary-light dark:text-gray-300" />
-                <span className="hidden sm:inline">Buses</span>
+                <Bus className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                <span className="truncate">Buses</span>
               </label>
-              <label key="filter-routes" className="flex items-center gap-1 text-xs md:text-sm text-text-primary-light dark:text-gray-300">
+              <label className="flex items-center gap-3 text-sm sm:text-base text-text-primary-light dark:text-text-primary-dark bg-surface-light dark:bg-surface-dark px-4 py-3 rounded-lg border border-border-light dark:border-border-dark min-h-[48px] flex-1 sm:flex-initial">
                 <input
                   type="checkbox"
                   checked={showRoutes}
                   onChange={(e) => setShowRoutes(e.target.checked)}
-                  className="rounded w-3 h-3 md:w-4 md:h-4"
+                  className="rounded w-5 h-5 text-primary-600 dark:text-primary-400"
                 />
-                <Route className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="hidden sm:inline">Rutas</span>
+                <Route className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                <span className="truncate">Rutas</span>
               </label>
-              <label key="filter-stops" className="flex items-center gap-1 text-xs md:text-sm text-text-primary-light dark:text-gray-300">
+              <label className="flex items-center gap-3 text-sm sm:text-base text-text-primary-light dark:text-text-primary-dark bg-surface-light dark:bg-surface-dark px-4 py-3 rounded-lg border border-border-light dark:border-border-dark min-h-[48px] flex-1 sm:flex-initial">
                 <input
                   type="checkbox"
                   checked={showStops}
                   onChange={(e) => setShowStops(e.target.checked)}
-                  className="rounded w-3 h-3 md:w-4 md:h-4"
+                  className="rounded w-5 h-5 text-primary-600 dark:text-primary-400"
                 />
-                <MapPin className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="hidden sm:inline">Paradas</span>
+                <MapPin className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                <span className="truncate">Paradas</span>
               </label>
             </div>
 
             {/* Botones de acción */}
-            <button
-              onClick={refreshRealTimeData}
-              disabled={refreshing}
-              className="bg-green-500 text-white px-2 py-1 md:px-3 md:py-1 rounded text-xs md:text-sm hover:bg-green-600 disabled:opacity-50 transition-colors flex items-center gap-1"
-            >
-              <RefreshCw className={`w-3 h-3 md:w-4 md:h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Actualizar</span>
-            </button>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={refreshRealTimeData}
+                disabled={refreshing}
+                className="bg-success-600 dark:bg-success-700 text-white px-4 py-3 rounded-lg text-sm hover:bg-success-700 dark:hover:bg-success-600 disabled:opacity-50 transition-colors flex items-center gap-2 min-h-[48px]"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline truncate">Actualizar</span>
+              </button>
 
-            <button
-              onClick={() => {
-                setMapCenter([4.6482, -74.0648]);
-                setMapZoom(11);
-                setSelectedRoute(null);
-                setSelectedBus(null);
-              }}
-              className="bg-gray-500 text-white px-2 py-1 md:px-3 md:py-1 rounded text-xs md:text-sm hover:bg-gray-600 transition-colors flex items-center gap-1"
-            >
-              <Home className="w-3 h-3 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Vista General</span>
-            </button>
+              <button
+                onClick={() => {
+                  setMapCenter([4.6482, -74.0648]);
+                  setMapZoom(11);
+                  setSelectedRoute(null);
+                  setSelectedBus(null);
+                }}
+                className="bg-secondary-600 dark:bg-secondary-700 text-white px-4 py-3 rounded-lg text-sm hover:bg-secondary-700 dark:hover:bg-secondary-600 transition-colors flex items-center gap-2 min-h-[48px]"
+              >
+                <Home className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">Vista General</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {isAddingStop && (
-          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs md:text-sm text-blue-700 flex items-center gap-2">
-            <Info className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
-            <span className="hidden sm:inline">Haz clic en el mapa donde quieres agregar una nueva parada</span>
-            <span className="sm:hidden">Toca el mapa para agregar parada</span>
+          <div className="mt-3 p-3 bg-info-50 dark:bg-info-900/20 border border-info-200 dark:border-info-800 rounded-lg text-sm text-info-700 dark:text-info-300 flex items-center gap-2">
+            <Info className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">Haz clic en el mapa donde quieres agregar una nueva parada</span>
           </div>
         )}
       </div>
@@ -389,115 +393,120 @@ const InteractiveMap = () => {
         {/* Panel Lateral - Responsive */}
         <div className={`${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 fixed md:relative z-50 md:z-auto w-72 sm:w-80 md:w-80 lg:w-96 bg-background-light dark:bg-gray-900 shadow-lg overflow-y-auto flex-shrink-0 h-full transition-transform duration-300 ease-in-out`}>
+        } md:translate-x-0 fixed md:relative z-50 md:z-auto w-72 sm:w-80 md:w-96 lg:w-[22rem] xl:w-[24rem] bg-background-light dark:bg-background-dark shadow-xl dark:shadow-2xl overflow-y-auto flex-shrink-0 h-full transition-transform duration-300 ease-in-out border-r border-border-light dark:border-border-dark`}>
           {/* Botón para cerrar sidebar en móvil */}
-          <div className="md:hidden p-4 border-b border-border-light dark:border-gray-700">
+          <div className="md:hidden p-3 sm:p-4 border-b border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark">
             <button
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-2 text-text-secondary-light dark:text-gray-400 hover:text-text-primary-light dark:hover:text-gray-200"
+              className="flex items-center gap-3 text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark min-h-[48px] w-full justify-center p-3 rounded-lg hover:bg-background-light dark:hover:bg-background-dark transition-colors"
             >
-              <ChevronLeft className="w-5 h-5" />
-              Cerrar panel
+              <ChevronLeft className="w-5 h-5 flex-shrink-0" />
+              <span className="truncate font-medium">Cerrar panel</span>
             </button>
           </div>
 
           {/* Información del bus seleccionado */}
           {selectedBus && (
-            <div className="p-4 bg-surface-light dark:bg-blue-50 border-b">
-              <div className="flex items-center gap-2 mb-2">
-                <Bus className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-blue-900">{selectedBus.route}</h3>
+            <div className="p-3 sm:p-4 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Bus className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                  <h3 className="font-bold text-text-primary-light dark:text-text-primary-dark truncate text-base sm:text-lg">{selectedBus.route}</h3>
+                </div>
+                <button
+                  onClick={() => setSelectedBus(null)}
+                  className="bg-secondary-600 dark:bg-secondary-700 text-white p-2 rounded-lg hover:bg-secondary-700 dark:hover:bg-secondary-600 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center flex-shrink-0 ml-2"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <div className="space-y-1 text-sm">
+
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm mb-3">
                 <div className="flex items-center gap-2">
-                  <Navigation className="w-4 h-4" />
-                  <span><strong>Conductor:</strong> {selectedBus.driver}</span>
+                  <Navigation className="w-3 h-3 sm:w-4 sm:h-4 text-text-secondary-light dark:text-text-secondary-dark flex-shrink-0" />
+                  <span className="truncate"><strong>Conductor:</strong> {selectedBus.driver}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusIcon(selectedBus.status)}
-                  <span><strong>Estado:</strong></span>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${selectedBus.status === 'en_ruta' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  <span className={`px-2 py-1 rounded text-xs font-medium flex-1 text-center ${
+                    selectedBus.status === 'en_ruta'
+                      ? 'bg-success-100 dark:bg-success-900/30 text-success-800 dark:text-success-300'
+                      : 'bg-error-100 dark:bg-error-900/30 text-error-800 dark:text-error-300'
                     }`}>
                     {getStatusText(selectedBus.status)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
-                  <span><strong>Velocidad:</strong> {selectedBus.speed} km/h</span>
+                  <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-warning-600 dark:text-warning-400 flex-shrink-0" />
+                  <span className="truncate">{selectedBus.speed} km/h</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  <span><strong>Pasajeros:</strong> {selectedBus.passengers}/{selectedBus.capacity}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span><strong>Última actualización:</strong> {selectedBus.lastUpdate ? new Date(selectedBus.lastUpdate).toLocaleTimeString() : 'N/A'}</span>
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4 text-info-600 dark:text-info-400 flex-shrink-0" />
+                  <span className="truncate">{selectedBus.passengers}/{selectedBus.capacity}</span>
                 </div>
               </div>
-              <div className="mt-3 flex gap-2">
+
+              <div className="flex gap-2">
                 <button
-                  key="track-bus"
                   onClick={() => startTracking(selectedBus)}
                   disabled={isTracking}
-                  className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 disabled:opacity-50 transition-colors flex items-center gap-1"
+                  className="bg-success-600 dark:bg-success-700 text-white px-3 py-2 rounded-lg text-xs sm:text-sm hover:bg-success-700 dark:hover:bg-success-600 disabled:opacity-50 transition-colors flex items-center justify-center gap-1 min-h-[40px] flex-1"
                 >
-                  <Target className="w-3 h-3" />
-                  {isTracking ? 'Siguiendo...' : 'Seguir Bus'}
-                </button>
-                <button
-                  key="close-bus-info"
-                  onClick={() => setSelectedBus(null)}
-                  className="bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition-colors flex items-center gap-1"
-                >
-                  <X className="w-3 h-3" />
-                  Cerrar
+                  <Target className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="truncate">{isTracking ? 'Siguiendo...' : 'Seguir'}</span>
                 </button>
               </div>
             </div>
           )}
 
           {/* Lista de Buses */}
-          <div className="p-4 border-b border-border-light dark:border-gray-700">
-            <div className="flex items-center gap-2 mb-3">
-              <Bus className="w-5 h-5 text-text-primary-light dark:text-gray-300" />
-              <h3 key="buses-title" className="font-bold text-text-primary-light dark:text-gray-100">
+          <div className="p-4 border-b border-border-light dark:border-border-dark">
+            <div className="flex items-center gap-3 mb-4">
+              <Bus className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+              <h3 className="font-bold text-text-primary-light dark:text-text-primary-dark truncate text-lg">
                 Buses Activos ({buses.length})
               </h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:space-y-3">
               {buses.map(bus => (
                 <div
                   key={bus.idVehiculo}
                   onClick={() => handleBusClick(bus)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedBus?.idVehiculo === bus.idVehiculo
-                    ? 'bg-surface-light dark:bg-blue-900 border-2 border-border-light dark:border-blue-600'
-                    : 'bg-surface-light dark:bg-gray-800 hover:bg-background-light dark:hover:bg-gray-700 border border-border-light dark:border-gray-600'
+                  className={`p-3 sm:p-4 rounded-lg cursor-pointer transition-all duration-200 min-h-[60px] active:scale-[0.98] ${
+                    selectedBus?.idVehiculo === bus.idVehiculo
+                      ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-200 dark:border-primary-800 shadow-md'
+                      : 'bg-surface-light dark:bg-surface-dark hover:bg-background-light dark:hover:bg-background-dark border border-border-light dark:border-border-dark hover:shadow-sm'
                     }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-sm text-text-primary-light dark:text-gray-100">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-semibold text-sm sm:text-base text-text-primary-light dark:text-text-primary-dark truncate">
                         {bus.plaVehiculo || `Vehículo ${bus.numVehiculo}`}
                       </h4>
-                      <p className="text-xs text-text-secondary-light dark:text-gray-400 flex items-center gap-1">
-                        <Navigation className="w-3 h-3 text-text-secondary-light dark:text-gray-400" />
-                        {bus.marVehiculo} {bus.modVehiculo}
+                      <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark flex items-center gap-2 mt-1">
+                        <Navigation className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{bus.marVehiculo} {bus.modVehiculo}</span>
                       </p>
                     </div>
-                    <div className="text-right flex flex-col items-end">
+                    <div className="text-right flex flex-col items-end ml-3">
                       <div
-                        className={`w-3 h-3 rounded-full ${bus.estVehiculo === 'EN_RUTA' ? 'bg-green-400' : 'bg-red-400'
+                        className={`w-3 h-3 rounded-full ${
+                          bus.estVehiculo === 'EN_RUTA'
+                            ? 'bg-success-500'
+                            : bus.estVehiculo === 'DISPONIBLE'
+                            ? 'bg-primary-500'
+                            : 'bg-error-500'
                           }`}
                       ></div>
-                      <span className="text-xs text-text-secondary-light dark:text-gray-400">
+                      <span className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-1">
                         {bus.anioVehiculo}
                       </span>
                     </div>
                   </div>
-                  <div className="mt-2 flex justify-between text-xs text-text-secondary-light dark:text-gray-400">
-                    <span className="flex items-center gap-1">
+                  <div className="mt-3 flex justify-between items-center text-sm">
+                    <span className="flex items-center gap-2 text-text-secondary-light dark:text-text-secondary-dark">
                       {getStatusIcon(bus.estVehiculo)}
-                      {getStatusText(bus.estVehiculo)}
+                      <span className="truncate">{getStatusText(bus.estVehiculo)}</span>
                     </span>
                   </div>
                 </div>
@@ -507,43 +516,47 @@ const InteractiveMap = () => {
 
 
           {/* Lista de Rutas */}
-          <div className="p-4 border-b border-border-light dark:border-gray-700">
-            <div className="flex items-center gap-2 mb-3">
-              <Route className="w-5 h-5 text-text-primary-light dark:text-gray-300" />
-              <h3 className="font-bold text-text-primary-light dark:text-gray-100">Rutas Disponibles</h3>
+          <div className="p-4 border-b border-border-light dark:border-border-dark">
+            <div className="flex items-center gap-3 mb-4">
+              <Route className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+              <h3 className="font-bold text-text-primary-light dark:text-text-primary-dark truncate text-lg">Rutas Disponibles</h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:space-y-3">
               {routes.map(route => (
                 <div
                   key={route.idRuta}
                   onClick={() => handleRouteSelect(route)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors border ${selectedRoute?.idRuta === route.idRuta
-                    ? 'bg-surface-light dark:bg-purple-900 border-border-light dark:border-purple-600'
-                    : 'bg-surface-light dark:bg-gray-800 hover:bg-background-light dark:hover:bg-gray-700 border-border-light dark:border-gray-600'
+                  className={`p-3 sm:p-4 rounded-lg cursor-pointer transition-all duration-200 border min-h-[60px] active:scale-[0.98] ${
+                    selectedRoute?.idRuta === route.idRuta
+                      ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 shadow-md'
+                      : 'bg-surface-light dark:bg-surface-dark hover:bg-background-light dark:hover:bg-background-dark border-border-light dark:border-border-dark hover:shadow-sm'
                     }`}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <div
-                      className="w-4 h-4 rounded-full"
+                      className="w-4 h-4 rounded-full flex-shrink-0"
                       style={{ backgroundColor: route.estRuta === 'ACTIVA' ? '#6366f1' : '#ef4444' }}
                     ></div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-sm text-text-primary-light dark:text-gray-100">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm sm:text-base text-text-primary-light dark:text-text-primary-dark truncate">
                         {route.nomRuta}
                       </h4>
-                      <div className="flex justify-between text-xs text-text-secondary-light dark:text-gray-400 mt-1">
-                        <span className="flex items-center gap-1">
-                          <MapIcon className="w-3 h-3 text-text-secondary-light dark:text-gray-400" />
-                          {route.distanciaKm ? `${route.distanciaKm} km` : 'N/A'}
+                      <div className="flex justify-between text-sm text-text-secondary-light dark:text-text-secondary-dark mt-2">
+                        <span className="flex items-center gap-2">
+                          <MapIcon className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{route.distanciaKm ? `${route.distanciaKm} km` : 'N/A'}</span>
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-text-secondary-light dark:text-gray-400" />
-                          {route.tiempoEstimadoMin ? `${Math.floor(route.tiempoEstimadoMin / 60)}h ${route.tiempoEstimadoMin % 60}min` : 'N/A'}
+                        <span className="flex items-center gap-2">
+                          <Clock className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{route.tiempoEstimadoMin ? `${Math.floor(route.tiempoEstimadoMin / 60)}h ${route.tiempoEstimadoMin % 60}min` : 'N/A'}</span>
                         </span>
                       </div>
                     </div>
                     <div
-                      className={`w-2 h-2 rounded-full ${route.estRuta === 'ACTIVA' ? 'bg-green-400' : 'bg-gray-400 dark:bg-gray-500'
+                      className={`w-3 h-3 rounded-full ${
+                        route.estRuta === 'ACTIVA'
+                          ? 'bg-success-500'
+                          : 'bg-secondary-500 dark:bg-secondary-400'
                         }`}
                     ></div>
                   </div>
@@ -555,28 +568,28 @@ const InteractiveMap = () => {
 
           {/* Estadísticas */}
           <div className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Activity className="w-5 h-5 text-text-primary-light dark:text-gray-300" />
-              <h3 className="font-bold text-text-primary-light dark:text-gray-100">Estadísticas en Tiempo Real</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+              <h3 className="font-bold text-text-primary-light dark:text-text-primary-dark truncate text-lg">Estadísticas en Tiempo Real</h3>
             </div>
-            <div className="space-y-3">
-              <div key="stats-en-ruta" className="bg-surface-light dark:bg-green-900 p-3 rounded-lg">
-                <div className="text-lg font-bold text-green-600 dark:text-green-400">
+            <div className="space-y-4">
+              <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-lg border border-border-light dark:border-border-dark">
+                <div className="text-xl sm:text-2xl font-bold text-success-600 dark:text-success-400">
                   {buses.filter(b => b.estVehiculo === 'EN_RUTA').length}
                 </div>
-                <div className="text-sm text-green-700 dark:text-green-300">Buses en Ruta</div>
+                <div className="text-sm sm:text-base text-success-700 dark:text-success-300 truncate mt-1">Buses en Ruta</div>
               </div>
-              <div key="stats-total" className="bg-surface-light dark:bg-blue-900 p-3 rounded-lg">
-                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+              <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-lg border border-border-light dark:border-border-dark">
+                <div className="text-xl sm:text-2xl font-bold text-primary-600 dark:text-primary-400">
                   {buses.length}
                 </div>
-                <div className="text-sm text-blue-700 dark:text-blue-300">Vehículos Totales</div>
+                <div className="text-sm sm:text-base text-primary-700 dark:text-primary-300 truncate mt-1">Vehículos Totales</div>
               </div>
-              <div key="stats-activas" className="bg-surface-light dark:bg-purple-900 p-3 rounded-lg">
-                <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+              <div className="bg-surface-light dark:bg-surface-dark p-4 rounded-lg border border-border-light dark:border-border-dark">
+                <div className="text-xl sm:text-2xl font-bold text-info-600 dark:text-info-400">
                   {routes.filter(r => r.estRuta === 'ACTIVA').length}
                 </div>
-                <div className="text-sm text-purple-700 dark:text-purple-300">Rutas Activas</div>
+                <div className="text-sm sm:text-base text-info-700 dark:text-info-300 truncate mt-1">Rutas Activas</div>
               </div>
             </div>
           </div>
@@ -821,36 +834,34 @@ const InteractiveMap = () => {
 
           {/* Indicador de tracking */}
           {isTracking && selectedBus && (
-            <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-green-500 text-white px-2 py-1 md:px-4 md:py-2 rounded-lg shadow-lg z-[1000]">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                <Target className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="text-xs md:text-sm font-medium">
-                  <span className="hidden sm:inline">Siguiendo: {selectedBus.route}</span>
-                  <span className="sm:hidden">Siguiendo</span>
+            <div className="absolute top-4 left-4 bg-success-600 dark:bg-success-700 text-white px-4 py-3 rounded-lg shadow-xl z-[1000] border border-success-500 dark:border-success-600">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                <Target className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  Siguiendo: {selectedBus.route}
                 </span>
               </div>
             </div>
           )}
 
           {/* Controles de zoom y ubicación - Responsive */}
-          <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 flex flex-col gap-1 md:gap-2 z-[1000]">
+          <div className="absolute top-4 right-4 flex flex-col gap-2 z-[1000]">
             <button
-              key="zoom-in"
               onClick={() => setMapZoom(prev => Math.min(prev + 1, 18))}
-              className="bg-white shadow-lg rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="bg-background-light dark:bg-background-dark shadow-lg border border-border-light dark:border-border-dark rounded-lg w-14 h-14 sm:w-12 sm:h-12 flex items-center justify-center hover:bg-surface-light dark:hover:bg-surface-dark transition-colors active:scale-95"
+              title="Acercar"
             >
-              <ZoomIn className="w-4 h-4 md:w-5 md:h-5" />
+              <ZoomIn className="w-6 h-6 sm:w-5 sm:h-5 text-text-primary-light dark:text-text-primary-dark" />
             </button>
             <button
-              key="zoom-out"
               onClick={() => setMapZoom(prev => Math.max(prev - 1, 3))}
-              className="bg-white shadow-lg rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="bg-background-light dark:bg-background-dark shadow-lg border border-border-light dark:border-border-dark rounded-lg w-14 h-14 sm:w-12 sm:h-12 flex items-center justify-center hover:bg-surface-light dark:hover:bg-surface-dark transition-colors active:scale-95"
+              title="Alejar"
             >
-              <ZoomOut className="w-4 h-4 md:w-5 md:h-5" />
+              <ZoomOut className="w-6 h-6 sm:w-5 sm:h-5 text-text-primary-light dark:text-text-primary-dark" />
             </button>
             <button
-              key="locate"
               onClick={() => {
                 navigator.geolocation?.getCurrentPosition(
                   (position) => {
@@ -863,44 +874,45 @@ const InteractiveMap = () => {
                   }
                 );
               }}
-              className="bg-blue-500 text-white shadow-lg rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-blue-600 transition-colors"
+              className="bg-primary-600 dark:bg-primary-700 text-white shadow-lg rounded-lg w-14 h-14 sm:w-12 sm:h-12 flex items-center justify-center hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors active:scale-95"
+              title="Mi ubicación"
             >
-              <Locate className="w-4 h-4 md:w-5 md:h-5" />
+              <Locate className="w-6 h-6 sm:w-5 sm:h-5" />
             </button>
           </div>
 
-          {/* Leyenda del mapa - Responsive */}
-          <div className="absolute bottom-16 left-2 md:bottom-4 md:left-4 bg-white rounded-lg shadow-lg p-2 md:p-3 z-[1000] max-w-xs">
+          {/* Leyenda del mapa - Responsive y menos intrusiva */}
+          <div className="absolute bottom-4 left-4 bg-background-light dark:bg-background-dark rounded-lg shadow-xl border border-border-light dark:border-border-dark p-3 z-[1000] max-w-[200px] sm:max-w-xs">
             <div className="flex items-center gap-2 mb-2">
-              <MapIcon className="w-3 h-3 md:w-4 md:h-4 text-gray-700" />
-              <h4 className="font-bold text-xs md:text-sm">Leyenda</h4>
+              <MapIcon className="w-4 h-4 text-text-primary-light dark:text-text-primary-dark" />
+              <h4 className="font-bold text-xs sm:text-sm text-text-primary-light dark:text-text-primary-dark">Leyenda</h4>
             </div>
-            <div className="grid grid-cols-1 gap-1 text-xs">
-              <div key="legend-en-ruta" className="flex items-center gap-2">
-                <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-green-500 flex items-center justify-center text-white">
-                  <Bus className="w-2 h-2 md:w-3 md:h-3" />
+            <div className="grid grid-cols-1 gap-2 text-xs sm:text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-success-500 flex items-center justify-center text-white shadow-sm">
+                  <Bus className="w-3 h-3" />
                 </div>
-                <span>En ruta</span>
+                <span className="text-text-primary-light dark:text-text-primary-dark truncate">En ruta</span>
               </div>
-              <div key="legend-disponible" className="flex items-center gap-2">
-                <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                  <Bus className="w-2 h-2 md:w-3 md:h-3" />
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center text-white shadow-sm">
+                  <Bus className="w-3 h-3" />
                 </div>
-                <span>Disponible</span>
+                <span className="text-text-primary-light dark:text-text-primary-dark truncate">Disponible</span>
               </div>
-              <div key="legend-parada" className="flex items-center gap-2">
-                <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-red-500 flex items-center justify-center text-white">
-                  <MapPin className="w-2 h-2 md:w-3 md:h-3" />
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-error-500 flex items-center justify-center text-white shadow-sm">
+                  <MapPin className="w-3 h-3" />
                 </div>
-                <span>Parada</span>
+                <span className="text-text-primary-light dark:text-text-primary-dark truncate">Parada</span>
               </div>
-              <div key="legend-ruta-activa" className="flex items-center gap-2">
-                <div className="w-3 h-1 md:w-4 md:h-1" style={{ backgroundColor: '#6366f1' }}></div>
-                <span>Ruta activa</span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-1 bg-primary-500 rounded"></div>
+                <span className="text-text-primary-light dark:text-text-primary-dark truncate">Ruta activa</span>
               </div>
-              <div key="legend-ruta-inactiva" className="flex items-center gap-2">
-                <div className="w-3 h-1 md:w-4 md:h-1 border-b border-gray-400 border-dashed"></div>
-                <span>Ruta inactiva</span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-1 border-b-2 border-dashed border-secondary-500"></div>
+                <span className="text-text-primary-light dark:text-text-primary-dark truncate">Ruta inactiva</span>
               </div>
             </div>
           </div>
@@ -908,34 +920,25 @@ const InteractiveMap = () => {
       </div>
 
       {/* Footer con información adicional */}
-      <div className="bg-background-light dark:bg-gray-900 border-t border-border-light dark:border-gray-700 px-2 md:px-4 py-2">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs text-text-secondary-light dark:text-gray-400">
-          <div key="footer-time" className="flex items-center gap-1">
-            <Clock className="w-3 h-3 text-text-secondary-light dark:text-gray-400" />
-            <span className="hidden sm:inline">Última actualización:</span>
-            {new Date().toLocaleTimeString()}
+      <div className="bg-background-light dark:bg-background-dark border-t border-border-light dark:border-border-dark px-3 sm:px-4 py-2 sm:py-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-3 text-xs sm:text-sm text-text-secondary-light dark:text-text-secondary-dark">
+          <div className="flex items-center justify-center gap-2">
+            <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span className="truncate">Actualizado: {new Date().toLocaleTimeString()}</span>
           </div>
-          <div className="flex flex-wrap gap-2 md:gap-4 justify-center sm:justify-end">
-            <span key="footer-vehicles" className="flex items-center gap-1">
-              <Bus className="w-3 h-3 text-text-secondary-light dark:text-gray-400" />
-              <span className="hidden sm:inline">{buses.length} vehículos</span>
-              <span className="sm:hidden">{buses.length}</span>
+          <div className="flex items-center justify-center gap-3 sm:gap-4">
+            <span className="flex items-center gap-1">
+              <Bus className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">{buses.length}</span>
             </span>
-            <span key="footer-routes" className="flex items-center gap-1">
-              <Route className="w-3 h-3 text-text-secondary-light dark:text-gray-400" />
-              <span className="hidden sm:inline">{routes.filter(r => r.estRuta === 'ACTIVA').length} rutas</span>
-              <span className="sm:hidden">{routes.filter(r => r.estRuta === 'ACTIVA').length}</span>
+            <span className="flex items-center gap-1">
+              <Route className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">{routes.filter(r => r.estRuta === 'ACTIVA').length}</span>
             </span>
-            <span key="footer-stops" className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-text-secondary-light dark:text-gray-400" />
-              <span className="hidden sm:inline">{stops.length + newMarkers.length} paradas</span>
-              <span className="sm:hidden">{stops.length + newMarkers.length}</span>
+            <span className="flex items-center gap-1">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">{stops.length + newMarkers.length}</span>
             </span>
-          </div>
-          <div key="footer-status" className="flex items-center gap-1 justify-center sm:justify-end">
-            <Activity className="w-3 h-3 text-text-secondary-light dark:text-gray-400" />
-            <span className="hidden sm:inline">Sistema en tiempo real</span>
-            <span className="sm:hidden">En línea</span>
           </div>
         </div>
       </div>

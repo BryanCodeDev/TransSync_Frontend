@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { isAuthenticated, getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
+import { isAuthenticated, getCurrentUser, getUserRole, logout, clearCorruptedData } from '../utilidades/authAPI';
+import authAPI from '../utilidades/authAPI';
 
 /**
  * Hook personalizado para manejar la autenticación
@@ -16,22 +17,49 @@ export const useAuth = () => {
   const checkAuthStatus = useCallback(() => {
     try {
       setError(null);
+
+      // Limpiar datos corruptos primero
+      clearCorruptedData();
+
       const authenticated = isAuthenticated();
 
       if (authenticated) {
         const userData = getCurrentUser();
         const role = getUserRole();
 
-        setIsLoggedIn(true);
-        setUser(userData);
-        setUserRole(role);
+        if (userData && role && userData.id && userData.email) {
+          setIsLoggedIn(true);
+          setUser(userData);
+          setUserRole(role);
+          console.log('✅ Auth status verified:', { userData, role });
+        } else {
+          console.warn('⚠️ Incomplete user data after cleanup:', { userData, role });
+          // Limpiar datos corruptos y reintentar una vez más
+          authAPI.clearAuthData();
+
+          // Verificar si hay datos de respaldo
+          const backupUserData = getCurrentUser();
+          const backupRole = getUserRole();
+
+          if (backupUserData && backupRole && backupUserData.id && backupUserData.email) {
+            setIsLoggedIn(true);
+            setUser(backupUserData);
+            setUserRole(backupRole);
+            console.log('✅ Auth status verified from backup:', { backupUserData, backupRole });
+          } else {
+            setIsLoggedIn(false);
+            setUser(null);
+            setUserRole('');
+            console.warn('⚠️ No valid user data found after cleanup');
+          }
+        }
       } else {
         setIsLoggedIn(false);
         setUser(null);
         setUserRole('');
       }
     } catch (err) {
-      console.error('Error checking auth status:', err);
+      console.error('❌ Error checking auth status:', err);
       setError(err.message);
       setIsLoggedIn(false);
       setUser(null);
@@ -115,6 +143,43 @@ export const useAuth = () => {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
+  // Función para recuperar datos del usuario si se pierden
+  const recoverUserData = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        console.log('🔄 Attempting to recover user data...');
+        const profile = await authAPI.getProfile();
+        if (profile && profile.user) {
+          const userData = {
+            id: profile.user.id,
+            name: profile.user.name,
+            email: profile.user.email,
+            role: profile.user.role
+          };
+
+          // Guardar los datos recuperados
+          localStorage.setItem('userData', JSON.stringify(userData));
+          localStorage.setItem('userName', userData.name || '');
+          localStorage.setItem('userRole', userData.role || '');
+          localStorage.setItem('userEmail', userData.email || '');
+          localStorage.setItem('userId', userData.id || '');
+
+          setUser(userData);
+          setUserRole(userData.role);
+          setIsLoggedIn(true);
+
+          console.log('✅ User data recovered successfully:', userData);
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('❌ Failed to recover user data:', error);
+      return false;
+    }
+  }, []);
+
   return {
     isLoggedIn,
     user,
@@ -124,7 +189,8 @@ export const useAuth = () => {
     login: handleLogin,
     logout: handleLogout,
     refreshAuth,
-    checkAuth: checkAuthStatus
+    checkAuth: checkAuthStatus,
+    recoverUserData
   };
 };
 
