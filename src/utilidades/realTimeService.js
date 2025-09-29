@@ -864,7 +864,7 @@ const realTimeService = new RealTimeService();
 export const useSocket = (authData = null) => {
   return {
     socket: realTimeService.socket,
-    isConnected: realTimeService.isConnected,
+    isConnected: () => realTimeService.isConnected,
     connect: (customAuthData = null) => realTimeService.connect(customAuthData || authData),
     disconnect: () => realTimeService.disconnect(),
     emit: (event, data) => realTimeService.emit(event, data),
