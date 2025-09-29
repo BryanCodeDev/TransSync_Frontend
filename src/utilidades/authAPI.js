@@ -1,19 +1,8 @@
-// api/authAPI.js - Servicio de autenticación integrado
 import { apiClient, apiUtils } from '../api/baseAPI';
 
-
 const authAPI = {
-  // ================================
-  // AUTENTICACIÓN BÁSICA
-  // ================================
-
-  // Registro de usuario
-  // REEMPLAZA LA FUNCIÓN VIEJA CON ESTA:
-
-  // Registro de usuario
   register: async (userData) => {
     try {
-      // 1. Validación de campos requeridos según el backend
       const requiredFields = ['nomUsuario', 'apeUsuario', 'numDocUsuario', 'telUsuario', 'email', 'password'];
       const missingFields = requiredFields.filter(field => !userData[field]);
 
@@ -21,17 +10,14 @@ const authAPI = {
         throw new Error(`Campos requeridos faltantes: ${missingFields.join(', ')}`);
       }
 
-      // 2. Validar formato de email
       if (!apiUtils.isValidEmail(userData.email)) {
         throw new Error('Formato de email inválido');
       }
 
-      // 3. Validar contraseña segura
       if (userData.password && userData.password.length < 6) {
         throw new Error('La contraseña debe tener al menos 6 caracteres');
       }
 
-      // 4. Enviar datos al backend con el formato correcto
       const response = await apiClient.post('/api/auth/register', {
         nomUsuario: userData.nomUsuario.trim(),
         apeUsuario: userData.apeUsuario.trim(),
@@ -44,26 +30,20 @@ const authAPI = {
       return response.data;
 
     } catch (error) {
-      // Re-lanzar el error para que sea manejado por el interceptor
-      // o por el componente que llamó a la función.
       throw error;
     }
   },
-  // Login de usuario
   login: async (credentials, password) => {
     try {
-      // Permitir tanto formato de objeto como parámetros separados
       let email, finalPassword;
 
       if (typeof credentials === 'object') {
         ({ email, password: finalPassword } = credentials);
       } else {
-        // Compatibilidad con authService.js (email, password como parámetros)
         email = credentials;
         finalPassword = password;
       }
 
-      // Validaciones
       if (!email || !finalPassword) {
         throw new Error("Email y contraseña son requeridos");
       }
@@ -72,14 +52,11 @@ const authAPI = {
         throw new Error('Formato de email inválido');
       }
 
-
       const response = await apiClient.post('/api/auth/login', {
         email: email.trim().toLowerCase(),
         password: finalPassword
       });
 
-
-      // Verificar que la respuesta tenga la estructura esperada
       if (!response.data) {
         throw new Error('No se recibió respuesta del servidor');
       }
@@ -88,10 +65,8 @@ const authAPI = {
         throw new Error('No se recibió token de autenticación');
       }
 
-      // Buscar datos del usuario en diferentes ubicaciones de la respuesta
       let user = response.data.user;
       if (!user) {
-        // Intentar buscar en otras ubicaciones comunes
         user = response.data.userData || response.data.profile || response.data.data;
       }
 
@@ -99,12 +74,10 @@ const authAPI = {
         throw new Error('No se recibieron datos del usuario');
       }
 
-      // Verificar que el usuario tenga los campos requeridos
       if (!user.id || !user.email) {
         throw new Error('Los datos del usuario están incompletos');
       }
 
-      // Guardar datos de autenticación automáticamente
       try {
         authAPI.saveAuthData(response.data);
       } catch (saveError) {
@@ -113,8 +86,6 @@ const authAPI = {
 
       return response.data;
     } catch (error) {
-
-      // Manejo específico de errores de login
       if (error.status === 401 || error.response?.status === 401) {
         throw new Error('Credenciales incorrectas. Verifique su email y contraseña.');
       } else if (error.status === 403 || error.response?.status === 403) {
@@ -129,7 +100,6 @@ const authAPI = {
     }
   },
 
-  // Verificar cuenta
   verifyAccount: async (token) => {
     try {
       if (!token) {
@@ -149,11 +119,6 @@ const authAPI = {
     }
   },
 
-  // ================================
-  // RECUPERACIÓN DE CONTRASEÑA
-  // ================================
-
-  // Olvido de contraseña
   forgotPassword: async (email) => {
     try {
       if (!email) {
@@ -177,7 +142,6 @@ const authAPI = {
     }
   },
 
-  // Restablecer contraseña
   resetPassword: async (token, newPassword) => {
     try {
       if (!token || !newPassword) {
@@ -203,37 +167,22 @@ const authAPI = {
     }
   },
 
-  // ================================
-  // GESTIÓN DE SESIÓN
-  // ================================
-
-  // Logout
   logout: async () => {
     try {
-      // Intentar logout en el servidor (opcional)
       try {
         await apiClient.post('/api/auth/logout');
       } catch (error) {
-        // Error en logout del servidor - logged in production builds
       }
 
-      // Limpiar datos locales
       authAPI.clearAuthData();
 
       return { success: true, message: 'Sesión cerrada exitosamente' };
     } catch (error) {
-      // Error en logout - logged in production builds
-      // Limpiar de todas formas
       authAPI.clearAuthData();
       return { success: false, message: 'Error al cerrar sesión, pero se limpió localmente' };
     }
   },
 
-  // ================================
-  // ENDPOINTS PROTEGIDOS
-  // ================================
-
-  // Obtener perfil del usuario
   getProfile: async () => {
     try {
       const response = await apiClient.get('/api/auth/profile');
@@ -243,7 +192,6 @@ const authAPI = {
     }
   },
 
-  // Verificar token
   verifyToken: async () => {
     try {
       const response = await apiClient.get('/api/auth/verify-token');
@@ -253,11 +201,6 @@ const authAPI = {
     }
   },
 
-  // ================================
-  // GESTIÓN DE PERFIL
-  // ================================
-
-  // Actualizar perfil de usuario
   updateProfile: async (profileData) => {
     try {
       const { name, email } = profileData;
@@ -271,7 +214,6 @@ const authAPI = {
         email: email?.trim().toLowerCase()
       });
 
-      // Actualizar datos en localStorage
       if (response.data.user) {
         const currentData = authAPI.getCurrentUser() || {};
         const updatedUser = { ...currentData, ...response.data.user };
@@ -287,7 +229,6 @@ const authAPI = {
     }
   },
 
-  // Cambiar contraseña
   changePassword: async (passwordData) => {
     try {
       const { currentPassword, newPassword, confirmPassword } = passwordData;
@@ -316,11 +257,6 @@ const authAPI = {
     }
   },
 
-  // ================================
-  // UTILIDADES DE AUTENTICACIÓN
-  // ================================
-
-  // Verificar si está autenticado
   isAuthenticated: () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('userToken');
@@ -331,14 +267,12 @@ const authAPI = {
     }
   },
 
-  // Obtener datos del usuario actual
   getCurrentUser: () => {
     try {
       const userData = localStorage.getItem('userData');
       if (userData) {
         try {
           const parsed = JSON.parse(userData);
-          // Validar que el objeto parseado tenga la estructura mínima
           if (parsed && typeof parsed === 'object') {
             return {
               id: parsed.id || parsed.userId || parsed._id,
@@ -348,11 +282,9 @@ const authAPI = {
             };
           }
         } catch (parseError) {
-          // Error parsing userData JSON, attempting recovery
         }
       }
 
-      // Fallback con datos separados
       const userName = localStorage.getItem('userName');
       const userRole = localStorage.getItem('userRole');
       const userEmail = localStorage.getItem('userEmail');
@@ -373,7 +305,6 @@ const authAPI = {
     }
   },
 
-  // Obtener rol del usuario
   getUserRole: () => {
     try {
       return localStorage.getItem('userRole') || null;
@@ -382,66 +313,50 @@ const authAPI = {
     }
   },
 
-  // Verificar si el usuario tiene un rol específico
   hasRole: (role) => {
     const userRole = authAPI.getUserRole();
     return userRole === role;
   },
 
-  // Verificar si es superadmin
   isSuperAdmin: () => {
     return authAPI.hasRole('SUPERADMIN');
   },
 
-  // Verificar si es gestor
   isGestor: () => {
     return authAPI.hasRole('GESTOR');
   },
 
-  // Verificar si es conductor
   isConductor: () => {
     return authAPI.hasRole('CONDUCTOR');
   },
 
-  // Verificar si es administrador (mantiene compatibilidad)
   isAdmin: () => {
     return authAPI.hasRole('ADMINISTRADOR') || authAPI.hasRole('SUPERADMIN') || authAPI.hasRole('GESTOR');
   },
 
-  // ================================
-  // MANEJO DE DATOS LOCALES
-  // ================================
-
-  // Guardar datos de autenticación
   saveAuthData: (authData) => {
     try {
       if (authData.token) {
         localStorage.setItem('authToken', authData.token);
-        localStorage.setItem('userToken', authData.token); // Por compatibilidad
+        localStorage.setItem('userToken', authData.token);
         localStorage.setItem('isAuthenticated', 'true');
 
-        // Buscar datos del usuario en múltiples ubicaciones posibles
         let userData = null;
 
-        // 1. Intentar obtener de authData.user
         if (authData.user && typeof authData.user === 'object') {
           userData = authData.user;
         }
-        // 2. Intentar obtener de authData.userData
         else if (authData.userData && typeof authData.userData === 'object') {
           userData = authData.userData;
         }
-        // 3. Intentar obtener de authData.profile
         else if (authData.profile && typeof authData.profile === 'object') {
           userData = authData.profile;
         }
-        // 4. Intentar obtener de authData.data
         else if (authData.data && typeof authData.data === 'object') {
           userData = authData.data;
         }
 
         if (userData) {
-          // Crear objeto de usuario con valores por defecto seguros
           const finalUserData = {
             id: userData.id || userData.userId || userData._id,
             name: userData.name || userData.userName || userData.fullName || userData.displayName,
@@ -449,17 +364,13 @@ const authAPI = {
             role: userData.role || userData.userRole || userData.type || 'USER'
           };
 
-          // Validar que al menos tengamos id y email
           if (finalUserData.id && finalUserData.email) {
             localStorage.setItem('userData', JSON.stringify(finalUserData));
             localStorage.setItem('userName', finalUserData.name || '');
             localStorage.setItem('userRole', finalUserData.role || '');
             localStorage.setItem('userEmail', finalUserData.email || '');
             localStorage.setItem('userId', finalUserData.id || '');
-
-            // User data saved successfully
           } else {
-            // User data incomplete, creating minimal user object
             const minimalUserData = {
               id: finalUserData.id || 'unknown',
               name: finalUserData.name || 'Usuario',
@@ -474,7 +385,6 @@ const authAPI = {
             localStorage.setItem('userId', minimalUserData.id);
           }
         } else {
-          // No user data found in response, creating fallback user
           const fallbackUserData = {
             id: 'fallback',
             name: 'Usuario',
@@ -496,7 +406,6 @@ const authAPI = {
     }
   },
 
-  // Limpiar datos de autenticación
   clearAuthData: () => {
     try {
       const keysToRemove = [
@@ -509,23 +418,15 @@ const authAPI = {
 
       return true;
     } catch (error) {
-      // Error en clearAuthData - logged in production builds
-      // Limpiar de todas formas
       localStorage.clear();
       return false;
     }
   },
 
-  // Obtener token de autorización
   getAuthToken: () => {
     return localStorage.getItem('authToken') || localStorage.getItem('userToken');
   },
 
-  // ================================
-  // UTILIDADES DE DEBUGGING
-  // ================================
-
-  // Limpiar datos corruptos de localStorage
   clearCorruptedData: () => {
     try {
       const token = localStorage.getItem('authToken');
@@ -560,11 +461,6 @@ const authAPI = {
     }
   },
 
-  // ================================
-  // DIAGNÓSTICO DE CONEXIÓN
-  // ================================
-
-  // Función para diagnosticar problemas de conexión
   diagnoseConnection: async () => {
     const diagnostics = {
       timestamp: new Date().toISOString(),
@@ -574,14 +470,12 @@ const authAPI = {
     };
 
     try {
-      // Verificar configuración del frontend
       diagnostics.frontend = {
         apiUrl: process.env.REACT_APP_API_URL || "https://transyncbackend-production.up.railway.app",
         timeout: parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000,
         environment: process.env.NODE_ENV || 'development'
       };
 
-      // Verificar localStorage
       const token = localStorage.getItem('authToken');
       const userData = localStorage.getItem('userData');
       const isAuth = localStorage.getItem('isAuthenticated');
@@ -596,7 +490,6 @@ const authAPI = {
         diagnostics.frontend.localStorage.tokenLength = token.length;
       }
 
-      // Verificar conectividad básica
       const apiUrl = diagnostics.frontend.apiUrl;
       try {
         const response = await fetch(`${apiUrl}/api/health`, {
@@ -625,7 +518,6 @@ const authAPI = {
         diagnostics.issues.push('No se puede conectar al endpoint de health');
       }
 
-      // Verificar endpoint de login
       try {
         const response = await fetch(`${apiUrl}/api/auth/login`, {
           method: 'OPTIONS',
@@ -649,7 +541,6 @@ const authAPI = {
         diagnostics.issues.push('No se puede acceder al endpoint de login');
       }
 
-      // Verificar CORS
       try {
         const response = await fetch(`${apiUrl}/api/auth/login`, {
           method: 'POST',
@@ -691,21 +582,14 @@ const authAPI = {
     return diagnostics;
   },
 
-  // ================================
-  // VERIFICACIÓN DE SALUD
-  // ================================
-
-  // Verificar la salud de la conexión con el servidor de auth
   checkServerHealth: async () => {
     try {
       const startTime = Date.now();
 
-      // Intentar tanto el endpoint de health específico como uno general
       let response;
       try {
         response = await apiClient.get('/api/auth/health', { timeout: 5000 });
       } catch (error) {
-        // Fallback a health check general usando la URL configurada
         const apiUrl = process.env.REACT_APP_API_URL || "https://transyncbackend-production.up.railway.app";
         response = await fetch(`${apiUrl}/api/health`, {
           method: "GET",
@@ -751,10 +635,8 @@ const authAPI = {
   }
 };
 
-// Exportaciones compatibles con ambos sistemas
 export default authAPI;
 
-// Exportaciones individuales para compatibilidad con authService.js
 export const {
   register,
   login,

@@ -16,11 +16,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   const [isTablet, setIsTablet] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState('');
-  const { theme } = useTheme(); // 👈 Usar ThemeContext
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Detectar tipo de dispositivo
   useEffect(() => {
     const checkDeviceType = () => {
       const mobile = window.innerWidth <= 768;
@@ -40,7 +39,6 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     }
   }, [isMobileProp]);
 
-  // Obtener datos del usuario actual
   useEffect(() => {
     const loadUserData = () => {
       try {
@@ -50,7 +48,6 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         setCurrentUser(user);
         setUserRole(role);
       } catch (error) {
-        console.error('Error loading user data:', error);
         setCurrentUser(null);
         setUserRole('');
       }
@@ -59,7 +56,6 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     loadUserData();
   }, []);
 
-  // Prevenir scroll del body cuando el menú móvil está abierto
   useEffect(() => {
     if ((isMobile || isTablet) && isOpen) {
       document.body.style.overflow = 'hidden';
@@ -74,20 +70,16 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     if (window.confirm(t('sidebar.logout'))) {
       try {
         await logout();
-        // Limpiar completamente todos los datos
         localStorage.clear();
         sessionStorage.clear();
-        // Limpiar cookies
         document.cookie.split(";").forEach(cookie => {
           const eqPos = cookie.indexOf("=");
           const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
           document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
         });
         navigate("/home", { replace: true });
-        // Forzar recarga para limpiar completamente el estado
         window.location.reload();
       } catch (error) {
-        console.error('Error during logout:', error);
         localStorage.clear();
         navigate("/home");
       }
@@ -319,36 +311,37 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
               </div>
               <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-400 rounded-full border-2 border-white/80 shadow-sm animate-pulse" />
             </div>
-            {(isOpen || (!isMobile && !isTablet)) && (
-              <div className={`flex-1 min-w-0 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                <h4 className={`text-xs sm:text-sm font-semibold truncate ${theme === "dark" ? "text-gray-100" : "text-white"}`} title={getDisplayName()}>
-                  {getDisplayName()}
-                </h4>
-                <p className={`text-xs truncate ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`} title={formatUserRole(userRole)}>
-                  {formatUserRole(userRole)}
-                </p>
-                {currentUser?.email && (
-                  <p className={`text-xs truncate mt-0.5 ${theme === "dark" ? "text-gray-500" : "text-blue-300 opacity-60"}`} title={currentUser.email}>
-                    {currentUser.email}
+            <>
+              {(isOpen || (!isMobile && !isTablet)) && (
+                <div className={`flex-1 min-w-0 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+                  <h4 className={`text-xs sm:text-sm font-semibold truncate ${theme === "dark" ? "text-gray-100" : "text-white"}`} title={getDisplayName()}>
+                    {getDisplayName()}
+                  </h4>
+                  <p className={`text-xs truncate ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`} title={formatUserRole(userRole)}>
+                    {formatUserRole(userRole)}
                   </p>
-                )}
-                <div className="flex items-center gap-1 mt-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-xs text-green-300">En línea</span>
+                  {currentUser?.email && (
+                    <p className={`text-xs truncate mt-0.5 ${theme === "dark" ? "text-gray-500" : "text-blue-300 opacity-60"}`} title={currentUser.email}>
+                      {currentUser.email}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1 mt-1">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    <span className="text-xs text-green-300">En línea</span>
+                  </div>
                 </div>
-              </div>
-            )}
-            {/* Mostrar nombre del usuario cuando está colapsado en móvil */}
-            {(!isOpen && (isMobile || isTablet)) && (
-              <div className="flex-1 min-w-0">
-                <h4 className={`text-xs sm:text-sm font-semibold truncate ${theme === "dark" ? "text-gray-100" : "text-white"}`} title={getDisplayName()}>
-                  {getDisplayName()}
-                </h4>
-                <p className={`text-xs truncate ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`} title={formatUserRole(userRole)}>
-                  {formatUserRole(userRole)}
-                </p>
-              </div>
-            )}
+              )}
+              {(!isOpen && (isMobile || isTablet)) && (
+                <div className="flex-1 min-w-0">
+                  <h4 className={`text-xs sm:text-sm font-semibold truncate ${theme === "dark" ? "text-gray-100" : "text-white"}`} title={getDisplayName()}>
+                    {getDisplayName()}
+                  </h4>
+                  <p className={`text-xs truncate ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`} title={formatUserRole(userRole)}>
+                    {formatUserRole(userRole)}
+                  </p>
+                </div>
+              )}
+            </>
           </div>
         </div>
 
@@ -411,9 +404,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
           )}
         </nav>
 
-        {/* Footer del sidebar */}
         <div className={`p-3 sm:p-4 mt-auto backdrop-blur-sm space-y-2 sm:space-y-3 ${theme === "dark" ? "border-t border-gray-700" : "border-t border-white/30"}`}>
-          {/* Botón modo oscuro */}
           {/* <button
             onClick={() => setDark(!dark)}
             className={`

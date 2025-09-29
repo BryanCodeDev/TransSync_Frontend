@@ -434,7 +434,6 @@ export const useTutorial = () => {
 
   // Función para iniciar el tutorial
   const startTutorial = useCallback(() => {
-    console.log('Starting tutorial from button');
     // Reiniciar completamente el tutorial
     setIsActive(true);
     setIsCompleted(false);
@@ -448,10 +447,8 @@ export const useTutorial = () => {
     const firstStep = getNextAvailableStep(0);
     if (firstStep !== -1) {
       setCurrentStep(firstStep);
-      console.log('Tutorial started successfully at step:', firstStep);
     } else {
       // Si no hay pasos disponibles, ir al dashboard
-      console.log('No steps available, navigating to dashboard');
       navigate('/dashboard');
       // El efecto de navegación se encargará de iniciar el tutorial
     }

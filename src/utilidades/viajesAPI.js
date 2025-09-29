@@ -1,4 +1,4 @@
-// utilidades/viajesAPI.js - Servicio para viajes (tabla Viajes)
+
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const viajesAPI = {
@@ -57,7 +57,7 @@ const viajesAPI = {
       const fechaSalida = new Date(fecHorSalViaje);
       const hoy = new Date();
       if (fechaSalida < hoy) {
-        console.warn('Creando viaje con fecha de salida en el pasado');
+        
       }
 
       // Validar que si hay fecha de llegada, sea posterior a la salida

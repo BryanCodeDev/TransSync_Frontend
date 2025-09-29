@@ -1,4 +1,3 @@
-// src/utilidades/cacheService.js - Servicio de Cache Inteligente
 const cacheService = {
   // Cache en memoria usando Map para mejor rendimiento
   memoryCache: new Map(),
@@ -30,7 +29,7 @@ const cacheService = {
       self.cleanup();
     }, self.config.cleanupInterval);
 
-    console.log('🗄️ Cache service initialized');
+    
   },
 
   /**
@@ -121,7 +120,7 @@ const cacheService = {
     const size = this.memoryCache.size;
     this.memoryCache.clear();
     this.stats.size = 0;
-    console.log(`🗑️ Cache cleared: ${size} entries removed`);
+    
   },
 
   /**
@@ -137,7 +136,7 @@ const cacheService = {
     }
     this.stats.deletes += invalidated;
     this.stats.size = this.memoryCache.size;
-    console.log(`🚫 Cache invalidated by pattern "${pattern}": ${invalidated} entries removed`);
+    
   },
 
   /**
@@ -165,12 +164,12 @@ const cacheService = {
     let data = this.get(cacheKey);
 
     if (data !== null) {
-      console.log('✅ Cache hit for query:', cacheKey);
+      
       return data;
     }
 
     // Si no está en cache, ejecutar la función
-    console.log('❌ Cache miss for query:', cacheKey);
+    
     try {
       data = await fetchFunction();
 
@@ -237,7 +236,7 @@ const cacheService = {
     if (oldestKey) {
       this.memoryCache.delete(oldestKey);
       this.stats.deletes++;
-      console.log('🚫 Evicted oldest cache entry:', oldestKey);
+      
     }
   },
 
@@ -258,7 +257,7 @@ const cacheService = {
     if (cleaned > 0) {
       this.stats.deletes += cleaned;
       this.stats.size = this.memoryCache.size;
-      console.log(`🧹 Cache cleanup: ${cleaned} expired entries removed`);
+      
     }
   },
 
@@ -292,13 +291,13 @@ const cacheService = {
     // Si el hit rate es bajo, aumentar TTL
     if (stats.hitRate < 50) {
       this.config.defaultTTL *= 1.5;
-      console.log('📈 Low hit rate detected, increasing TTL to:', this.config.defaultTTL);
+      
     }
 
     // Si el cache está muy lleno, reducir TTL
     if (stats.size > this.config.maxSize * 0.8) {
       this.config.defaultTTL *= 0.8;
-      console.log('📉 Cache nearly full, reducing TTL to:', this.config.defaultTTL);
+      
     }
 
     // Limpiar entradas poco accedidas
@@ -314,7 +313,7 @@ const cacheService = {
     }
 
     if (cleaned > 0) {
-      console.log(`🧽 Cache optimization: ${cleaned} stale entries removed`);
+      
     }
   },
 
@@ -324,7 +323,7 @@ const cacheService = {
   preloadCommonQueries: async function(userContext, apiClient) {
     // Solo pre-cargar si tenemos contexto de usuario válido
     if (!userContext || !userContext.idEmpresa) {
-      console.log('⏭️ Skipping preload - no valid user context');
+      
       return;
     }
 
@@ -355,9 +354,9 @@ const cacheService = {
         });
 
         this.set(cacheKey, data.data, this.config.defaultTTL * 2); // TTL más largo para datos comunes
-        console.log(`📦 Preloaded common query: ${query.name}`);
+        
       } catch (error) {
-        console.error(`Error preloading query ${query.name}:`, error);
+        
         // No propagar el error para evitar romper la inicialización
       }
     }

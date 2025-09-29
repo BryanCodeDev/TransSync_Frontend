@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-/**
- * Wrapper personalizado para lazy loading con reintentos
- */
 const LazyWrapper = ({ importFunc, fallback, maxRetries = 3, ...props }) => {
   const [retryCount, setRetryCount] = useState(0);
   const [Component, setComponent] = useState(null);
@@ -20,7 +17,6 @@ const LazyWrapper = ({ importFunc, fallback, maxRetries = 3, ...props }) => {
           setRetryCount(0);
         }
       } catch (err) {
-        console.error(`Error loading component (attempt ${retryCount + 1}):`, err);
         if (mounted) {
           setError(err);
 

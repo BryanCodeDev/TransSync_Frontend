@@ -3,10 +3,6 @@ import { useAuthContext } from '../context/AuthContext';
 import { FaUser, FaSignOutAlt, FaSignInAlt, FaSpinner, FaTools, FaBug } from 'react-icons/fa';
 import { diagnoseConnection } from '../utilidades/authAPI';
 
-/**
- * Componente de ejemplo que muestra cómo usar el contexto de autenticación
- * Este componente puede ser usado en cualquier parte de la aplicación
- */
 const AuthStatus = ({ showDetails = false }) => {
   const { isLoggedIn, user, userRole, loading, logout, recoverUserData } = useAuthContext();
   const [showDiagnostics, setShowDiagnostics] = useState(false);
@@ -37,7 +33,6 @@ const AuthStatus = ({ showDetails = false }) => {
         setShowDiagnostics(false);
       }
     } catch (error) {
-      console.error('Error recovering user data:', error);
     } finally {
       setRecovering(false);
     }

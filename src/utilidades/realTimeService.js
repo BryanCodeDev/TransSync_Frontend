@@ -1,4 +1,3 @@
-// src/utilidades/realTimeService.js - Servicio de Notificaciones en Tiempo Real
 import { io } from 'socket.io-client';
 
 class RealTimeService {
@@ -28,7 +27,6 @@ class RealTimeService {
    */
   connect(userContext = null) {
     if (this.socket?.connected) {
-      console.log('🔗 WebSocket ya está conectado');
       return;
     }
 
@@ -54,10 +52,7 @@ class RealTimeService {
       // Iniciar en modo horario por defecto (no tiempo real)
       this.setUpdateMode(false, 60); // 60 minutos = 1 hora
 
-      console.log('🔗 Conectando a WebSocket en modo horario...');
-
     } catch (error) {
-      console.error('❌ Error conectando a WebSocket:', error);
       this.handleConnectionError(error);
     }
   }
@@ -67,7 +62,6 @@ class RealTimeService {
    */
   setThrottleDelay(delayMs = 5000) {
     this.eventThrottleDelay = delayMs;
-    console.log(`⏱️ Throttling de eventos configurado a ${delayMs}ms`);
   }
 
   /**
@@ -76,7 +70,6 @@ class RealTimeService {
   setupEventListeners() {
     // Evento de conexión exitosa
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket conectado exitosamente');
       this.isConnected = true;
       this.reconnectAttempts = 0;
 
@@ -102,18 +95,15 @@ class RealTimeService {
 
     // Eventos de autenticación
     this.socket.on('auth:success', (data) => {
-      console.log('✅ Autenticación exitosa:', data);
       this.emit('auth:success', data);
     });
 
     this.socket.on('auth:error', (error) => {
-      console.error('❌ Error de autenticación:', error);
       this.emit('auth:error', error);
     });
 
     // Evento de desconexión
     this.socket.on('disconnect', (reason) => {
-      console.log('🔌 WebSocket desconectado:', reason);
       this.isConnected = false;
 
       if (reason === 'io server disconnect') {
@@ -124,7 +114,6 @@ class RealTimeService {
 
     // Evento de error de conexión
     this.socket.on('connect_error', (error) => {
-      console.error('❌ Error de conexión WebSocket:', error);
       this.handleConnectionError(error);
     });
 
@@ -141,61 +130,51 @@ class RealTimeService {
   setupDataEventListeners() {
     // Nuevos conductores
     this.socket.on('conductor:created', (data) => {
-      console.log('👨‍💼 Nuevo conductor registrado:', data);
       this.handleNewConductor(data);
     });
 
     // Actualizaciones de conductores
     this.socket.on('conductor:updated', (data) => {
-      console.log('👨‍💼 Conductor actualizado:', data);
       this.handleConductorUpdate(data);
     });
 
     // Nuevos vehículos
     this.socket.on('vehiculo:created', (data) => {
-      console.log('🚗 Nuevo vehículo registrado:', data);
       this.handleNewVehicle(data);
     });
 
     // Actualizaciones de vehículos
     this.socket.on('vehiculo:updated', (data) => {
-      console.log('🚗 Vehículo actualizado:', data);
       this.handleVehicleUpdate(data);
     });
 
     // Nuevas rutas
     this.socket.on('ruta:created', (data) => {
-      console.log('🗺️ Nueva ruta registrada:', data);
       this.handleNewRoute(data);
     });
 
     // Nuevos viajes
     this.socket.on('viaje:created', (data) => {
-      console.log('⏰ Nuevo viaje programado:', data);
       this.handleNewTrip(data);
     });
 
     // Actualizaciones de viajes
     this.socket.on('viaje:updated', (data) => {
-      console.log('⏰ Viaje actualizado:', data);
       this.handleTripUpdate(data);
     });
 
     // Alertas de vencimientos
     this.socket.on('vencimiento:alert', (data) => {
-      console.log('⚠️ Nueva alerta de vencimiento:', data);
       this.handleExpirationAlert(data);
     });
 
     // Cambios en el sistema
     this.socket.on('system:status_changed', (data) => {
-      console.log('📊 Cambio en estado del sistema:', data);
       this.handleSystemStatusChange(data);
     });
 
     // Notificaciones del chatbot
     this.socket.on('chatbot:notification', (data) => {
-      console.log('🤖 Notificación del chatbot:', data);
       this.handleChatbotNotification(data);
     });
   }
@@ -208,43 +187,36 @@ class RealTimeService {
 
     // Estadísticas actualizadas
     this.socket.on('dashboard:stats:update', (data) => {
-      console.log('📊 Estadísticas actualizadas:', data);
       this.emit('dashboard:stats:update', data);
     });
 
     // Datos en tiempo real actualizados
     this.socket.on('dashboard:realtime:update', (data) => {
-      console.log('⚡ Datos en tiempo real:', data);
       this.emit('dashboard:realtime:update', data);
     });
 
     // Alertas actualizadas
     this.socket.on('dashboard:alerts:update', (data) => {
-      console.log('🚨 Alertas actualizadas:', data);
       this.emit('dashboard:alerts:update', data);
     });
 
     // Nueva notificación
     this.socket.on('dashboard:notification', (data) => {
-      console.log('📱 Nueva notificación:', data);
       this.emit('dashboard:notification', data);
     });
 
     // Estado de actualizaciones automáticas
     this.socket.on('dashboard:updates:status', (data) => {
-      console.log('🔄 Estado de actualizaciones:', data);
       this.emit('dashboard:updates:status', data);
     });
 
     // Métricas de rendimiento
     this.socket.on('dashboard:performance', (data) => {
-      console.log('📈 Métricas de rendimiento:', data);
       this.emit('dashboard:performance', data);
     });
 
     // Eventos de cache
     this.socket.on('dashboard:cache:invalidated', (data) => {
-      console.log('💾 Cache invalidado:', data);
       this.emit('dashboard:cache:invalidated', data);
     });
   }
@@ -269,12 +241,6 @@ class RealTimeService {
     this.socket.emit('join:rol', {
       rol: this.userContext.rol
     });
-
-    console.log('🏠 Unido a salas:', {
-      empresa: this.userContext.idEmpresa,
-      usuario: this.userContext.idUsuario,
-      rol: this.userContext.rol || 'USER'
-    });
   }
 
   /**
@@ -282,12 +248,10 @@ class RealTimeService {
    */
   setupReconnection() {
     this.socket.on('reconnect_attempt', (attempt) => {
-      console.log(`🔄 Intento de reconexión ${attempt}/${this.maxReconnectAttempts}`);
       this.reconnectAttempts = attempt;
     });
 
     this.socket.on('reconnect_failed', () => {
-      console.error('❌ Fallaron todos los intentos de reconexión');
       this.isConnected = false;
       this.emit('connection:failed', {
         attempts: this.reconnectAttempts,
@@ -296,7 +260,6 @@ class RealTimeService {
     });
 
     this.socket.on('reconnect', (attempt) => {
-      console.log(`✅ Reconectado exitosamente en intento ${attempt}`);
       this.isConnected = true;
       this.reconnectAttempts = 0;
       this.emit('connection:reestablished', {
@@ -311,7 +274,6 @@ class RealTimeService {
    */
   handleConnectionError(error) {
     this.isConnected = false;
-    console.error('❌ Error de conexión WebSocket:', error);
 
     this.emit('connection:error', {
       error: error.message,
@@ -328,13 +290,10 @@ class RealTimeService {
         this.maxReconnectDelay
       );
 
-      console.log(`🔄 Reintentando conexión en ${delay / 1000} segundos (intento ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-
       setTimeout(() => {
         this.reconnect();
       }, delay);
     } else {
-      console.error('❌ Máximo número de intentos de reconexión alcanzado');
       this.emit('connection:failed', {
         attempts: this.reconnectAttempts,
         timestamp: new Date()
@@ -347,7 +306,6 @@ class RealTimeService {
    */
   reconnect() {
     if (this.socket && !this.socket.connected) {
-      console.log('🔄 Intentando reconectar...');
       this.socket.connect();
     }
   }
@@ -357,7 +315,6 @@ class RealTimeService {
    */
   disconnect() {
     if (this.socket) {
-      console.log('🔌 Desconectando WebSocket...');
       this.socket.disconnect();
       this.isConnected = false;
     }
@@ -381,10 +338,8 @@ class RealTimeService {
 
     if (realTime) {
       this.stopScheduledUpdates();
-      console.log('⚡ Modo tiempo real activado');
     } else {
       this.startScheduledUpdates();
-      console.log(`⏰ Modo horario activado (${intervalMinutes} minutos)`);
     }
   }
 
@@ -396,12 +351,9 @@ class RealTimeService {
 
     this.updateTimer = setInterval(() => {
       if (this.isConnected) {
-        console.log('⏰ Actualización horaria programada');
         this.requestDashboardUpdate();
       }
     }, this.updateInterval);
-
-    console.log(`⏰ Actualizaciones programadas cada ${this.updateInterval / (60 * 1000)} minutos`);
   }
 
   /**
@@ -411,7 +363,6 @@ class RealTimeService {
     if (this.updateTimer) {
       clearInterval(this.updateTimer);
       this.updateTimer = null;
-      console.log('⏸️ Actualizaciones programadas detenidas');
     }
   }
 
@@ -452,7 +403,6 @@ class RealTimeService {
       try {
         callback(data);
       } catch (error) {
-        console.error(`❌ Error en listener de evento ${event}:`, error);
       }
     });
 
@@ -756,7 +706,6 @@ class RealTimeService {
         throw new Error('Error al obtener estadísticas');
       }
     } catch (error) {
-      console.error('❌ Error obteniendo estadísticas:', error);
       return null;
     }
   }
@@ -780,7 +729,6 @@ class RealTimeService {
         throw new Error('Error al obtener clientes conectados');
       }
     } catch (error) {
-      console.error('❌ Error obteniendo clientes conectados:', error);
       return null;
     }
   }
@@ -812,7 +760,6 @@ class RealTimeService {
         throw new Error('Error al enviar notificación');
       }
     } catch (error) {
-      console.error('❌ Error enviando notificación via API:', error);
       return null;
     }
   }
@@ -836,7 +783,6 @@ class RealTimeService {
         throw new Error('Error al obtener métricas');
       }
     } catch (error) {
-      console.error('❌ Error obteniendo métricas:', error);
       return null;
     }
   }

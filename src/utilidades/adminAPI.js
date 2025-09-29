@@ -1,4 +1,3 @@
-// src/utilidades/adminAPI.js - API para funciones de administración
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const adminAPI = {

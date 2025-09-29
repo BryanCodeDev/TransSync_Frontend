@@ -1,5 +1,3 @@
-// src/utilidades/dashboardAPI.js - Servicio completo para dashboard con rutas corregidas
-
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 export const dashboardAPI = {
@@ -220,7 +218,7 @@ export const dashboardAPI = {
       const response = await apiClient.post('/api/dashboard/cache/preload');
       return response.data;
     } catch (error) {
-      console.error('Error precargando cache:', error);
+      
       throw new Error('Error al precargar cache');
     }
   },

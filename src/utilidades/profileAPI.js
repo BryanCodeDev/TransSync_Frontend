@@ -1,4 +1,3 @@
-// src/utilidades/profileAPI.js - APIs específicas para gestión de perfil de usuario
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 /**

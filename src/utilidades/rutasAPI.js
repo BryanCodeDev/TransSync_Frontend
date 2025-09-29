@@ -1,4 +1,4 @@
-// api/rutasAPI.js - Servicio específico para rutas
+
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const rutasAPI = {

@@ -38,7 +38,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const { theme, toggleTheme: toggleThemeContext } = useTheme();
   const { startTutorial } = useTutorial();
 
-  // Obtener datos de autenticación para WebSocket (definido primero)
   const getAuthData = useCallback(() => {
     const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
     if (!token) {
@@ -52,10 +51,8 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     };
   }, [user?.id, user?.empresaId, userRole]);
 
-  // Memoizar solo los valores que cambian
   const authData = useMemo(() => getAuthData(), [getAuthData]);
 
-  // Hooks que se llaman directamente en el componente
   const notificationService = useNotification();
   const socket = useSocket();
 
@@ -69,14 +66,11 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const notificationsRef = useRef(null);
 
 
-  // Cargar notificaciones iniciales desde la API
   const loadNotifications = useCallback(async () => {
     try {
-      // Cargar historial de notificaciones desde la API
       const notificationsData = await dashboardAPI.getNotificationHistory(10);
 
       if (notificationsData && notificationsData.notifications) {
-        // Transformar las notificaciones de la API al formato del navbar
         const transformedNotifications = notificationsData.notifications.map(notification => ({
           id: notification.id,
           type: notification.type || 'info',
@@ -91,18 +85,15 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         setNotifications(transformedNotifications);
         setUnreadCount(transformedNotifications.filter(n => !n.read).length);
       } else {
-        // Si no hay notificaciones de la API, no cargar notificaciones de ejemplo
         setNotifications([]);
         setUnreadCount(0);
       }
     } catch (error) {
-      // Error cargando notificaciones - logged in production builds
       setNotifications([]);
       setUnreadCount(0);
     }
   }, []);
 
-  // Detectar scroll para cambiar la apariencia del navbar
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
@@ -114,7 +105,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   }, []);
 
 
-  // Cerrar menús cuando se hace clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -131,51 +121,39 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     };
   }, []);
 
-  // Inicializar servicios de notificaciones (solo una vez por sesión)
   useEffect(() => {
     const initializeNotifications = async () => {
       if (!isPublic && isLoggedIn && !servicesInitialized) {
         try {
-          // Solo inicializar si no está ya inicializado
           if (!notificationService.isInitialized()) {
             await notificationService.initialize();
           }
 
-          // Solo conectar WebSocket si no está conectado
           if (!socket.isConnected()) {
             await socket.connect();
           }
 
-          // Cargar notificaciones iniciales desde la API
           await loadNotifications();
 
-          // Marcar servicios como inicializados
           setServicesInitialized(true);
 
-          // Servicios de notificaciones inicializados en navbar
         } catch (error) {
-          // Error inicializando servicios de notificaciones - logged in production builds
         }
       }
     };
 
     initializeNotifications();
 
-    // Cleanup al desmontar el componente - solo si este componente fue el que inicializó
     return () => {
-      // No desconectar aquí para evitar problemas con otros componentes
-      // El socket se gestiona globalmente
     };
   }, [isPublic, isLoggedIn, servicesInitialized, loadNotifications, notificationService, socket]);
 
-  // Conectar socket con datos de autenticación cuando cambien
   useEffect(() => {
     if (authData && authData.token && socket) {
       socket.connect(authData);
     }
   }, [authData, socket]);
 
-  // Resetear estado de inicialización cuando cambie el usuario
   useEffect(() => {
     if (!isLoggedIn) {
       setServicesInitialized(false);
@@ -184,12 +162,10 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   }, [isLoggedIn]);
 
-  // Configurar listeners para notificaciones en tiempo real
   useEffect(() => {
     if (!isPublic && isLoggedIn) {
       const handleNewNotification = async (data) => {
 
-        // Crear objeto de notificación para el navbar
         const newNotification = {
           id: data.id || Date.now(),
           type: data.type || 'info',
@@ -223,10 +199,8 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     if (window.confirm(t('navbar.confirmLogout'))) {
       try {
         await handleLogoutAuth();
-        // Limpiar cache y datos locales antes de navegar
         localStorage.clear();
         sessionStorage.clear();
-        // Limpiar cookies de autenticación
         document.cookie.split(";").forEach(cookie => {
           const eqPos = cookie.indexOf("=");
           const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
@@ -235,10 +209,8 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         navigate("/home", { replace: true });
         setIsUserMenuOpen(false);
         setIsNotificationsOpen(false);
-        // Forzar recarga para limpiar completamente el estado
         window.location.reload();
       } catch (error) {
-        // Error during logout - logged in production builds
         navigate("/home");
       }
     }
@@ -266,7 +238,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     setIsUserMenuOpen(false); // Cerrar menú de usuario si está abierto
   };
 
-  // Función para navegar al dashboard
   const goToDashboard = () => {
     const userRole = getUserRole();
     if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
@@ -276,17 +247,14 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   };
 
-  // Función para navegar al home
   const goToHome = () => {
     navigate("/home", { replace: true });
   };
 
 
 
-  // Marcar notificación como leída
   const markAsRead = async (notificationId) => {
     try {
-      // Actualizar en la API
       await dashboardAPI.markNotificationAsRead(notificationId);
 
       // Actualizar estado local
@@ -297,14 +265,10 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      // Solo loguear como warning si es error 404 (notificación no existe)
       if (error.response?.status === 404) {
-        // Notificación no encontrada en el backend (probablemente es de ejemplo)
       } else {
-        // Error marcando notificación como leída - logged in production builds
       }
 
-      // Fallback: actualizar solo el estado local
       setNotifications(prev =>
         prev.map(notif =>
           notif.id === notificationId ? { ...notif, read: true } : notif
@@ -314,42 +278,33 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   };
 
-  // Marcar todas como leídas
   const markAllAsRead = async () => {
     try {
       // Obtener IDs de notificaciones no leídas
       const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
 
-      // Marcar todas como leídas en la API
       const results = await Promise.allSettled(unreadIds.map(id => dashboardAPI.markNotificationAsRead(id)));
 
-      // Contar errores 404 (notificaciones no encontradas)
       const notFoundErrors = results.filter(result =>
         result.status === 'rejected' && result.reason?.response?.status === 404
       ).length;
 
       if (notFoundErrors > 0) {
-        // notificaciones no encontradas en el backend (probablemente son de ejemplo)
       }
 
       // Actualizar estado local
       setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
       setUnreadCount(0);
     } catch (error) {
-      // Solo loguear como warning si todos son errores 404
       if (error.response?.status === 404) {
-        // Notificaciones no encontradas en el backend (probablemente son de ejemplo)
       } else {
-        // Error marcando todas las notificaciones como leídas - logged in production builds
       }
 
-      // Fallback: actualizar solo el estado local
       setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
       setUnreadCount(0);
     }
   };
 
-  // Eliminar notificación
   const deleteNotification = (notificationId) => {
     setNotifications(prev => {
       const updated = prev.filter(n => n.id !== notificationId);
@@ -358,7 +313,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     });
   };
 
-  // Obtener icono según el tipo de notificación
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'success':
@@ -381,7 +335,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   };
 
-  // Formatear tiempo relativo
   const formatTimeAgo = (date) => {
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
@@ -466,7 +419,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   };
 
-  // Mostrar indicador de carga mientras se verifica la autenticación
   if (authLoading) {
     return (
       <nav className="fixed top-0 left-0 right-0 z-[1000] bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-xl shadow-lg border-b border-border-light/50 dark:border-border-dark">

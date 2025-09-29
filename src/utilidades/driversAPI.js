@@ -1,5 +1,3 @@
-// src/utilidades/driversAPI.js
-
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const driversAPI = {

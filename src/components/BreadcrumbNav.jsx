@@ -5,7 +5,6 @@ import { FaChevronRight, FaHome } from 'react-icons/fa';
 const BreadcrumbNav = ({ items = [], className = "" }) => {
   const location = useLocation();
 
-  // Si no se pasan items, generar automáticamente basados en la ruta actual
   const generateBreadcrumbs = () => {
     const pathnames = location.pathname.split('/').filter(x => x);
 

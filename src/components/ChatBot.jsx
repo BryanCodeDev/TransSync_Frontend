@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import chatbotAPI from '../utilidades/chatbotAPI';
 import conversationMemory from '../utilidades/conversationMemory';
 import realTimeService from '../utilidades/realTimeService';
-import { useTheme } from '../context/ThemeContext'; // 👈 Importar useTheme
+import { useTheme } from '../context/ThemeContext';
 
 // Componente Button con paleta uniforme y modo oscuro
 const Button = ({
@@ -166,13 +166,11 @@ const ChatBot = ({
 
         // Conexión WebSocket
         realTimeService.on('connection:established', (data) => {
-          console.log('🔗 WebSocket conectado para notificaciones en tiempo real');
           setWsConnected(true);
         });
 
         // Desconexión WebSocket
         realTimeService.on('connection:error', (error) => {
-          console.log('🔌 WebSocket desconectado:', error);
           setWsConnected(false);
         });
       };
@@ -465,8 +463,6 @@ const ChatBot = ({
       }, Math.max(500, respuesta.tiempoProcesamiento || 0));
 
     } catch (error) {
-      console.error('Error procesando mensaje inteligente:', error);
-
       let errorText = t('chatbot.processingError');
 
       // Mensaje más específico para error 404 del chatbot
@@ -625,7 +621,6 @@ const ChatBot = ({
         return sugerenciasInteligentes.slice(0, 4);
       }
     } catch (error) {
-      console.error('Error obteniendo sugerencias inteligentes:', error);
     }
 
     // Fallback a sugerencias estáticas

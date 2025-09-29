@@ -31,9 +31,7 @@ export const useAuth = () => {
           setIsLoggedIn(true);
           setUser(userData);
           setUserRole(role);
-          console.log('✅ Auth status verified:', { userData, role });
         } else {
-          console.warn('⚠️ Incomplete user data after cleanup:', { userData, role });
           // Limpiar datos corruptos y reintentar una vez más
           authAPI.clearAuthData();
 
@@ -45,12 +43,10 @@ export const useAuth = () => {
             setIsLoggedIn(true);
             setUser(backupUserData);
             setUserRole(backupRole);
-            console.log('✅ Auth status verified from backup:', { backupUserData, backupRole });
           } else {
             setIsLoggedIn(false);
             setUser(null);
             setUserRole('');
-            console.warn('⚠️ No valid user data found after cleanup');
           }
         }
       } else {
@@ -59,7 +55,6 @@ export const useAuth = () => {
         setUserRole('');
       }
     } catch (err) {
-      console.error('❌ Error checking auth status:', err);
       setError(err.message);
       setIsLoggedIn(false);
       setUser(null);
@@ -77,7 +72,6 @@ export const useAuth = () => {
       setUser(null);
       setUserRole('');
     } catch (err) {
-      console.error('Error during logout:', err);
       // Forzar logout local incluso si falla en el servidor
       localStorage.clear();
       setIsLoggedIn(false);
@@ -102,7 +96,6 @@ export const useAuth = () => {
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === 'authToken' || e.key === 'userData') {
-        console.log('Storage change detected, checking auth status...');
         checkAuthStatus();
       }
     };
@@ -148,7 +141,6 @@ export const useAuth = () => {
     try {
       const token = localStorage.getItem('authToken');
       if (token) {
-        console.log('🔄 Attempting to recover user data...');
         const profile = await authAPI.getProfile();
         if (profile && profile.user) {
           const userData = {
@@ -168,14 +160,11 @@ export const useAuth = () => {
           setUser(userData);
           setUserRole(userData.role);
           setIsLoggedIn(true);
-
-          console.log('✅ User data recovered successfully:', userData);
           return true;
         }
       }
       return false;
     } catch (error) {
-      console.error('❌ Failed to recover user data:', error);
       return false;
     }
   }, []);

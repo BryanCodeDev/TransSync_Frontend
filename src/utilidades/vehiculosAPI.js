@@ -1,4 +1,4 @@
-// utilidades/vehiculosAPI.js - Servicio corregido para vehículos
+
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const vehiculosAPI = {
@@ -44,7 +44,7 @@ const vehiculosAPI = {
             }
           }
         } catch (parseError) {
-          console.warn('vehiculosAPI.getAll - No se pudo parsear response.data como JSON:', response.data);
+          
           dataArray = [];
         }
       }

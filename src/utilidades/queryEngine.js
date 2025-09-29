@@ -1,4 +1,3 @@
-// src/utilidades/queryEngine.js - Motor de Consultas Inteligentes
 const queryEngine = {
   /**
    * Generar consulta SQL optimizada basada en el análisis NLP

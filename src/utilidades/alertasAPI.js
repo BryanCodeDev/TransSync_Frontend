@@ -1,4 +1,3 @@
-// src/utilidades/alertasAPI.js - Servicio para el sistema de alertas
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const alertasAPI = {

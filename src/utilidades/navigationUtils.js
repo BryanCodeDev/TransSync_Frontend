@@ -33,10 +33,10 @@ export const clearNavigationCache = () => {
       localStorage.removeItem(key);
     });
 
-    console.log('🧹 Navigation cache cleared');
+    
     return true;
   } catch (error) {
-    console.error('❌ Error clearing navigation cache:', error);
+    
     return false;
   }
 };
@@ -90,30 +90,30 @@ export const diagnoseNavigationIssues = () => {
 
 // Solucionar problemas de navegación automáticamente
 export const fixNavigationIssues = async () => {
-  console.log('🔧 Intentando solucionar problemas de navegación...');
+  
 
   const issues = diagnoseNavigationIssues();
 
   if (issues.length === 0) {
-    console.log('✅ No se detectaron problemas de navegación');
+    
     return true;
   }
 
-  console.log('⚠️ Problemas detectados:', issues);
+  
 
   // Limpiar cache si hay problemas
   const cacheCleared = clearNavigationCache();
 
   // Si hay problemas de autenticación, redirigir al home
   if (issues.some(issue => issue.includes('token') || issue.includes('usuario'))) {
-    console.log('🔄 Redirigiendo al home por problemas de autenticación');
+    
     window.location.href = '/home';
     return true;
   }
 
   // Si hay errores de chunks, forzar recarga
   if (issues.some(issue => issue.includes('chunk'))) {
-    console.log('🔄 Recargando página por errores de chunks');
+    
     window.location.reload(true);
     return true;
   }

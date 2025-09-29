@@ -1,5 +1,3 @@
-// src/utilidades/notificationService.js - Servicio de notificaciones push para dashboard
-
 class NotificationService {
   constructor() {
     this.permission = null;
@@ -13,7 +11,7 @@ class NotificationService {
     try {
       // Verificar soporte para notificaciones
       if (!('Notification' in window)) {
-        console.warn('⚠️ Este navegador no soporta notificaciones push');
+        
         return false;
       }
 
@@ -28,7 +26,7 @@ class NotificationService {
       // Configurar listeners para eventos de visibilidad
       this.setupVisibilityListeners();
 
-      console.log('✅ Servicio de notificaciones inicializado:', this.permission);
+      
       return true;
     } catch (error) {
       console.error('❌ Error inicializando servicio de notificaciones:', error);
@@ -43,10 +41,10 @@ class NotificationService {
       this.permission = permission;
 
       if (permission === 'granted') {
-        console.log('✅ Permisos de notificación concedidos');
+        
         this.notifyListeners('permission:granted', { permission });
       } else {
-        console.log('❌ Permisos de notificación denegados');
+        
         this.notifyListeners('permission:denied', { permission });
       }
 
@@ -61,9 +59,9 @@ class NotificationService {
   setupVisibilityListeners() {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        console.log('📱 Página oculta - notificaciones en modo silencioso');
+        
       } else {
-        console.log('📱 Página visible - notificaciones normales');
+        
         // Marcar notificaciones pendientes como leídas cuando el usuario regresa
         this.markPendingAsRead();
       }
@@ -122,7 +120,7 @@ class NotificationService {
 
       // Configurar eventos de la notificación
       browserNotification.onclick = () => {
-        console.log('🖱️ Notificación clickeada:', notification.title);
+        
 
         // Enfocar la ventana
         window.focus();
@@ -144,7 +142,7 @@ class NotificationService {
       };
 
       browserNotification.onclose = () => {
-        console.log('✖️ Notificación cerrada:', notification.title);
+        
         this.notifyListeners('notification:close', {
           notification: {
             id: options.data.id,
@@ -154,7 +152,7 @@ class NotificationService {
       };
 
       browserNotification.onerror = (error) => {
-        console.error('❌ Error en notificación:', error);
+        
         this.notifyListeners('notification:error', {
           error,
           notification: {
@@ -173,7 +171,7 @@ class NotificationService {
         }, notification.duration || 5000);
       }
 
-      console.log('📱 Notificación mostrada:', notification.title);
+      
       return browserNotification;
 
     } catch (error) {
@@ -223,7 +221,7 @@ class NotificationService {
         history: this.notificationHistory
       });
 
-      console.log('📝 Notificación agregada al historial:', notification.title);
+      
     } catch (error) {
       console.error('❌ Error agregando notificación al historial:', error);
     }
@@ -242,7 +240,7 @@ class NotificationService {
           notification
         });
 
-        console.log('✅ Notificación marcada como leída:', notificationId);
+        
       }
     } catch (error) {
       console.error('❌ Error marcando notificación como leída:', error);
@@ -258,7 +256,7 @@ class NotificationService {
       });
 
       if (pending.length > 0) {
-        console.log('✅ Notificaciones pendientes marcadas como leídas:', pending.length);
+        
       }
     } catch (error) {
       console.error('❌ Error marcando notificaciones pendientes como leídas:', error);
@@ -278,7 +276,7 @@ class NotificationService {
           notification
         });
 
-        console.log('✅ Notificación reconocida:', notificationId);
+        
       }
     } catch (error) {
       console.error('❌ Error reconociendo notificación:', error);
@@ -363,7 +361,7 @@ class NotificationService {
     try {
       this.notificationHistory = [];
       this.notifyListeners('history:cleared', { timestamp: Date.now() });
-      console.log('🗑️ Historial de notificaciones limpiado');
+      
     } catch (error) {
       console.error('❌ Error limpiando historial de notificaciones:', error);
     }
@@ -391,7 +389,7 @@ class NotificationService {
         try {
           callback(data);
         } catch (error) {
-          console.error('Error en listener de evento de notificación:', event, error);
+          
         }
       });
     }

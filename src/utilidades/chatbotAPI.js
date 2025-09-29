@@ -1,4 +1,3 @@
-// src/utilidades/chatbotAPI.js - Servicio para el sistema de chatbot
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const chatbotAPI = {
