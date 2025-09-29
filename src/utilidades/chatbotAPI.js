@@ -316,6 +316,63 @@ const chatbotAPI = {
         icono: 'question-circle'
       }
     ];
+  },
+
+  /**
+   * Obtener contexto del usuario actual
+   * @returns {Object} Contexto del usuario
+   */
+  obtenerContextoUsuario: () => {
+    try {
+      // Obtener datos del localStorage
+      const userData = localStorage.getItem('userData');
+      const userName = localStorage.getItem('userName');
+      const userRole = localStorage.getItem('userRole');
+      const userEmail = localStorage.getItem('userEmail');
+      const userId = localStorage.getItem('userId');
+      const empresaId = localStorage.getItem('empresaId');
+      const empresaNombre = localStorage.getItem('empresaNombre');
+
+      // Verificar si el usuario está autenticado
+      const esUsuarioAutenticado = !!(userData && userId && userEmail);
+
+      if (esUsuarioAutenticado) {
+        const userDataParsed = JSON.parse(userData);
+        return {
+          esUsuarioAutenticado: true,
+          idUsuario: userId,
+          nombreUsuario: userName || userDataParsed.name || 'Usuario',
+          email: userEmail,
+          rol: userRole,
+          idEmpresa: empresaId,
+          empresa: empresaNombre || 'Empresa',
+          datosCompletos: userDataParsed
+        };
+      } else {
+        return {
+          esUsuarioAutenticado: false,
+          idUsuario: null,
+          nombreUsuario: 'Invitado',
+          email: null,
+          rol: null,
+          idEmpresa: null,
+          empresa: 'TransSync',
+          datosCompletos: null
+        };
+      }
+    } catch (error) {
+      console.error('Error obteniendo contexto del usuario:', error);
+      return {
+        esUsuarioAutenticado: false,
+        idUsuario: null,
+        nombreUsuario: 'Invitado',
+        email: null,
+        rol: null,
+        idEmpresa: null,
+        empresa: 'TransSync',
+        datosCompletos: null
+      };
+    }
   }
 };
 
