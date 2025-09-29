@@ -9,13 +9,13 @@
       "type": "image/x-icon"
     },
     {
-      "src": "assets/logo1.jpg",
+      "src": "assets/logo1.webp",
       "type": "image/jpeg",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/logo1.jpg",
+      "src": "assets/logo1.webp",
       "type": "image/jpeg",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -53,7 +53,7 @@
       "url": "/dashboard",
       "icons": [
         {
-          "src": "assets/logo1.jpg",
+          "src": "assets/logo1.webp",
           "sizes": "192x192"
         }
       ]
@@ -65,7 +65,7 @@
       "url": "/drivers",
       "icons": [
         {
-          "src": "assets/logo1.jpg",
+          "src": "assets/logo1.webp",
           "sizes": "192x192"
         }
       ]

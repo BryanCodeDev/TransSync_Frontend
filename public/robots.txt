@@ -5,7 +5,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://transsync.com/sitemap.xml
+Sitemap: https://transync1.netlify.app/sitemap.xml
 
 # Bloquear archivos de desarrollo y sensibles
 Disallow: /build/
