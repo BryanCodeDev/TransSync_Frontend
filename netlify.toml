@@ -60,6 +60,27 @@
      Content-Type = "application/javascript"
      Cache-Control = "no-cache"
 
+# Headers específicos para archivos JS del admin
+[[headers]]
+  for = "/admin/static/js/*.js"
+  [headers.values]
+     Content-Type = "application/javascript"
+     Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers específicos para archivos CSS del admin
+[[headers]]
+  for = "/admin/static/css/*.css"
+  [headers.values]
+     Content-Type = "text/css"
+     Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers para el archivo main.js
+[[headers]]
+  for = "/static/js/main*.js"
+  [headers.values]
+     Content-Type = "application/javascript"
+     Cache-Control = "public, max-age=3600, must-revalidate"
+
 # Redirecciones SPA - debe estar al final
 [[redirects]]
   from = "/*"
