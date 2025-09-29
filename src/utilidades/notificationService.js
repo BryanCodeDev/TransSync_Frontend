@@ -397,6 +397,11 @@ class NotificationService {
     }
   }
 
+  // Verificar si el servicio está inicializado
+  isInitialized() {
+    return this.permission !== null;
+  }
+
   // Obtener estado del servicio
   getStatus() {
     return {
@@ -404,7 +409,8 @@ class NotificationService {
       historySize: this.notificationHistory.length,
       maxHistorySize: this.maxHistorySize,
       listenersCount: this.listeners.size,
-      isSupported: 'Notification' in window
+      isSupported: 'Notification' in window,
+      isInitialized: this.isInitialized()
     };
   }
 }

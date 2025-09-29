@@ -56,7 +56,9 @@
     "lint:check": "eslint src --ext .js,.jsx",
     "format": "prettier --write src/**/*.{js,jsx,css,md}",
     "analyze": "npm run build && npx serve -s build",
-    "clean": "rd /s /q node_modules && del package-lock.json && npm install"
+    "clean": "rd /s /q node_modules && del package-lock.json && npm install",
+    "clean-build": "node clear-cache.js && npm install --legacy-peer-deps && npm run build",
+    "fix-cache": "node clear-cache.js"
   },
   "eslintConfig": {
     "extends": [
