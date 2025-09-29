@@ -6,6 +6,22 @@
   NODE_VERSION = "22.20.0"
   NPM_FLAGS = "--legacy-peer-deps"
 
+# Headers para optimización de cache y seguridad
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Headers específicos para archivos estáticos
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirecciones SPA - debe estar al final
 [[redirects]]
   from = "/*"
   to = "/index.html"
