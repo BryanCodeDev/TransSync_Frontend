@@ -152,12 +152,15 @@ const Tutorial = () => {
         if (currentStepData.target === '[data-tutorial="user-menu"]') {
           const userMenuButton = element;
           const isMenuOpen = document.querySelector('[data-tutorial="profile-menu-item"]') !== null;
+
+          // Si el menú no está abierto, abrirlo
           if (!isMenuOpen) {
             userMenuButton.click();
 
-            const waitForMenu = () => {
+            const waitForMenu = (attempt = 1) => {
               const profileItem = document.querySelector('[data-tutorial="profile-menu-item"]');
               if (profileItem) {
+                // Agregar resaltado al elemento del menú
                 profileItem.classList.add('tutorial-highlight');
                 setHighlightedElement(profileItem);
                 setShowArrow(currentStepData.isNavigation || false);
@@ -170,24 +173,60 @@ const Tutorial = () => {
                 const handleElementClick = (e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  nextStep();
+                  // No llamar nextStep aquí, dejar que la navegación automática del tutorial lo maneje
+                  // El tutorial avanzará automáticamente cuando se detecte el cambio de página
                 };
 
                 profileItem.addEventListener('click', handleElementClick);
 
+                // Cleanup function
                 return () => {
                   profileItem.classList.remove('tutorial-highlight');
                   profileItem.removeEventListener('click', handleElementClick);
                   setHighlightedElement(null);
                   setShowArrow(false);
                 };
+              } else if (attempt < 10) {
+                // Si el menú no está abierto después de intentar varias veces, intentar de nuevo
+                setTimeout(() => waitForMenu(attempt + 1), 200);
               } else {
-                setTimeout(waitForMenu, 50);
+                // Si después de 10 intentos no se abrió el menú, proceder al siguiente paso
+                nextStep();
               }
             };
 
-            setTimeout(waitForMenu, 50);
+            // Esperar más tiempo para que el menú se abra completamente
+            setTimeout(() => waitForMenu(), 300);
             return;
+          } else {
+            // Si el menú ya está abierto, solo resaltar el elemento
+            const profileItem = document.querySelector('[data-tutorial="profile-menu-item"]');
+            if (profileItem) {
+              profileItem.classList.add('tutorial-highlight');
+              setHighlightedElement(profileItem);
+              setShowArrow(currentStepData.isNavigation || false);
+
+              const rect = profileItem.getBoundingClientRect();
+              const arrowTop = rect.top + rect.height / 2 - 16;
+              const arrowLeft = rect.left - 40;
+              setArrowPosition({ top: arrowTop, left: arrowLeft });
+
+              const handleElementClick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // No llamar nextStep aquí, dejar que la navegación automática del tutorial lo maneje
+                // El tutorial avanzará automáticamente cuando se detecte el cambio de página
+              };
+
+              profileItem.addEventListener('click', handleElementClick);
+
+              return () => {
+                profileItem.classList.remove('tutorial-highlight');
+                profileItem.removeEventListener('click', handleElementClick);
+                setHighlightedElement(null);
+                setShowArrow(false);
+              };
+            }
           }
         }
 
@@ -205,6 +244,7 @@ const Tutorial = () => {
         setArrowPosition({ top: arrowTop, left: arrowLeft });
 
         const handleElementClick = (e) => {
+          // Para elementos de menú desplegable, prevenir comportamiento por defecto
           if (element.tagName === 'A' || element.tagName === 'BUTTON' || element.onclick) {
             e.preventDefault();
             e.stopPropagation();
