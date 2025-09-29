@@ -1,4 +1,4 @@
-s// api/index.js - Punto de entrada principal para todos los servicios de API
+// api/index.js - Punto de entrada principal para todos los servicios de API
 import authAPI from '../utilidades/authAPI';
 import adminAPI from '../utilidades/adminAPI';
 import driversAPI from '../utilidades/driversAPI';

@@ -64,7 +64,7 @@ const AdminDashboard = () => {
      return (
        <div className={`p-8 min-h-screen text-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-         <p>Cargando dashboard...</p>
+         <p>{t('adminDashboard.messages.loading') || 'Cargando dashboard...'}</p>
        </div>
      );
    }
@@ -73,13 +73,13 @@ const AdminDashboard = () => {
      return (
        <div className={`p-8 min-h-screen text-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
          <div className="text-red-500 mb-4">⚠️</div>
-         <h2 className="text-xl font-semibold mb-2">Error de Acceso</h2>
+         <h2 className="text-xl font-semibold mb-2">{t('adminDashboard.messages.errorTitle') || 'Error de Acceso'}</h2>
          <p className="mb-4">{error}</p>
          <button
            onClick={loadUsers}
            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
          >
-           Reintentar
+           {t('adminDashboard.messages.retry') || 'Reintentar'}
          </button>
        </div>
      );
@@ -94,8 +94,8 @@ const AdminDashboard = () => {
 
    return (
      <div className={`p-4 min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
-       <h1 className="text-2xl font-bold mb-2">Panel de Administración</h1>
-       <p className="mb-6 text-gray-600 dark:text-gray-400">Gestión de usuarios del sistema</p>
+       <h1 className="text-2xl font-bold mb-2">{t('adminDashboard.title') || 'Panel de Administración'}</h1>
+       <p className="mb-6 text-gray-600 dark:text-gray-400">{t('adminDashboard.subtitle') || 'Gestión de usuarios del sistema'}</p>
 
        {/* Estadísticas */}
        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -104,7 +104,7 @@ const AdminDashboard = () => {
              <FaUsers className="text-blue-500 mr-3" size={20} />
              <div>
                <h3 className="text-2xl font-bold">{stats.total}</h3>
-               <p className="text-sm text-gray-600 dark:text-gray-400">Total Usuarios</p>
+               <p className="text-sm text-gray-600 dark:text-gray-400">{t('adminDashboard.stats.totalUsers') || 'Total Usuarios'}</p>
              </div>
            </div>
          </div>
@@ -114,7 +114,7 @@ const AdminDashboard = () => {
              <FaUserShield className="text-green-500 mr-3" size={20} />
              <div>
                <h3 className="text-2xl font-bold">{stats.gestores}</h3>
-               <p className="text-sm text-gray-600 dark:text-gray-400">Gestores</p>
+               <p className="text-sm text-gray-600 dark:text-gray-400">{t('adminDashboard.stats.managers') || 'Gestores'}</p>
              </div>
            </div>
          </div>
@@ -124,7 +124,7 @@ const AdminDashboard = () => {
              <FaCog className="text-yellow-500 mr-3" size={20} />
              <div>
                <h3 className="text-2xl font-bold">{stats.conductores}</h3>
-               <p className="text-sm text-gray-600 dark:text-gray-400">Conductores</p>
+               <p className="text-sm text-gray-600 dark:text-gray-400">{t('adminDashboard.stats.drivers') || 'Conductores'}</p>
              </div>
            </div>
          </div>
@@ -134,7 +134,7 @@ const AdminDashboard = () => {
              <div className="text-green-500 mr-3 text-xl">✅</div>
              <div>
                <h3 className="text-2xl font-bold">{stats.activos}</h3>
-               <p className="text-sm text-gray-600 dark:text-gray-400">Activos</p>
+               <p className="text-sm text-gray-600 dark:text-gray-400">{t('adminDashboard.stats.active') || 'Activos'}</p>
              </div>
            </div>
          </div>
