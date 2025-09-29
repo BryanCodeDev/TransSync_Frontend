@@ -6,10 +6,10 @@ import axios from "axios";
 // ================================
 const API_BASE_URL = process.env.REACT_APP_API_URL ||
   (process.env.NODE_ENV === 'production'
-    ? "https://transyncbackend-production.up.railway.app:8080"
+    ? "https://transyncbackend-production.up.railway.app"
     : process.env.NODE_ENV === 'development'
     ? "http://localhost:3001"
-    : "https://transyncbackend-production.up.railway.app:8080");
+    : "https://transyncbackend-production.up.railway.app");
 
 const REQUEST_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000; // Aumentado a 30 segundos
 

@@ -629,7 +629,7 @@ const authAPI = {
     try {
       // Verificar configuración del frontend
       diagnostics.frontend = {
-        apiUrl: process.env.REACT_APP_API_URL || "https://transyncbackend-production.up.railway.app:8080",
+        apiUrl: process.env.REACT_APP_API_URL || "https://transyncbackend-production.up.railway.app",
         timeout: parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000,
         environment: process.env.NODE_ENV || 'development'
       };
@@ -760,7 +760,7 @@ const authAPI = {
         response = await apiClient.get('/api/auth/health', { timeout: 5000 });
       } catch (error) {
         // Fallback a health check general usando la URL configurada
-        const apiUrl = process.env.REACT_APP_API_URL || "https://transyncbackend-production.up.railway.app:8080";
+        const apiUrl = process.env.REACT_APP_API_URL || "https://transyncbackend-production.up.railway.app";
         response = await fetch(`${apiUrl}/api/health`, {
           method: "GET",
           signal: AbortSignal.timeout(5000)
