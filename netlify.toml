@@ -37,8 +37,28 @@
 [[headers]]
   for = "/manifest.json"
   [headers.values]
-    Content-Type = "application/manifest+json"
-    Cache-Control = "public, max-age=3600"
+     Content-Type = "application/manifest+json"
+     Cache-Control = "public, max-age=3600"
+
+# Headers para archivos HTML (asegurar que no se sirvan como JS/CSS)
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+     Content-Type = "application/javascript"
+     Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+     Content-Type = "text/css"
+     Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers para service worker
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+     Content-Type = "application/javascript"
+     Cache-Control = "no-cache"
 
 # Redirecciones SPA - debe estar al final
 [[redirects]]
