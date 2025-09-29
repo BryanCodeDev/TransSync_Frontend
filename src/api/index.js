@@ -1,4 +1,3 @@
-// api/index.js - Punto de entrada principal para todos los servicios de API
 import authAPI from '../utilidades/authAPI';
 import adminAPI from '../utilidades/adminAPI';
 import driversAPI from '../utilidades/driversAPI';
@@ -11,28 +10,16 @@ import dashboardAPI from '../utilidades/dashboardAPI';
 import chatbotAPI from '../utilidades/chatbotAPI';
 import { healthCheck, apiUtils } from './baseAPI';
 
-// Exportación principal con todos los servicios organizados
 const API = {
-  // Servicios de autenticación
   auth: authAPI,
-  
-  // Servicios de administración
   admin: adminAPI,
-  
-  // Servicios de datos principales
   drivers: driversAPI,
-  vehiculos: vehiculosAPI, // Actualizado
+  vehiculos: vehiculosAPI,
   rutas: rutasAPI,
   viajes: viajesAPI,
-  
-  // Servicios de reportes y análisis
   informes: informesAPI,
   dashboard: dashboardAPI,
-  
-  // Servicios de emergencias
   emergency: emergencyAPI,
-  
-  // Utilidades y salud del sistema
   utils: apiUtils,
   healthCheck,
   
@@ -63,12 +50,11 @@ const API = {
 
 export default API;
 
-// Exportaciones individuales para importación específica
 export {
   authAPI,
   adminAPI,
   driversAPI,
-  vehiculosAPI, // Actualizado
+  vehiculosAPI,
   rutasAPI,
   viajesAPI,
   informesAPI,

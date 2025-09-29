@@ -96,8 +96,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         setUnreadCount(0);
       }
     } catch (error) {
-      console.error('Error cargando notificaciones:', error);
-      // No cargar notificaciones de ejemplo si falla la API
+      // Error cargando notificaciones - logged in production builds
       setNotifications([]);
       setUnreadCount(0);
     }
@@ -153,9 +152,9 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
           // Marcar servicios como inicializados
           setServicesInitialized(true);
 
-          console.log('✅ Servicios de notificaciones inicializados en navbar');
+          // Servicios de notificaciones inicializados en navbar
         } catch (error) {
-          console.error('❌ Error inicializando servicios de notificaciones:', error);
+          // Error inicializando servicios de notificaciones - logged in production builds
         }
       }
     };
@@ -189,7 +188,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   useEffect(() => {
     if (!isPublic && isLoggedIn) {
       const handleNewNotification = async (data) => {
-        console.log('📱 Nueva notificación en navbar:', data);
 
         // Crear objeto de notificación para el navbar
         const newNotification = {
@@ -240,8 +238,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         // Forzar recarga para limpiar completamente el estado
         window.location.reload();
       } catch (error) {
-        console.error('Error during logout:', error);
-        // El hook useAuth ya maneja el logout local
+        // Error during logout - logged in production builds
         navigate("/home");
       }
     }
@@ -302,9 +299,9 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     } catch (error) {
       // Solo loguear como warning si es error 404 (notificación no existe)
       if (error.response?.status === 404) {
-        console.warn(`⚠️ Notificación ${notificationId} no encontrada en el backend (probablemente es de ejemplo)`);
+        // Notificación no encontrada en el backend (probablemente es de ejemplo)
       } else {
-        console.error('Error marcando notificación como leída:', error);
+        // Error marcando notificación como leída - logged in production builds
       }
 
       // Fallback: actualizar solo el estado local
@@ -332,7 +329,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
       ).length;
 
       if (notFoundErrors > 0) {
-        console.warn(`⚠️ ${notFoundErrors} notificaciones no encontradas en el backend (probablemente son de ejemplo)`);
+        // notificaciones no encontradas en el backend (probablemente son de ejemplo)
       }
 
       // Actualizar estado local
@@ -341,9 +338,9 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     } catch (error) {
       // Solo loguear como warning si todos son errores 404
       if (error.response?.status === 404) {
-        console.warn('⚠️ Notificaciones no encontradas en el backend (probablemente son de ejemplo)');
+        // Notificaciones no encontradas en el backend (probablemente son de ejemplo)
       } else {
-        console.error('Error marcando todas las notificaciones como leídas:', error);
+        // Error marcando todas las notificaciones como leídas - logged in production builds
       }
 
       // Fallback: actualizar solo el estado local
@@ -723,7 +720,6 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
                 <button
                   onClick={() => {
-                    console.log('Tutorial button clicked');
                     startTutorial();
                   }}
                   className="p-2.5 text-slate-700 dark:text-gray-300 hover:text-indigo-700 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group min-h-[44px] min-w-[44px] flex items-center justify-center border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"

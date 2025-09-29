@@ -213,7 +213,6 @@ const Tutorial = () => {
         // Verificar que el elemento sea visible y no esté oculto
         const rect = element.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) {
-          console.warn('Tutorial: Elemento objetivo no es visible', currentStepData.target);
           return;
         }
 

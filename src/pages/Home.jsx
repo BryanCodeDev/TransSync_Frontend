@@ -122,7 +122,7 @@ const Home = () => {
       empresa: "Transportes del Valle - Partner Inicial",
       rating: 5,
       beneficio: "Tecnología de vanguardia",
-      imagen: "/api/placeholder/80/80"
+      imagen: ""
     }
   ];
 
@@ -456,12 +456,8 @@ const Home = () => {
           <div className={`flex justify-center items-center transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <button
               onClick={() => {
-                const link = document.createElement('a');
-                link.href = 'https://example.com/transync-app.apk'; // Reemplaza con la URL real del APK
-                link.download = 'transync-app.apk';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                // TODO: Implementar descarga real del APK
+                alert('Descarga de APK próximamente disponible');
               }}
               className="group bg-gradient-to-r from-primary-600 to-secondary-700 hover:from-primary-700 hover:to-secondary-800 text-white font-bold py-3 sm:py-4 md:py-5 px-6 sm:px-8 md:px-10 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:scale-105 text-sm sm:text-base md:text-lg"
             >

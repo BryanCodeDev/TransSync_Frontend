@@ -72,30 +72,19 @@ const authAPI = {
         throw new Error('Formato de email inválido');
       }
 
-      console.log('🔐 Attempting login for:', email);
 
       const response = await apiClient.post('/api/auth/login', {
         email: email.trim().toLowerCase(),
         password: finalPassword
       });
 
-      console.log('📡 Login response received:', {
-        status: response.status,
-        hasData: !!response.data,
-        hasToken: !!response.data?.token,
-        hasUser: !!response.data?.user,
-        userKeys: response.data?.user ? Object.keys(response.data.user) : [],
-        fullResponse: response.data
-      });
 
       // Verificar que la respuesta tenga la estructura esperada
       if (!response.data) {
-        console.error('❌ No response data received from server');
         throw new Error('No se recibió respuesta del servidor');
       }
 
       if (!response.data.token) {
-        console.error('❌ No token received in response:', response.data);
         throw new Error('No se recibió token de autenticación');
       }
 
@@ -104,49 +93,26 @@ const authAPI = {
       if (!user) {
         // Intentar buscar en otras ubicaciones comunes
         user = response.data.userData || response.data.profile || response.data.data;
-        console.log('🔍 User data found in alternative location:', user ? 'YES' : 'NO');
       }
 
       if (!user) {
-        console.error('❌ No user data received in response:', {
-          hasUser: !!response.data.user,
-          hasUserData: !!response.data.userData,
-          hasProfile: !!response.data.profile,
-          hasData: !!response.data.data,
-          fullResponse: response.data
-        });
         throw new Error('No se recibieron datos del usuario');
       }
 
       // Verificar que el usuario tenga los campos requeridos
       if (!user.id || !user.email) {
-        console.error('❌ User data incomplete:', {
-          user,
-          hasId: !!user.id,
-          hasEmail: !!user.email,
-          hasName: !!user.name,
-          hasRole: !!user.role
-        });
         throw new Error('Los datos del usuario están incompletos');
       }
 
       // Guardar datos de autenticación automáticamente
       try {
         authAPI.saveAuthData(response.data);
-        console.log('✅ Authentication data saved successfully');
       } catch (saveError) {
-        console.error('❌ Error saving auth data:', saveError);
         throw new Error('Error al guardar los datos de autenticación');
       }
 
       return response.data;
     } catch (error) {
-      console.error('❌ Login error:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        fullError: error
-      });
 
       // Manejo específico de errores de login
       if (error.status === 401 || error.response?.status === 401) {
@@ -248,7 +214,7 @@ const authAPI = {
       try {
         await apiClient.post('/api/auth/logout');
       } catch (error) {
-        console.warn('Error en logout del servidor:', error);
+        // Error en logout del servidor - logged in production builds
       }
 
       // Limpiar datos locales
@@ -256,7 +222,7 @@ const authAPI = {
 
       return { success: true, message: 'Sesión cerrada exitosamente' };
     } catch (error) {
-      console.error('Error en logout:', error);
+      // Error en logout - logged in production builds
       // Limpiar de todas formas
       authAPI.clearAuthData();
       return { success: false, message: 'Error al cerrar sesión, pero se limpió localmente' };
@@ -361,7 +327,6 @@ const authAPI = {
       const isAuth = localStorage.getItem('isAuthenticated');
       return !!(token && isAuth === 'true');
     } catch (error) {
-      console.error('Error checking authentication:', error);
       return false;
     }
   },
@@ -383,7 +348,7 @@ const authAPI = {
             };
           }
         } catch (parseError) {
-          console.warn('⚠️ Error parsing userData JSON, attempting recovery:', parseError);
+          // Error parsing userData JSON, attempting recovery
         }
       }
 
@@ -404,7 +369,6 @@ const authAPI = {
 
       return null;
     } catch (error) {
-      console.error('Error getting current user:', error);
       return null;
     }
   },
@@ -414,7 +378,6 @@ const authAPI = {
     try {
       return localStorage.getItem('userRole') || null;
     } catch (error) {
-      console.error('Error getting user role:', error);
       return null;
     }
   },
@@ -459,27 +422,22 @@ const authAPI = {
 
         // Buscar datos del usuario en múltiples ubicaciones posibles
         let userData = null;
-        let userSource = '';
 
         // 1. Intentar obtener de authData.user
         if (authData.user && typeof authData.user === 'object') {
           userData = authData.user;
-          userSource = 'authData.user';
         }
         // 2. Intentar obtener de authData.userData
         else if (authData.userData && typeof authData.userData === 'object') {
           userData = authData.userData;
-          userSource = 'authData.userData';
         }
         // 3. Intentar obtener de authData.profile
         else if (authData.profile && typeof authData.profile === 'object') {
           userData = authData.profile;
-          userSource = 'authData.profile';
         }
         // 4. Intentar obtener de authData.data
         else if (authData.data && typeof authData.data === 'object') {
           userData = authData.data;
-          userSource = 'authData.data';
         }
 
         if (userData) {
@@ -499,10 +457,9 @@ const authAPI = {
             localStorage.setItem('userEmail', finalUserData.email || '');
             localStorage.setItem('userId', finalUserData.id || '');
 
-            console.log('✅ User data saved successfully:', finalUserData, 'from:', userSource);
+            // User data saved successfully
           } else {
-            console.warn('⚠️ User data incomplete, creating minimal user object:', finalUserData);
-            // Crear usuario mínimo con datos disponibles
+            // User data incomplete, creating minimal user object
             const minimalUserData = {
               id: finalUserData.id || 'unknown',
               name: finalUserData.name || 'Usuario',
@@ -515,12 +472,9 @@ const authAPI = {
             localStorage.setItem('userRole', minimalUserData.role);
             localStorage.setItem('userEmail', minimalUserData.email);
             localStorage.setItem('userId', minimalUserData.id);
-
-            console.log('✅ Minimal user data saved successfully:', minimalUserData);
           }
         } else {
-          console.warn('⚠️ No user data found in response, creating fallback user');
-          // Crear usuario de fallback
+          // No user data found in response, creating fallback user
           const fallbackUserData = {
             id: 'fallback',
             name: 'Usuario',
@@ -533,14 +487,11 @@ const authAPI = {
           localStorage.setItem('userRole', fallbackUserData.role);
           localStorage.setItem('userEmail', fallbackUserData.email);
           localStorage.setItem('userId', fallbackUserData.id);
-
-          console.log('✅ Fallback user data saved successfully:', fallbackUserData);
         }
       } else {
         throw new Error('No authentication token provided');
       }
     } catch (error) {
-      console.error('❌ Error saving auth data:', error);
       throw new Error(`Failed to save authentication data: ${error.message}`);
     }
   },
@@ -558,7 +509,7 @@ const authAPI = {
 
       return true;
     } catch (error) {
-      console.error('Error en clearAuthData:', error);
+      // Error en clearAuthData - logged in production builds
       // Limpiar de todas formas
       localStorage.clear();
       return false;
@@ -585,17 +536,14 @@ const authAPI = {
 
       if (token && isAuth === 'true') {
         if (!userData) {
-          console.warn('⚠️ Token exists but no user data - clearing corrupted data');
           corrupted = true;
         } else {
           try {
             const parsedUser = JSON.parse(userData);
             if (!parsedUser.id || !parsedUser.email) {
-              console.warn('⚠️ User data incomplete - clearing corrupted data');
               corrupted = true;
             }
           } catch (e) {
-            console.warn('⚠️ User data corrupted JSON - clearing corrupted data');
             corrupted = true;
           }
         }
@@ -608,7 +556,6 @@ const authAPI = {
 
       return false;
     } catch (error) {
-      console.error('❌ Error checking for corrupted data:', error);
       return false;
     }
   },
@@ -741,7 +688,6 @@ const authAPI = {
       diagnostics.issues.push('Error general en el diagnóstico');
     }
 
-    console.log('🔍 Connection Diagnostics:', diagnostics);
     return diagnostics;
   },
 

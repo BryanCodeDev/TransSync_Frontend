@@ -76,7 +76,7 @@ const rutasAPI = {
         nomRuta: nomRuta.trim(),
         oriRuta: oriRuta.trim(),
         desRuta: desRuta.trim(),
-        idEmpresa: idEmpresa || 1
+        idEmpresa
       });
 
       return response.data;
@@ -258,9 +258,7 @@ const rutasAPI = {
       const response = await apiClient.get(`/api/rutas/${idRuta}/paradas`);
       return response.data;
     } catch (error) {
-      // Si las paradas no están implementadas, retornar array vacío
-      console.warn(`Paradas no disponibles para ruta ${idRuta}:`, error.message);
-      return { paradas: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 

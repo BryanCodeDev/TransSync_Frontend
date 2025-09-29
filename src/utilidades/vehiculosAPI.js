@@ -12,9 +12,6 @@ const vehiculosAPI = {
       const params = apiUtils.createUrlParams(filters);
       const response = await apiClient.get(`/api/vehiculos${params ? `?${params}` : ''}`);
 
-      // Log para debugging
-      console.log('vehiculosAPI.getAll - Response data type:', typeof response.data);
-      console.log('vehiculosAPI.getAll - Response data:', response.data);
 
       // Asegurar que response.data sea un array - manejo más robusto
       let dataArray = [];
@@ -63,18 +60,9 @@ const vehiculosAPI = {
         direction: vehiculo.direction || 0
       }));
 
-      console.log('vehiculosAPI.getAll - Vehículos procesados:', vehiculos.length);
       return { vehiculos };
     } catch (error) {
-      console.error('Error en vehiculosAPI.getAll:', error);
-      console.error('Error details:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        config: error.config
-      });
-      // Retornar datos vacíos si hay error
-      return { vehiculos: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -85,7 +73,6 @@ const vehiculosAPI = {
       const response = await apiClient.get(`/api/vehiculos/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Error en vehiculosAPI.getById:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -160,13 +147,12 @@ const vehiculosAPI = {
         fecVenSOAT,
         fecVenTec,
         estVehiculo: estVehiculo || 'DISPONIBLE',
-        idEmpresa: idEmpresa || 1,
+        idEmpresa,
         idConductorAsignado: idConductorAsignado || null
       });
 
       return response.data;
     } catch (error) {
-      console.error('Error en vehiculosAPI.create:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -205,7 +191,6 @@ const vehiculosAPI = {
       const response = await apiClient.put(`/api/vehiculos/${id}`, cleanedData);
       return response.data;
     } catch (error) {
-      console.error('Error en vehiculosAPI.update:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -217,7 +202,6 @@ const vehiculosAPI = {
       const response = await apiClient.delete(`/api/vehiculos/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Error en vehiculosAPI.delete:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -244,7 +228,6 @@ const vehiculosAPI = {
 
       return response.data;
     } catch (error) {
-      console.error('Error en vehiculosAPI.changeStatus:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -262,7 +245,6 @@ const vehiculosAPI = {
 
       return response.data;
     } catch (error) {
-      console.error('Error en vehiculosAPI.assignDriver:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -277,7 +259,6 @@ const vehiculosAPI = {
       const response = await apiClient.patch(`/api/vehiculos/${idVehiculo}/desasignar-conductor`);
       return response.data;
     } catch (error) {
-      console.error('Error en vehiculosAPI.unassignDriver:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -292,17 +273,7 @@ const vehiculosAPI = {
       const response = await apiClient.get('/api/vehiculos/estadisticas');
       return response.data;
     } catch (error) {
-      console.error('Error en vehiculosAPI.getStatistics:', error);
-      // Retornar estadísticas vacías si hay error
-      return {
-        estadisticas: {
-          total: 0,
-          disponibles: 0,
-          enRuta: 0,
-          enMantenimiento: 0,
-          fueraDeServicio: 0
-        }
-      };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -317,9 +288,7 @@ const vehiculosAPI = {
       );
       return { conductoresDisponibles };
     } catch (error) {
-      console.error('Error en vehiculosAPI.getConductoresDisponibles:', error);
-      // Retornar array vacío si hay error
-      return { conductoresDisponibles: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   }
 };

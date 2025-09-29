@@ -13,17 +13,7 @@ export const dashboardAPI = {
       const response = await apiClient.get('/api/dashboard/estadisticas');
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo estadísticas generales:', error);
-      // Retornar datos basados en la tabla ResumenOperacional
-      return {
-        estadisticas: {
-          conductoresActivos: 0,
-          vehiculosDisponibles: 0,
-          viajesEnCurso: 0,
-          viajesCompletados: 0,
-          alertasPendientes: 0
-        }
-      };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -35,16 +25,7 @@ export const dashboardAPI = {
       const response = await apiClient.get(`/api/dashboard/resumen-operacional?idEmpresa=${idEmpresa}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo resumen operacional:', error);
-      return {
-        resumen: {
-          conductoresActivos: 0,
-          vehiculosDisponibles: 0,
-          viajesEnCurso: 0,
-          viajesCompletados: 0,
-          alertasPendientes: 0
-        }
-      };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -59,8 +40,7 @@ export const dashboardAPI = {
       const response = await apiClient.get(`/api/dashboard/graficos?periodo=${period}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo datos de gráficos:', error);
-      return { graficos: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -70,8 +50,7 @@ export const dashboardAPI = {
       const response = await apiClient.get('/api/dashboard/alertas');
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo alertas activas:', error);
-      return { alertas: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -83,8 +62,7 @@ export const dashboardAPI = {
       const response = await apiClient.get(`/api/dashboard/alertas-vencimientos?idEmpresa=${idEmpresa}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo alertas de vencimientos:', error);
-      return { alertas: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -96,8 +74,7 @@ export const dashboardAPI = {
       const response = await apiClient.get(`/api/dashboard/alertas-proximas?idEmpresa=${idEmpresa}&dias=${dias}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo alertas próximas:', error);
-      return { alertas: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -109,8 +86,7 @@ export const dashboardAPI = {
       const response = await apiClient.get(`/api/dashboard/alertas-vencidas?idEmpresa=${idEmpresa}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo alertas vencidas:', error);
-      return { alertas: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -120,8 +96,7 @@ export const dashboardAPI = {
       const response = await apiClient.get(`/api/dashboard/actividad?limite=${limit}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo actividad reciente:', error);
-      return { actividades: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -132,8 +107,7 @@ export const dashboardAPI = {
       const response = await apiClient.get(`/api/dashboard/kpis${params ? `?${params}` : ''}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo KPIs:', error);
-      return { kpis: [] };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -143,8 +117,7 @@ export const dashboardAPI = {
       const response = await apiClient.get(`/api/dashboard/resumen-ejecutivo?periodo=${period}`);
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo resumen ejecutivo:', error);
-      return { resumen: {} };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -154,14 +127,7 @@ export const dashboardAPI = {
       const response = await apiClient.get('/api/dashboard/tiempo-real');
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo datos en tiempo real:', error);
-      // Retornar datos vacíos si el endpoint no está disponible
-      return {
-        viajesEnCurso: 0,
-        alertasCriticas: 0,
-        timestamp: new Date().toISOString(),
-        message: 'Datos en tiempo real no disponibles'
-      };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -171,8 +137,7 @@ export const dashboardAPI = {
       const response = await apiClient.get('/api/dashboard/test');
       return response.data;
     } catch (error) {
-      console.error('Error en test de conexión dashboard:', error);
-      return { connected: false, message: 'Conexión no disponible' };
+      throw new Error(apiUtils.formatError(error));
     }
   },
 
@@ -204,7 +169,6 @@ export const dashboardAPI = {
         ]
       };
     } catch (error) {
-      console.error('Error obteniendo todos los datos del dashboard:', error);
       throw new Error('Error al cargar los datos del dashboard');
     }
   },
@@ -219,7 +183,6 @@ export const dashboardAPI = {
       const response = await apiClient.post('/api/dashboard/start-updates');
       return response.data;
     } catch (error) {
-      console.error('Error iniciando actualizaciones automáticas:', error);
       throw new Error('Error al iniciar actualizaciones automáticas');
     }
   },
@@ -229,7 +192,6 @@ export const dashboardAPI = {
       const response = await apiClient.post('/api/dashboard/stop-updates');
       return response.data;
     } catch (error) {
-      console.error('Error deteniendo actualizaciones automáticas:', error);
       throw new Error('Error al detener actualizaciones automáticas');
     }
   },
@@ -239,8 +201,7 @@ export const dashboardAPI = {
       const response = await apiClient.get('/api/dashboard/update-stats');
       return response.data;
     } catch (error) {
-      console.error('Error obteniendo estadísticas de actualizaciones:', error);
-      return { status: 'error', message: 'No se pudieron obtener las estadísticas' };
+      throw new Error('Error obteniendo estadísticas de actualizaciones');
     }
   },
 
@@ -250,7 +211,6 @@ export const dashboardAPI = {
       const response = await apiClient.post('/api/dashboard/cache/clear', { cacheType });
       return response.data;
     } catch (error) {
-      console.error('Error limpiando cache:', error);
       throw new Error('Error al limpiar cache');
     }
   },

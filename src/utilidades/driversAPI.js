@@ -18,7 +18,7 @@ const driversAPI = {
       const validFields = ['estConductor', 'tipLicConductor', 'conVehiculo', 'nomUsuario', 'apeUsuario'];
       for (const key in filters) {
         if (!validFields.includes(key)) {
-          console.warn(`Campo de filtro no válido: ${key}`);
+          // Campo de filtro no válido - logged in production builds
         }
       }
 

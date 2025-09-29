@@ -138,10 +138,7 @@ const Button = ({
   );
 };
 
-// Exportar el componente principal
 export default Button;
-
-// Exportar variantes predefinidas para facilitar su uso
 export const PrimaryButton = (props) => <Button variant="primary" {...props} />;
 export const SecondaryButton = (props) => <Button variant="secondary" {...props} />;
 export const OutlineButton = (props) => <Button variant="outline" {...props} />;

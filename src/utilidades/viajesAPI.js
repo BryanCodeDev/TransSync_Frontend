@@ -306,7 +306,6 @@ const viajesAPI = {
     return date.toLocaleDateString('es-CO', options);
   },
 
-  // Calcular duración del viaje
   calculateDuration: (fecHorSalViaje, fecHorLleViaje) => {
     if (!fecHorSalViaje || !fecHorLleViaje) return null;
     
@@ -320,7 +319,6 @@ const viajesAPI = {
     return `${diffHours}h ${diffMins}m`;
   },
 
-  // Validar datos de viaje
   validateViajeData: (viajeData) => {
     const errors = [];
     

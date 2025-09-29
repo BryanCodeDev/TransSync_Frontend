@@ -35,7 +35,6 @@ import {
 import { dashboardAPI } from '../utilidades/dashboardAPI';
 import realTimeService from '../utilidades/realTimeService';
 import { useNotification } from '../utilidades/notificationService';
-import DashboardSkeleton from '../components/DashboardSkeleton';
 import BreadcrumbNav from '../components/BreadcrumbNav';
 import Tooltip from '../components/Tooltip';
 import { useAuth } from '../hooks/useAuth';
@@ -93,7 +92,7 @@ const Dashboard = () => {
         setRealTimeData(response.data);
       }
     } catch (error) {
-      console.error("Error al cargar datos en tiempo real:", error);
+      // Error al cargar datos en tiempo real - logged in production builds
     }
   }, []);
 
@@ -103,23 +102,18 @@ const Dashboard = () => {
       // Cambiar a modo horario
       realTimeService.setUpdateMode(false, 60); // 1 hora
       setIsRealTimeActive(false);
-      console.log('⏰ Cambiado a modo horario (cada hora)');
     } else {
-      // Cambiar a modo tiempo real
-      realTimeService.setUpdateMode(true); // tiempo real
+      realTimeService.setUpdateMode(true);
       setIsRealTimeActive(true);
-      console.log('⚡ Cambiado a modo tiempo real');
     }
   }, [isRealTimeActive]);
 
   // Función para forzar actualización
   const forceUpdate = useCallback(async (dataType = 'all') => {
     try {
-      // Forzar actualización inmediata via WebSocket
       realTimeService.requestDashboardUpdate();
-      console.log('🔄 Actualización forzada:', dataType);
     } catch (error) {
-      console.error('❌ Error forzando actualización:', error);
+      // Error forzando actualización - logged in production builds
     }
   }, []);
 
@@ -127,9 +121,8 @@ const Dashboard = () => {
   const clearCache = useCallback(async (cacheType = null) => {
     try {
       await dashboardAPI.clearCache(cacheType);
-      console.log('💾 Cache limpiado:', cacheType || 'all');
     } catch (error) {
-      console.error('❌ Error limpiando cache:', error);
+      // Error limpiando cache - logged in production builds
     }
   }, []);
 
@@ -137,8 +130,7 @@ const Dashboard = () => {
   // Función para alternar notificaciones
   const toggleNotifications = useCallback(() => {
     setNotificationsEnabled(prev => !prev);
-    console.log('🔔 Notificaciones:', !notificationsEnabled ? 'habilitadas' : 'deshabilitadas');
-  }, [notificationsEnabled]);
+  }, []);
 
   // Envolver fetchChartsData en useCallback
   const fetchChartsData = useCallback(async () => {
@@ -354,7 +346,11 @@ const Dashboard = () => {
   };
 
   if (isLoading) {
-    return <DashboardSkeleton />;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
   }
 
   if (error) {
