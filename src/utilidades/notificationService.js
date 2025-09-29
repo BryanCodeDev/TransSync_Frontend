@@ -432,7 +432,8 @@ export const useNotification = () => {
     clearHistory: () => notificationService.clearHistory(),
     on: (event, callback) => notificationService.on(event, callback),
     off: (event, callback) => notificationService.off(event, callback),
-    getStatus: () => notificationService.getStatus()
+    getStatus: () => notificationService.getStatus(),
+    isInitialized: () => notificationService.isInitialized()
   };
 };
 
