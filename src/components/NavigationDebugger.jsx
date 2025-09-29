@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+// eslint-disable-next-line no-unused-vars
 import { getCurrentUser, getUserRole, isAuthenticated } from '../utilidades/authAPI';
 
 /**
