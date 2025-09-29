@@ -222,9 +222,20 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     if (window.confirm(t('navbar.confirmLogout'))) {
       try {
         await handleLogoutAuth();
-        navigate("/home");
+        // Limpiar cache y datos locales antes de navegar
+        localStorage.clear();
+        sessionStorage.clear();
+        // Limpiar cookies de autenticación
+        document.cookie.split(";").forEach(cookie => {
+          const eqPos = cookie.indexOf("=");
+          const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+          document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+        });
+        navigate("/home", { replace: true });
         setIsUserMenuOpen(false);
         setIsNotificationsOpen(false);
+        // Forzar recarga para limpiar completamente el estado
+        window.location.reload();
       } catch (error) {
         console.error('Error during logout:', error);
         // El hook useAuth ya maneja el logout local

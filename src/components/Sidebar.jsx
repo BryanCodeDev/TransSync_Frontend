@@ -74,7 +74,18 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     if (window.confirm(t('sidebar.logout'))) {
       try {
         await logout();
-        navigate("/home");
+        // Limpiar completamente todos los datos
+        localStorage.clear();
+        sessionStorage.clear();
+        // Limpiar cookies
+        document.cookie.split(";").forEach(cookie => {
+          const eqPos = cookie.indexOf("=");
+          const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+          document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+        });
+        navigate("/home", { replace: true });
+        // Forzar recarga para limpiar completamente el estado
+        window.location.reload();
       } catch (error) {
         console.error('Error during logout:', error);
         localStorage.clear();
