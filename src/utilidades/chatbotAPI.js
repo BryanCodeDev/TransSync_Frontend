@@ -270,6 +270,52 @@ const chatbotAPI = {
     }
 
     return errors;
+  },
+
+  /**
+   * Obtener sugerencias para el chatbot
+   * @param {number} idEmpresa - ID de la empresa (opcional)
+   * @returns {Array} Array de sugerencias
+   */
+  obtenerSugerencias: (idEmpresa = null) => {
+    return [
+      {
+        id: 1,
+        texto: '¿Cómo puedo ver mis rutas?',
+        categoria: 'rutas',
+        icono: 'map-marked-alt'
+      },
+      {
+        id: 2,
+        texto: 'Ver conductores disponibles',
+        categoria: 'conductores',
+        icono: 'users'
+      },
+      {
+        id: 3,
+        texto: 'Consultar vehículos',
+        categoria: 'vehiculos',
+        icono: 'car'
+      },
+      {
+        id: 4,
+        texto: 'Ver horarios de transporte',
+        categoria: 'horarios',
+        icono: 'clock'
+      },
+      {
+        id: 5,
+        texto: 'Generar informes',
+        categoria: 'reportes',
+        icono: 'chart-bar'
+      },
+      {
+        id: 6,
+        texto: 'Ayuda general',
+        categoria: 'ayuda',
+        icono: 'question-circle'
+      }
+    ];
   }
 };
 
