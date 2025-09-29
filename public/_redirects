@@ -5,11 +5,13 @@
 /assets/*   /assets/:splat   200
 
 # Dynamic chunks with hash - serve JavaScript files correctly (IMPORTANT: Before SPA fallback)
+/static/js/*.js    /static/js/:splat    200
 /static/js/*.chunk.js    /static/js/:splat    200
+/admin/static/js/*.js    /admin/static/js/:splat    200
 /admin/static/js/*.chunk.js    /admin/static/js/:splat    200
 
-# Admin JavaScript files - serve with correct MIME type (IMPORTANT: Before SPA fallback)
-/admin/static/js/*.js    /admin/static/js/:splat    200
+# Main JavaScript files - serve with correct MIME type (IMPORTANT: Before SPA fallback)
+/static/js/*.js    /static/js/:splat    200
 
 # Critical static files - serve directly (IMPORTANT: Before SPA fallback)
 /favicon.ico    /favicon.ico   200
@@ -32,4 +34,5 @@
 /.env*  404
 
 # SPA fallback - redirect only non-asset routes to index.html (must be last)
+# This should NOT match static files like /static/js/*.js
 /*    /index.html   200

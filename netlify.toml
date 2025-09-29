@@ -34,14 +34,6 @@
     Content-Type = "application/javascript; charset=utf-8"
     X-Content-Type-Options = "nosniff"
 
-# Force proper MIME types for admin dynamic chunks (IMPORTANT: Before SPA fallback)
-[[headers]]
-  for = "/admin/static/js/*.chunk.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "application/javascript; charset=utf-8"
-    X-Content-Type-Options = "nosniff"
-
 # Force proper MIME types for dynamic chunks (IMPORTANT: Before SPA fallback)
 [[headers]]
   for = "/static/js/*.chunk.js"
@@ -58,9 +50,9 @@
     Content-Type = "application/javascript; charset=utf-8"
     X-Content-Type-Options = "nosniff"
 
-# Force proper MIME types for any .js file in admin directory (catch-all)
+# Force proper MIME types for any .js file (catch-all for JavaScript files)
 [[headers]]
-  for = "/admin/static/js/*.js"
+  for = "/*.js"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
     Content-Type = "application/javascript; charset=utf-8"
@@ -109,23 +101,6 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
 
-# Static assets - serve directly without redirect (must be before SPA fallback)
-[[redirects]]
-  from = "/static/*"
-  to = "/static/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/assets/*"
-  to = "/assets/:splat"
-  status = 200
-
-# API proxy to Railway backend (IMPORTANT: Before SPA fallback)
-[[redirects]]
-  from = "/api/*"
-  to = "https://transyncbackend-production.up.railway.app/:splat"
-  status = 200
-
 # Critical static files - serve directly (IMPORTANT: Before SPA fallback)
 [[redirects]]
   from = "/favicon.ico"
@@ -145,6 +120,29 @@
 [[redirects]]
   from = "/sitemap.xml"
   to = "/sitemap.xml"
+  status = 200
+
+# Static assets - serve directly without redirect (must be before SPA fallback)
+[[redirects]]
+  from = "/static/*"
+  to = "/static/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
+
+# JavaScript files - serve directly (IMPORTANT: Before SPA fallback)
+[[redirects]]
+  from = "/static/js/*"
+  to = "/static/js/:splat"
+  status = 200
+
+# API proxy to Railway backend (IMPORTANT: Before SPA fallback)
+[[redirects]]
+  from = "/api/*"
+  to = "https://transyncbackend-production.up.railway.app/:splat"
   status = 200
 
 # Block access to sensitive files and invalid routes

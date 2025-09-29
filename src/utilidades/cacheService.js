@@ -2,21 +2,26 @@ const cacheService = {
   // Cache en memoria usando Map para mejor rendimiento
   memoryCache: new Map(),
 
-  // Configuración del cache
+  // Configuración del cache optimizada
   config: {
-    defaultTTL: 5 * 60 * 1000, // 5 minutos
-    maxSize: 100, // Máximo 100 entradas
-    cleanupInterval: 60 * 1000, // Limpieza cada minuto
-    compressionEnabled: true
+    defaultTTL: 10 * 60 * 1000, // 10 minutos (aumentado)
+    maxSize: 200, // Máximo 200 entradas (aumentado)
+    cleanupInterval: 2 * 60 * 1000, // Limpieza cada 2 minutos
+    compressionEnabled: true,
+    enableMetrics: true,
+    enableAutoCleanup: true
   },
 
-  // Estadísticas del cache
+  // Estadísticas del cache mejoradas
   stats: {
     hits: 0,
     misses: 0,
     sets: 0,
     deletes: 0,
-    size: 0
+    errors: 0,
+    size: 0,
+    lastCleanup: Date.now(),
+    totalRequests: 0
   },
 
   /**
@@ -241,23 +246,78 @@ const cacheService = {
   },
 
   /**
-   * Limpiar entradas expiradas
+   * Limpiar entradas expiradas y datos corruptos
    */
   cleanup: function() {
     const now = Date.now();
     let cleaned = 0;
+    let corrupted = 0;
 
-    for (const [key, entry] of this.memoryCache) {
-      if (now > entry.expiry) {
-        this.memoryCache.delete(key);
-        cleaned++;
+    try {
+      for (const [key, entry] of this.memoryCache) {
+        // Verificar si expiró
+        if (now > entry.expiry) {
+          this.memoryCache.delete(key);
+          cleaned++;
+          continue;
+        }
+
+        // Verificar si los datos están corruptos
+        if (this.isCorruptedData(entry.data)) {
+          this.memoryCache.delete(key);
+          corrupted++;
+          continue;
+        }
+
+        // Verificar tamaño de entrada (evitar memory leaks)
+        const entrySize = JSON.stringify(entry.data).length;
+        if (entrySize > 1024 * 1024) { // 1MB límite
+          this.memoryCache.delete(key);
+          cleaned++;
+        }
       }
-    }
 
-    if (cleaned > 0) {
-      this.stats.deletes += cleaned;
-      this.stats.size = this.memoryCache.size;
-      
+      if (cleaned > 0 || corrupted > 0) {
+        this.stats.deletes += (cleaned + corrupted);
+        this.stats.size = this.memoryCache.size;
+        this.stats.lastCleanup = now;
+
+        if (corrupted > 0) {
+          console.log(`🧹 Cache limpiado: ${cleaned} expirados, ${corrupted} corruptos`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error durante limpieza de cache:', error);
+      this.stats.errors++;
+    }
+  },
+
+  /**
+   * Verificar si los datos están corruptos
+   */
+  isCorruptedData: function(data) {
+    try {
+      // Verificar si es null o undefined
+      if (data === null || data === undefined) {
+        return true;
+      }
+
+      // Verificar si es un objeto/array válido
+      if (typeof data === 'object') {
+        const jsonString = JSON.stringify(data);
+        if (jsonString === '{}' || jsonString === '[]') {
+          return true;
+        }
+      }
+
+      // Verificar si es un string vacío o con solo espacios
+      if (typeof data === 'string' && data.trim() === '') {
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      return true; // Si no se puede verificar, asumir corrupto
     }
   },
 

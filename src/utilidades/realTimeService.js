@@ -33,16 +33,46 @@ class RealTimeService {
     this.userContext = userContext;
 
     try {
+      // Verificar que tenemos token de autenticación
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        console.warn('⚠️ No hay token de autenticación disponible para WebSocket');
+        this.emit('connection:error', {
+          error: 'No authentication token available',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Verificar que tenemos datos de usuario válidos
+      if (!userContext || !userContext.idUsuario) {
+        console.warn('⚠️ Datos de usuario incompletos para WebSocket');
+        this.emit('connection:error', {
+          error: 'Incomplete user context',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      console.log('🔗 Conectando WebSocket con contexto:', {
+        userId: userContext.idUsuario,
+        empresaId: userContext.idEmpresa,
+        rol: userContext.rol
+      });
+
       // Conectar al servidor WebSocket
       this.socket = io(process.env.REACT_APP_WS_URL || process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app', {
         transports: ['websocket', 'polling'],
-        timeout: 10000, // Aumentado
+        timeout: 20000, // Aumentado
         forceNew: true,
+        reconnection: true,
+        reconnectionAttempts: this.maxReconnectAttempts,
+        reconnectionDelay: this.reconnectDelay,
         auth: {
-          token: localStorage.getItem('authToken'),
-          userId: userContext?.idUsuario,
-          empresaId: userContext?.idEmpresa,
-          rol: userContext?.rol || 'USER'
+          token: token,
+          userId: userContext.idUsuario,
+          empresaId: userContext.idEmpresa,
+          rol: userContext.rol || 'USER'
         }
       });
 
@@ -53,6 +83,7 @@ class RealTimeService {
       this.setUpdateMode(false, 60); // 60 minutos = 1 hora
 
     } catch (error) {
+      console.error('❌ Error conectando WebSocket:', error);
       this.handleConnectionError(error);
     }
   }
@@ -70,6 +101,7 @@ class RealTimeService {
   setupEventListeners() {
     // Evento de conexión exitosa
     this.socket.on('connect', () => {
+      console.log('✅ WebSocket conectado exitosamente');
       this.isConnected = true;
       this.reconnectAttempts = 0;
 
@@ -82,14 +114,16 @@ class RealTimeService {
       this.emit('connection:established', {
         userId: this.userContext?.idUsuario,
         empresaId: this.userContext?.idEmpresa,
-        timestamp: new Date()
+        timestamp: new Date(),
+        socketId: this.socket.id
       });
 
       // Emitir evento de dashboard conectado (compatibilidad con socketService)
       this.emit('dashboard:connected', {
         timestamp: new Date().toISOString(),
         userId: this.userContext?.idUsuario || null,
-        empresaId: this.userContext?.idEmpresa || null
+        empresaId: this.userContext?.idEmpresa || null,
+        socketId: this.socket.id
       });
     });
 
@@ -275,8 +309,18 @@ class RealTimeService {
   handleConnectionError(error) {
     this.isConnected = false;
 
+    console.error('❌ Error de conexión WebSocket:', {
+      message: error.message,
+      code: error.code,
+      type: error.type,
+      attempts: this.reconnectAttempts
+    });
+
     this.emit('connection:error', {
       error: error.message,
+      code: error.code,
+      type: error.type,
+      attempts: this.reconnectAttempts,
       timestamp: new Date()
     });
 
@@ -290,12 +334,16 @@ class RealTimeService {
         this.maxReconnectDelay
       );
 
+      console.log(`🔄 Intentando reconectar en ${delay}ms (intento ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
       setTimeout(() => {
         this.reconnect();
       }, delay);
     } else {
+      console.error('❌ Máximo número de intentos de reconexión alcanzado');
       this.emit('connection:failed', {
         attempts: this.reconnectAttempts,
+        maxAttempts: this.maxReconnectAttempts,
         timestamp: new Date()
       });
     }
@@ -305,8 +353,20 @@ class RealTimeService {
    * Reconectar manualmente
    */
   reconnect() {
-    if (this.socket && !this.socket.connected) {
-      this.socket.connect();
+    if (this.socket) {
+      if (!this.socket.connected) {
+        console.log('🔄 Reconectando WebSocket...');
+        this.socket.connect();
+      } else {
+        console.log('✅ WebSocket ya está conectado');
+      }
+    } else {
+      console.log('🔄 Creando nueva conexión WebSocket...');
+      if (this.userContext) {
+        this.connect(this.userContext);
+      } else {
+        console.error('❌ No se puede reconectar sin contexto de usuario');
+      }
     }
   }
 

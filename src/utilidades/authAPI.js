@@ -273,7 +273,7 @@ const authAPI = {
       if (userData) {
         try {
           const parsed = JSON.parse(userData);
-          if (parsed && typeof parsed === 'object') {
+          if (parsed && typeof parsed === 'object' && parsed.id && parsed.email) {
             return {
               id: parsed.id || parsed.userId || parsed._id,
               name: parsed.name || parsed.userName || parsed.fullName || 'Usuario',
@@ -282,25 +282,35 @@ const authAPI = {
             };
           }
         } catch (parseError) {
+          console.error('❌ Error parseando datos de usuario:', parseError);
         }
       }
 
+      // Intentar recuperar datos individuales como respaldo
       const userName = localStorage.getItem('userName');
       const userRole = localStorage.getItem('userRole');
       const userEmail = localStorage.getItem('userEmail');
       const userId = localStorage.getItem('userId');
 
-      if (userName || userRole || userEmail || userId) {
+      if (userId && userEmail) {
+        console.log('✅ Datos de usuario recuperados de respaldo');
         return {
-          id: userId || 'unknown',
+          id: userId,
           name: userName || 'Usuario',
-          email: userEmail || 'user@example.com',
+          email: userEmail,
           role: userRole || 'USER'
         };
       }
 
+      // Si no hay datos válidos, limpiar datos corruptos
+      if (userName || userRole || userEmail || userId) {
+        console.warn('⚠️ Datos de usuario incompletos detectados, limpiando...');
+        authAPI.clearAuthData();
+      }
+
       return null;
     } catch (error) {
+      console.error('❌ Error obteniendo datos de usuario:', error);
       return null;
     }
   },
@@ -343,6 +353,7 @@ const authAPI = {
 
         let userData = null;
 
+        // Buscar datos del usuario en diferentes ubicaciones posibles
         if (authData.user && typeof authData.user === 'object') {
           userData = authData.user;
         }
@@ -358,50 +369,34 @@ const authAPI = {
 
         if (userData) {
           const finalUserData = {
-            id: userData.id || userData.userId || userData._id,
-            name: userData.name || userData.userName || userData.fullName || userData.displayName,
+            id: userData.id || userData.userId || userData._id || userData.idUsuario,
+            name: userData.name || userData.userName || userData.fullName || userData.displayName || userData.nomUsuario,
             email: userData.email || userData.userEmail,
-            role: userData.role || userData.userRole || userData.type || 'USER'
+            role: userData.role || userData.userRole || userData.type || userData.rol || 'USER'
           };
 
+          // Validar que tenemos datos mínimos requeridos
           if (finalUserData.id && finalUserData.email) {
             localStorage.setItem('userData', JSON.stringify(finalUserData));
             localStorage.setItem('userName', finalUserData.name || '');
             localStorage.setItem('userRole', finalUserData.role || '');
             localStorage.setItem('userEmail', finalUserData.email || '');
             localStorage.setItem('userId', finalUserData.id || '');
-          } else {
-            const minimalUserData = {
-              id: finalUserData.id || 'unknown',
-              name: finalUserData.name || 'Usuario',
-              email: finalUserData.email || 'user@example.com',
-              role: finalUserData.role || 'USER'
-            };
 
-            localStorage.setItem('userData', JSON.stringify(minimalUserData));
-            localStorage.setItem('userName', minimalUserData.name);
-            localStorage.setItem('userRole', minimalUserData.role);
-            localStorage.setItem('userEmail', minimalUserData.email);
-            localStorage.setItem('userId', minimalUserData.id);
+            console.log('✅ Datos de usuario guardados correctamente:', finalUserData);
+          } else {
+            console.error('❌ Datos de usuario incompletos:', finalUserData);
+            throw new Error('Los datos del usuario están incompletos (falta ID o email)');
           }
         } else {
-          const fallbackUserData = {
-            id: 'fallback',
-            name: 'Usuario',
-            email: 'user@example.com',
-            role: 'USER'
-          };
-
-          localStorage.setItem('userData', JSON.stringify(fallbackUserData));
-          localStorage.setItem('userName', fallbackUserData.name);
-          localStorage.setItem('userRole', fallbackUserData.role);
-          localStorage.setItem('userEmail', fallbackUserData.email);
-          localStorage.setItem('userId', fallbackUserData.id);
+          console.error('❌ No se recibieron datos del usuario en la respuesta');
+          throw new Error('No se recibieron datos del usuario después del login');
         }
       } else {
         throw new Error('No authentication token provided');
       }
     } catch (error) {
+      console.error('❌ Error guardando datos de autenticación:', error);
       throw new Error(`Failed to save authentication data: ${error.message}`);
     }
   },
@@ -437,26 +432,34 @@ const authAPI = {
 
       if (token && isAuth === 'true') {
         if (!userData) {
+          console.warn('⚠️ Token existe pero no hay datos de usuario - datos corruptos');
           corrupted = true;
         } else {
           try {
             const parsedUser = JSON.parse(userData);
-            if (!parsedUser.id || !parsedUser.email) {
+            if (!parsedUser || typeof parsedUser !== 'object') {
+              console.warn('⚠️ Datos de usuario no son un objeto válido');
+              corrupted = true;
+            } else if (!parsedUser.id || !parsedUser.email) {
+              console.warn('⚠️ Datos de usuario incompletos (falta ID o email)');
               corrupted = true;
             }
           } catch (e) {
+            console.warn('⚠️ Error parseando datos de usuario - datos corruptos');
             corrupted = true;
           }
         }
       }
 
       if (corrupted) {
+        console.log('🧹 Limpiando datos corruptos de autenticación...');
         authAPI.clearAuthData();
         return true;
       }
 
       return false;
     } catch (error) {
+      console.error('❌ Error limpiando datos corruptos:', error);
       return false;
     }
   },
