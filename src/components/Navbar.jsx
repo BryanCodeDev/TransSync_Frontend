@@ -137,11 +137,15 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     const initializeNotifications = async () => {
       if (!isPublic && isLoggedIn && !servicesInitialized) {
         try {
-          // Inicializar servicio de notificaciones
-          await notificationService.initialize();
+          // Solo inicializar si no está ya inicializado
+          if (!notificationService.isInitialized()) {
+            await notificationService.initialize();
+          }
 
-          // Conectar WebSocket
-          await socket.connect();
+          // Solo conectar WebSocket si no está conectado
+          if (!socket.isConnected()) {
+            await socket.connect();
+          }
 
           // Cargar notificaciones iniciales desde la API
           await loadNotifications();
@@ -158,11 +162,10 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
     initializeNotifications();
 
-    // Cleanup al desmontar el componente
+    // Cleanup al desmontar el componente - solo si este componente fue el que inicializó
     return () => {
-      if (servicesInitialized) {
-        socket.disconnect();
-      }
+      // No desconectar aquí para evitar problemas con otros componentes
+      // El socket se gestiona globalmente
     };
   }, [isPublic, isLoggedIn, servicesInitialized, loadNotifications, notificationService, socket]);
 
