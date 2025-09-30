@@ -39,6 +39,7 @@ import BreadcrumbNav from '../components/BreadcrumbNav';
 import Tooltip from '../components/Tooltip';
 import ErrorRecovery from '../components/ErrorRecovery';
 import { useAuth } from '../hooks/useAuth';
+import authAPI from '../utilidades/authAPI';
 
 ChartJS.register(
   CategoryScale,
