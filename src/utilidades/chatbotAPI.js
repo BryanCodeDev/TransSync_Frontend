@@ -1,5 +1,6 @@
 // src/utilidades/chatbotAPI.js - Servicio para el sistema de chatbot
 import { apiClient, apiUtils } from '../api/baseAPI';
+import conversationMemory from '../utilidades/conversationMemory';
 
 const chatbotAPI = {
   // ================================
@@ -524,7 +525,7 @@ const chatbotAPI = {
     } catch (error) {
       // Si falla, intentar con una consulta básica
       try {
-        const response = await apiClient.get('/api/chatbot/stats?idEmpresa=1&period=dia');
+        await apiClient.get('/api/chatbot/stats?idEmpresa=1&period=dia');
         return {
           success: true,
           message: 'Servicio disponible',
