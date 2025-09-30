@@ -19,7 +19,7 @@ const chatbotAPI = {
         throw new Error('Mensaje e ID de empresa son requeridos');
       }
 
-      const response = await apiClient.post('/api/chatbot/consulta', {
+      const response = await apiClient.post('/api/chatbot/message', {
         mensaje: mensaje.trim(),
         idEmpresa: parseInt(idEmpresa),
         idUsuario: idUsuario ? parseInt(idUsuario) : null
@@ -63,7 +63,7 @@ const chatbotAPI = {
         throw new Error('ID de empresa es requerido');
       }
 
-      const response = await apiClient.get(`/api/chatbot/estadisticas?idEmpresa=${idEmpresa}&period=${period}`);
+      const response = await apiClient.get(`/api/chatbot/stats?idEmpresa=${idEmpresa}&period=${period}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));

@@ -178,8 +178,6 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         '/rutas',
         '/vehiculos',
         '/horarios',
-        '/informes',
-        '/profile'
       ],
       'ADMINISTRADOR': [
         '/dashboard',
@@ -187,13 +185,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         '/rutas',
         '/vehiculos',
         '/horarios',
-        '/informes',
-        '/profile'
       ],
-      'CONDUCTOR': [
-        '/rutas',
-        '/profile'
-      ],
+      'CONDUCTOR': [],
       'USER': [],
       'PENDIENTE': []
     };

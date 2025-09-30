@@ -13,17 +13,13 @@ const ProtectedRoute = ({ children, requiredRoles = [], redirectTo = '/home' }) 
   // Si se requieren roles específicos, verificar
   if (requiredRoles.length > 0) {
     const userRole = getUserRole();
-
+    
     if (!userRole || !requiredRoles.includes(userRole)) {
       // Si no tiene el rol requerido, redirigir según el rol que tenga
-      if (userRole === 'SUPERADMIN') {
+      if (userRole === 'SUPERADMIN' || userRole === 'ADMINISTRADOR') {
         return <Navigate to="/admin/dashboard" replace />;
-      } else if (userRole === 'ADMINISTRADOR') {
-        return <Navigate to="/dashboard" replace />;
-      } else if (userRole === 'CONDUCTOR') {
-        return <Navigate to="/profile" replace />;
       } else {
-        return <Navigate to="/home" replace />;
+        return <Navigate to="/dashboard" replace />;
       }
     }
   }

@@ -467,16 +467,9 @@ const ChatBot = ({
     } catch (error) {
       console.error('Error procesando mensaje inteligente:', error);
 
-      let errorText = t('chatbot.processingError');
-
-      // Mensaje más específico para error 404 del chatbot
-      if (error.message && error.message.includes('404')) {
-        errorText = '🤖 **Chatbot temporalmente no disponible**\n\nEl servicio de chatbot está siendo actualizado. Mientras tanto, puedo ayudarte con:\n\n• Información sobre conductores\n• Estado de vehículos\n• Rutas disponibles\n• Horarios de viaje\n\n¿En qué puedo ayudarte?';
-      }
-
       const errorMessage = {
         id: Date.now() + 1,
-        text: errorText,
+        text: t('chatbot.processingError'),
         sender: 'bot',
         timestamp: new Date(),
         isError: true
@@ -484,11 +477,7 @@ const ChatBot = ({
 
       setMessages(prev => [...prev, errorMessage]);
       setIsTyping(false);
-
-      // No marcar como desconectado para errores 404 del chatbot
-      if (!error.message || !error.message.includes('404')) {
-        setConnectionStatus('disconnected');
-      }
+      setConnectionStatus('disconnected');
     }
   };
 
