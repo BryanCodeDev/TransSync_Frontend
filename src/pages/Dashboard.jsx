@@ -222,8 +222,9 @@ const Dashboard = () => {
         // ✅ CORRECCIÓN CRÍTICA: Verificar que tenemos datos completos del usuario
         if (!user?.id || !user?.email || !user?.empresaId) {
           console.warn('⚠️ Datos de usuario incompletos, intentando recuperar...');
-          const recovered = await authAPI.recoverUserData();
-          if (!recovered) {
+          // Intentar recuperar datos del localStorage como respaldo
+          const userData = authAPI.getCurrentUser();
+          if (!userData || !userData.empresaId) {
             console.error('❌ No se pudieron recuperar los datos del usuario');
             return;
           }

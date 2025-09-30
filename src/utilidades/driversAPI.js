@@ -12,9 +12,9 @@ const driversAPI = {
         throw new Error('Los filtros deben ser un objeto válido');
       }
 
-      // Agregar filtro de empresa automáticamente desde el contexto del usuario
-      const userContext = JSON.parse(localStorage.getItem('userData') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      // Agregar filtro de empresa automáticamente desde el contexto de autenticación
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const empresaId = userData.empresaId || userData.idEmpresa;
 
       if (!empresaId) {
         throw new Error('No se pudo obtener el ID de empresa del usuario');

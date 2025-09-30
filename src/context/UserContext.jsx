@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import i18n from '../i18n';
 import { useAuth } from '../hooks/useAuth';
+import authAPI from '../utilidades/authAPI';
 import {
   getUserProfile,
   updateUserProfile,
@@ -9,9 +10,7 @@ import {
   updateUserPreferences,
   getNotificationSettings,
   updateNotificationSettings as updateNotificationSettingsAPI,
-  getUserCompany,
-  getUserActivity,
-  verifyAccountStatus
+  getUserActivity
 } from '../utilidades/profileAPI';
 
 // Crear el contexto de usuario
@@ -272,8 +271,13 @@ export const UserProvider = ({ children }) => {
       setLoading(prev => ({ ...prev, company: true }));
       clearError('company');
 
-      const company = await getUserCompany();
-      setCompanyInfo(company);
+      // Los datos de empresa vienen del contexto de autenticación
+      const userData = authAPI.getCurrentUser();
+      setCompanyInfo({
+        empresaId: userData?.empresaId,
+        nombre: 'Empresa',
+        id: userData?.empresaId
+      });
     } catch (err) {
       setErrorMessage('company', err.message);
       console.error('Error loading company info:', err);
@@ -308,8 +312,13 @@ export const UserProvider = ({ children }) => {
       setLoading(prev => ({ ...prev, account: true }));
       clearError('account');
 
-      const status = await verifyAccountStatus();
-      setAccountStatus(prev => ({ ...prev, ...status }));
+      // Estado por defecto ya que el endpoint no existe
+      setAccountStatus({
+        isVerified: true,
+        isActive: true,
+        lastLogin: new Date(),
+        createdAt: new Date()
+      });
     } catch (err) {
       setErrorMessage('account', err.message);
       console.error('Error loading account status:', err);

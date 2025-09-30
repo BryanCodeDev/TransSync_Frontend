@@ -93,9 +93,9 @@ const vehiculosAPI = {
   // Crear nuevo vehículo
   create: async (vehicleData) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const empresaId = userData.empresaId || userData.idEmpresa;
 
       if (!empresaId) {
         throw new Error('empresaId no encontrado en el contexto del usuario');
@@ -296,9 +296,9 @@ const vehiculosAPI = {
   // Obtener estadísticas de vehículos
   getStatistics: async () => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const empresaId = userData.empresaId || userData.idEmpresa;
 
       if (!empresaId) {
         throw new Error('empresaId no encontrado en el contexto del usuario');

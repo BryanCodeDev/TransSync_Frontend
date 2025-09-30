@@ -1,4 +1,5 @@
 import { apiClient, apiUtils } from '../api/baseAPI';
+import authAPI from './authAPI';
 
 export const dashboardAPI = {
   // ================================
@@ -8,9 +9,9 @@ export const dashboardAPI = {
   // Obtener estadísticas generales del dashboard
   getGeneralStatistics: async () => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
+      const userData = authAPI.getCurrentUser();
+      const empresaId = userData?.empresaId;
 
       if (!empresaId) {
         throw new Error('empresaId no encontrado en el contexto del usuario');
@@ -51,9 +52,9 @@ export const dashboardAPI = {
         throw new Error('Período inválido');
       }
 
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
+      const userData = authAPI.getCurrentUser();
+      const empresaId = userData?.empresaId;
 
       if (!empresaId) {
         throw new Error('empresaId no encontrado en el contexto del usuario');
@@ -70,9 +71,9 @@ export const dashboardAPI = {
   // Obtener alertas activas
   getActiveAlerts: async () => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
+      const userData = authAPI.getCurrentUser();
+      const empresaId = userData?.empresaId;
 
       if (!empresaId) {
         throw new Error('empresaId no encontrado en el contexto del usuario');
@@ -409,7 +410,16 @@ export const dashboardAPI = {
 
   getNotificationHistory: async (limit = 20) => {
     try {
-      const response = await apiClient.get(`/api/dashboard/notifications/history?limit=${limit}`);
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en historial de notificaciones
+      const response = await apiClient.get(`/api/dashboard/notifications/history?limit=${limit}&idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       console.error('Error obteniendo historial de notificaciones:', error);
