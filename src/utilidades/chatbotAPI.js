@@ -20,7 +20,7 @@ const chatbotAPI = {
         throw new Error('Mensaje e ID de empresa son requeridos');
       }
 
-      const response = await apiClient.post('/api/chatbot/message', {
+      const response = await apiClient.post('/api/chatbot/consulta', {
         mensaje: mensaje.trim(),
         idEmpresa: parseInt(idEmpresa),
         idUsuario: idUsuario ? parseInt(idUsuario) : null
@@ -41,12 +41,16 @@ const chatbotAPI = {
    * @param {boolean} filters.exitosa - Si la respuesta fue exitosa (opcional)
    * @param {number} filters.limit - Límite de resultados (opcional)
    * @returns {Promise<Object>} Historial de interacciones
+   * @deprecated Este endpoint no está implementado en el backend actual
    */
   getInteractionHistory: async (filters = {}) => {
     try {
-      const params = apiUtils.createUrlParams(filters);
-      const response = await apiClient.get(`/api/chatbot/interactions${params ? `?${params}` : ''}`);
-      return response.data;
+      // TODO: Implementar endpoint /api/chatbot/interactions en el backend
+      throw new Error('Endpoint no implementado en el backend. Se requiere implementar /api/chatbot/interactions');
+
+      // const params = apiUtils.createUrlParams(filters);
+      // const response = await apiClient.get(`/api/chatbot/interactions${params ? `?${params}` : ''}`);
+      // return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -64,7 +68,7 @@ const chatbotAPI = {
         throw new Error('ID de empresa es requerido');
       }
 
-      const response = await apiClient.get(`/api/chatbot/stats?idEmpresa=${idEmpresa}&period=${period}`);
+      const response = await apiClient.get(`/api/chatbot/estadisticas?idEmpresa=${idEmpresa}&period=${period}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -79,6 +83,7 @@ const chatbotAPI = {
    * Obtener configuración del chatbot
    * @param {number} idEmpresa - ID de la empresa
    * @returns {Promise<Object>} Configuración del chatbot
+   * @deprecated Este endpoint no está implementado en el backend actual
    */
   getConfiguration: async (idEmpresa) => {
     try {
@@ -86,8 +91,11 @@ const chatbotAPI = {
         throw new Error('ID de empresa es requerido');
       }
 
-      const response = await apiClient.get(`/api/chatbot/config?idEmpresa=${idEmpresa}`);
-      return response.data;
+      // TODO: Implementar endpoint /api/chatbot/config en el backend
+      throw new Error('Endpoint no implementado en el backend. Se requiere implementar GET /api/chatbot/config');
+
+      // const response = await apiClient.get(`/api/chatbot/config?idEmpresa=${idEmpresa}`);
+      // return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -98,6 +106,7 @@ const chatbotAPI = {
    * @param {number} idEmpresa - ID de la empresa
    * @param {Object} configData - Datos de configuración
    * @returns {Promise<Object>} Respuesta del servidor
+   * @deprecated Este endpoint no está implementado en el backend actual
    */
   updateConfiguration: async (idEmpresa, configData) => {
     try {
@@ -105,8 +114,11 @@ const chatbotAPI = {
         throw new Error('ID de empresa es requerido');
       }
 
-      const response = await apiClient.put(`/api/chatbot/config?idEmpresa=${idEmpresa}`, configData);
-      return response.data;
+      // TODO: Implementar endpoint /api/chatbot/config en el backend
+      throw new Error('Endpoint no implementado en el backend. Se requiere implementar PUT /api/chatbot/config');
+
+      // const response = await apiClient.put(`/api/chatbot/config?idEmpresa=${idEmpresa}`, configData);
+      // return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -121,6 +133,7 @@ const chatbotAPI = {
    * @param {number} idEmpresa - ID de la empresa
    * @param {string} categoria - Categoría específica (opcional)
    * @returns {Promise<Object>} Lista de respuestas predefinidas
+   * @deprecated Este endpoint no está implementado en el backend actual
    */
   getPredefinedResponses: async (idEmpresa, categoria = null) => {
     try {
@@ -128,9 +141,12 @@ const chatbotAPI = {
         throw new Error('ID de empresa es requerido');
       }
 
-      const params = categoria ? `?idEmpresa=${idEmpresa}&categoria=${categoria}` : `?idEmpresa=${idEmpresa}`;
-      const response = await apiClient.get(`/api/chatbot/responses${params}`);
-      return response.data;
+      // TODO: Implementar endpoint /api/chatbot/responses en el backend
+      throw new Error('Endpoint no implementado en el backend. Se requiere implementar GET /api/chatbot/responses');
+
+      // const params = categoria ? `?idEmpresa=${idEmpresa}&categoria=${categoria}` : `?idEmpresa=${idEmpresa}`;
+      // const response = await apiClient.get(`/api/chatbot/responses${params}`);
+      // return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -140,6 +156,7 @@ const chatbotAPI = {
    * Crear nueva respuesta predefinida
    * @param {Object} responseData - Datos de la respuesta
    * @returns {Promise<Object>} Respuesta del servidor
+   * @deprecated Este endpoint no está implementado en el backend actual
    */
   createPredefinedResponse: async (responseData) => {
     try {
@@ -156,16 +173,19 @@ const chatbotAPI = {
         throw new Error(`Campos requeridos: ${missing.join(', ')}`);
       }
 
-      const response = await apiClient.post('/api/chatbot/responses', {
-        idEmpresa: parseInt(idEmpresa),
-        palabrasClave: palabrasClave.trim(),
-        categoria,
-        respuesta: respuesta.trim(),
-        prioridad: prioridad || 1,
-        activa: true
-      });
+      // TODO: Implementar endpoint /api/chatbot/responses en el backend
+      throw new Error('Endpoint no implementado en el backend. Se requiere implementar POST /api/chatbot/responses');
 
-      return response.data;
+      // const response = await apiClient.post('/api/chatbot/responses', {
+      //   idEmpresa: parseInt(idEmpresa),
+      //   palabrasClave: palabrasClave.trim(),
+      //   categoria,
+      //   respuesta: respuesta.trim(),
+      //   prioridad: prioridad || 1,
+      //   activa: true
+      // });
+
+      // return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -176,6 +196,7 @@ const chatbotAPI = {
    * @param {number} idRespuesta - ID de la respuesta
    * @param {Object} responseData - Datos a actualizar
    * @returns {Promise<Object>} Respuesta del servidor
+   * @deprecated Este endpoint no está implementado en el backend actual
    */
   updatePredefinedResponse: async (idRespuesta, responseData) => {
     try {
@@ -183,8 +204,11 @@ const chatbotAPI = {
         throw new Error('ID de respuesta es requerido');
       }
 
-      const response = await apiClient.put(`/api/chatbot/responses/${idRespuesta}`, responseData);
-      return response.data;
+      // TODO: Implementar endpoint /api/chatbot/responses en el backend
+      throw new Error('Endpoint no implementado en el backend. Se requiere implementar PUT /api/chatbot/responses/:id');
+
+      // const response = await apiClient.put(`/api/chatbot/responses/${idRespuesta}`, responseData);
+      // return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -194,6 +218,7 @@ const chatbotAPI = {
    * Eliminar respuesta predefinida
    * @param {number} idRespuesta - ID de la respuesta
    * @returns {Promise<Object>} Respuesta del servidor
+   * @deprecated Este endpoint no está implementado en el backend actual
    */
   deletePredefinedResponse: async (idRespuesta) => {
     try {
@@ -201,8 +226,11 @@ const chatbotAPI = {
         throw new Error('ID de respuesta es requerido');
       }
 
-      const response = await apiClient.delete(`/api/chatbot/responses/${idRespuesta}`);
-      return response.data;
+      // TODO: Implementar endpoint /api/chatbot/responses en el backend
+      throw new Error('Endpoint no implementado en el backend. Se requiere implementar DELETE /api/chatbot/responses/:id');
+
+      // const response = await apiClient.delete(`/api/chatbot/responses/${idRespuesta}`);
+      // return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -520,12 +548,12 @@ const chatbotAPI = {
   verificarEstado: async () => {
     try {
       // Intentar hacer una consulta simple para verificar conectividad
-      const response = await apiClient.get('/api/chatbot/status');
+      const response = await apiClient.get('/api/chatbot/health');
       return response.data;
     } catch (error) {
       // Si falla, intentar con una consulta básica
       try {
-        await apiClient.get('/api/chatbot/stats?idEmpresa=1&period=dia');
+        await apiClient.get('/api/chatbot/estadisticas?idEmpresa=1&period=dia');
         return {
           success: true,
           message: 'Servicio disponible',
