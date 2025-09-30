@@ -104,16 +104,31 @@
   REACT_APP_DEBUG_MODE = "false"
   REACT_APP_DEFAULT_COUNTRY = "co"
 
-# Additional headers for problematic chunks
+# Additional headers for problematic chunks with hashes
 [[headers]]
-  for = "/*.chunk.js"
+  for = "/static/js/*.chunk.js"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
     Content-Type = "application/javascript; charset=utf-8"
     X-Content-Type-Options = "nosniff"
 
 [[headers]]
-  for = "/*.js"
+  for = "/admin/static/js/*.chunk.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "application/javascript; charset=utf-8"
+    X-Content-Type-Options = "nosniff"
+
+# Headers for all JavaScript files
+[[headers]]
+  for = "/static/js/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "application/javascript; charset=utf-8"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/admin/static/js/*.js"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
     Content-Type = "application/javascript; charset=utf-8"
