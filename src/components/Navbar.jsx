@@ -252,7 +252,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
   const goToDashboard = () => {
     const userRole = getUserRole();
-    if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
+    if (userRole === "SUPERADMIN" || userRole === "GESTOR") {
       navigate("/admin/dashboard", { replace: true });
     } else {
       navigate("/dashboard", { replace: true });
@@ -383,7 +383,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const formatUserRole = (role) => {
     const roles = {
       'SUPERADMIN': 'Super Administrador',
-      'ADMINISTRADOR': 'Administrador',
+      'GESTOR': 'Administrador',
       'USER': 'Usuario',
       'PENDIENTE': 'Usuario Pendiente'
     };
@@ -394,7 +394,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return 'from-purple-500 to-purple-700';
-      case 'ADMINISTRADOR':
+      case 'GESTOR':
         return 'from-[#3949ab] to-[#1a237e]';
       case 'USER':
         return 'from-[#283593] to-[#1a237e]';
@@ -409,7 +409,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return <FaUserShield size={14} className="text-white" />;
-      case 'ADMINISTRADOR':
+      case 'GESTOR':
         return <FaCogs size={14} className="text-white" />;
       default:
         return <FaUser size={14} className="text-white" />;
@@ -420,7 +420,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'ADMINISTRADOR':
+      case 'GESTOR':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'USER':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';

@@ -345,7 +345,7 @@ const authAPI = {
   },
 
   isAdmin: () => {
-    return authAPI.hasRole('ADMINISTRADOR') || authAPI.hasRole('SUPERADMIN') || authAPI.hasRole('GESTOR');
+    return authAPI.hasRole('GESTOR') || authAPI.hasRole('SUPERADMIN');
   },
 
   saveAuthData: (authData) => {
