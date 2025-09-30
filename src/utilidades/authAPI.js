@@ -274,11 +274,13 @@ const authAPI = {
         try {
           const parsed = JSON.parse(userData);
           if (parsed && typeof parsed === 'object' && parsed.id && parsed.email) {
+            // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en el retorno
             return {
               id: parsed.id || parsed.userId || parsed._id,
               name: parsed.name || parsed.userName || parsed.fullName || 'Usuario',
               email: parsed.email || parsed.userEmail,
-              role: parsed.role || parsed.userRole || parsed.type || 'USER'
+              role: parsed.role || parsed.userRole || parsed.type || 'USER',
+              empresaId: parsed.empresaId || parsed.idEmpresa || parsed.empresa_id || parsed.companyId
             };
           }
         } catch (parseError) {
@@ -291,19 +293,21 @@ const authAPI = {
       const userRole = localStorage.getItem('userRole');
       const userEmail = localStorage.getItem('userEmail');
       const userId = localStorage.getItem('userId');
+      const empresaId = localStorage.getItem('empresaId');
 
-      if (userId && userEmail) {
+      if (userId && userEmail && empresaId) {
         console.log('✅ Datos de usuario recuperados de respaldo');
         return {
           id: userId,
           name: userName || 'Usuario',
           email: userEmail,
-          role: userRole || 'USER'
+          role: userRole || 'USER',
+          empresaId: empresaId
         };
       }
 
       // Si no hay datos válidos, limpiar datos corruptos
-      if (userName || userRole || userEmail || userId) {
+      if (userName || userRole || userEmail || userId || empresaId) {
         console.warn('⚠️ Datos de usuario incompletos detectados, limpiando...');
         authAPI.clearAuthData();
       }
@@ -376,18 +380,24 @@ const authAPI = {
             empresaId: userData.empresaId || userData.idEmpresa || userData.empresa_id || userData.companyId
           };
 
-          // Validar que tenemos datos mínimos requeridos
-          if (finalUserData.id && finalUserData.email) {
+          // ✅ CORRECCIÓN CRÍTICA: Validar que tenemos datos mínimos requeridos incluyendo empresaId
+          if (finalUserData.id && finalUserData.email && finalUserData.empresaId) {
             localStorage.setItem('userData', JSON.stringify(finalUserData));
             localStorage.setItem('userName', finalUserData.name || '');
             localStorage.setItem('userRole', finalUserData.role || '');
             localStorage.setItem('userEmail', finalUserData.email || '');
             localStorage.setItem('userId', finalUserData.id || '');
+            localStorage.setItem('empresaId', finalUserData.empresaId || '');
 
             console.log('✅ Datos de usuario guardados correctamente:', finalUserData);
           } else {
             console.error('❌ Datos de usuario incompletos:', finalUserData);
-            throw new Error('Los datos del usuario están incompletos (falta ID o email)');
+            console.error('🔍 Campos faltantes:', {
+              id: !finalUserData.id,
+              email: !finalUserData.email,
+              empresaId: !finalUserData.empresaId
+            });
+            throw new Error('Los datos del usuario están incompletos (falta ID, email o empresaId)');
           }
         } else {
           console.error('❌ No se recibieron datos del usuario en la respuesta');
@@ -398,6 +408,7 @@ const authAPI = {
       }
     } catch (error) {
       console.error('❌ Error guardando datos de autenticación:', error);
+      // ✅ CORRECCIÓN CRÍTICA: No limpiar datos automáticamente, dejar que el usuario decida
       throw new Error(`Failed to save authentication data: ${error.message}`);
     }
   },
@@ -444,6 +455,14 @@ const authAPI = {
             } else if (!parsedUser.id || !parsedUser.email) {
               console.warn('⚠️ Datos de usuario incompletos (falta ID o email)');
               corrupted = true;
+            } else {
+              // ✅ CORRECCIÓN CRÍTICA: Validar también empresaId
+              if (!parsedUser.empresaId) {
+                console.warn('⚠️ Datos de usuario incompletos (falta empresaId)');
+                // No marcar como corrupted, intentar recuperar empresaId
+                console.log('🔄 Intentando recuperar empresaId...');
+                return false;
+              }
             }
           } catch (e) {
             console.warn('⚠️ Error parseando datos de usuario - datos corruptos');

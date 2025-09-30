@@ -18,23 +18,14 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(self)"
 
-# Force proper MIME types for static files (must be before general headers and SPA fallback)
+# ✅ CORRECCIÓN CRÍTICA: Force proper MIME types for JavaScript files (FIRST - before any redirects)
 [[headers]]
-  for = "/static/js/*.js"
+  for = "/*.js"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
     Content-Type = "application/javascript; charset=utf-8"
     X-Content-Type-Options = "nosniff"
 
-# Force proper MIME types for admin static files (IMPORTANT: Before SPA fallback)
-[[headers]]
-  for = "/admin/static/js/*.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "application/javascript; charset=utf-8"
-    X-Content-Type-Options = "nosniff"
-
-# Force proper MIME types for dynamic chunks (IMPORTANT: Before SPA fallback)
 [[headers]]
   for = "/*.chunk.js"
   [headers.values]
@@ -42,25 +33,15 @@
     Content-Type = "application/javascript; charset=utf-8"
     X-Content-Type-Options = "nosniff"
 
-# Force proper MIME types for static JS chunks (IMPORTANT: Before SPA fallback)
+[[headers]]
+  for = "/static/js/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "application/javascript; charset=utf-8"
+    X-Content-Type-Options = "nosniff"
+
 [[headers]]
   for = "/static/js/*.chunk.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "application/javascript; charset=utf-8"
-    X-Content-Type-Options = "nosniff"
-
-# Force proper MIME types for admin dynamic chunks (IMPORTANT: Before SPA fallback)
-[[headers]]
-  for = "/admin/static/js/*.chunk.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "application/javascript; charset=utf-8"
-    X-Content-Type-Options = "nosniff"
-
-# Force proper MIME types for any .js file (catch-all for JavaScript files)
-[[headers]]
-  for = "/*.js"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
     Content-Type = "application/javascript; charset=utf-8"
@@ -197,17 +178,4 @@
   REACT_APP_DEBUG_MODE = "false"
   REACT_APP_DEFAULT_COUNTRY = "co"
 
-# Additional headers for problematic chunks
-[[headers]]
-  for = "/*.chunk.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "application/javascript; charset=utf-8"
-    X-Content-Type-Options = "nosniff"
-
-[[headers]]
-  for = "/*.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "application/javascript; charset=utf-8"
-    X-Content-Type-Options = "nosniff"
+# ✅ CORRECCIÓN CRÍTICA: Headers adicionales removidos (duplicados y conflictivos)

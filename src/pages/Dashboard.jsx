@@ -37,6 +37,7 @@ import realTimeService from '../utilidades/realTimeService';
 import { useNotification } from '../utilidades/notificationService';
 import BreadcrumbNav from '../components/BreadcrumbNav';
 import Tooltip from '../components/Tooltip';
+import ErrorRecovery from '../components/ErrorRecovery';
 import { useAuth } from '../hooks/useAuth';
 
 ChartJS.register(
@@ -217,26 +218,42 @@ const Dashboard = () => {
   useEffect(() => {
     const initializeServices = async () => {
       try {
+        // ✅ CORRECCIÓN CRÍTICA: Verificar que tenemos datos completos del usuario
+        if (!user?.id || !user?.email || !user?.empresaId) {
+          console.warn('⚠️ Datos de usuario incompletos, intentando recuperar...');
+          const recovered = await authAPI.recoverUserData();
+          if (!recovered) {
+            console.error('❌ No se pudieron recuperar los datos del usuario');
+            return;
+          }
+        }
+
         // Inicializar servicio de notificaciones
         await notificationService.initialize();
 
-        // Conectar WebSocket con contexto de usuario mejorado
-         const userContext = {
-           idUsuario: user?.id,
-           idEmpresa: user?.empresaId || user?.idEmpresa || localStorage.getItem('empresaId'),
-           rol: userRole,
-           email: user?.email
-         };
+        // ✅ CORRECCIÓN CRÍTICA: Construir contexto de usuario con validación estricta
+        const userContext = {
+          idUsuario: user?.id,
+          idEmpresa: user?.empresaId || localStorage.getItem('empresaId'),
+          rol: userRole,
+          email: user?.email
+        };
 
-         // Log detallado para debugging
-         console.log('🔗 Estado de conexión actualizado:', {
-           userId: userContext.idUsuario,
-           empresaId: userContext.idEmpresa,
-           timestamp: new Date()
-         });
+        // ✅ CORRECCIÓN CRÍTICA: Validar que empresaId existe antes de conectar WebSocket
+        if (!userContext.idEmpresa) {
+          console.error('❌ empresaId es requerido para conectar WebSocket');
+          return;
+        }
 
-         console.log('🔗 Conectando WebSocket con contexto completo:', userContext);
-         realTimeService.connect(userContext);
+        // Log detallado para debugging
+        console.log('🔗 Estado de conexión actualizado:', {
+          userId: userContext.idUsuario,
+          empresaId: userContext.idEmpresa,
+          timestamp: new Date()
+        });
+
+        console.log('🔗 Conectando WebSocket con contexto completo:', userContext);
+        realTimeService.connect(userContext);
 
         // Configurar modo horario (cada hora) en lugar de tiempo real
         realTimeService.setUpdateMode(false, 60); // 60 minutos = 1 hora
@@ -374,6 +391,14 @@ const Dashboard = () => {
   }
 
   if (error) {
+    // ✅ CORRECCIÓN CRÍTICA: Usar componente de recuperación para errores críticos
+    if (error.includes('No user after sign in') ||
+        error.includes('Unexpected token') ||
+        error.includes('empresaId') ||
+        error.includes('userData')) {
+      return <ErrorRecovery error={error} onRetry={fetchDashboardData} />;
+    }
+
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] p-4 sm:p-6 md:p-8">
         <AlertTriangle className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-red-500 mb-3 sm:mb-4 flex-shrink-0" />
