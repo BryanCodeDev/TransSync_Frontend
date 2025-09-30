@@ -11,7 +11,7 @@ export const dashboardAPI = {
     try {
       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
       const userData = authAPI.getCurrentUser();
-      const empresaId = userData?.empresaId;
+      let empresaId = userData?.empresaId;
 
       // Si no tenemos empresaId, intentar obtenerlo de otras fuentes
       if (!empresaId) {
@@ -68,7 +68,7 @@ export const dashboardAPI = {
 
       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
       const userData = authAPI.getCurrentUser();
-      const empresaId = userData?.empresaId;
+      let empresaId = userData?.empresaId;
 
       // Si no tenemos empresaId, intentar obtenerlo de otras fuentes
       if (!empresaId) {
@@ -101,7 +101,7 @@ export const dashboardAPI = {
     try {
       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
       const userData = authAPI.getCurrentUser();
-      const empresaId = userData?.empresaId;
+      let empresaId = userData?.empresaId;
 
       if (!empresaId) {
         throw new Error('empresaId no encontrado en el contexto del usuario');
@@ -196,7 +196,7 @@ export const dashboardAPI = {
     try {
       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      let empresaId = userContext.empresaId || userContext.idEmpresa;
 
       if (!empresaId) {
         throw new Error('empresaId no encontrado en el contexto del usuario');
@@ -217,7 +217,7 @@ export const dashboardAPI = {
     try {
       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      let empresaId = userContext.empresaId || userContext.idEmpresa;
 
       if (!empresaId) {
         throw new Error('empresaId no encontrado en el contexto del usuario');
@@ -236,7 +236,7 @@ export const dashboardAPI = {
     try {
       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      let empresaId = userContext.empresaId || userContext.idEmpresa;
 
       if (!empresaId) {
         throw new Error('empresaId no encontrado en el contexto del usuario');
@@ -440,7 +440,7 @@ export const dashboardAPI = {
     try {
       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
+      let empresaId = userContext.empresaId || userContext.idEmpresa;
 
       // Si no tenemos empresaId, intentar obtenerlo de otras fuentes
       if (!empresaId) {

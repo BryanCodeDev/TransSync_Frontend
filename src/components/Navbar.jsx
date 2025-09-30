@@ -58,8 +58,8 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
       // Si no tenemos empresaId, intentar obtener datos completos del usuario
       if (!empresaId && user?.id) {
-        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-        empresaId = userData.empresaId || userData.idEmpresa;
+        const storedUserData = JSON.parse(localStorage.getItem('userData') || '{}');
+        empresaId = storedUserData.empresaId || storedUserData.idEmpresa;
       }
 
       // Validar que tenemos todos los datos necesarios
@@ -77,7 +77,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         userId: user.id,
         empresaId: empresaId,
         rol: userRole,
-        email: user.email || userData.email
+        email: user.email || JSON.parse(localStorage.getItem('userData') || '{}').email
       };
     } catch (error) {
       console.error('❌ Error obteniendo datos de autenticación:', error);
