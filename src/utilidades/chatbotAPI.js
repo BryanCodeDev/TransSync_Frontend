@@ -160,7 +160,7 @@ const chatbotAPI = {
    */
   createPredefinedResponse: async (responseData) => {
     try {
-      const { idEmpresa, palabrasClave, categoria, respuesta, prioridad } = responseData;
+      const { idEmpresa, palabrasClave, categoria, respuesta } = responseData;
 
       const missing = apiUtils.validateRequired({
         idEmpresa,
