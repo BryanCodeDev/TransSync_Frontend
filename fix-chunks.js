@@ -30,6 +30,16 @@ function clearBuildFiles() {
     fs.rmSync(nmCacheDir, { recursive: true, force: true });
   }
 
+  // Limpiar archivos temporales comunes que pueden causar problemas de chunks
+  const tempFiles = ['.env.local', '.env.development.local', '.env.test.local'];
+  tempFiles.forEach(file => {
+    const filePath = path.join(process.cwd(), file);
+    if (fs.existsSync(filePath)) {
+      console.log(`  - Eliminando archivo temporal: ${file}`);
+      fs.unlinkSync(filePath);
+    }
+  });
+
   console.log('  ✅ Archivos de build limpiados');
 }
 
@@ -104,6 +114,39 @@ function generateDevConfig() {
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block'
+    },
+
+    // Configuración específica para prevenir problemas de chunks
+    webpackConfig: {
+      optimization: {
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10
+            },
+            common: {
+              minChunks: 2,
+              chunks: 'all',
+              name: 'common',
+              priority: 5
+            }
+          }
+        },
+        runtimeChunk: {
+          name: 'runtime'
+        }
+      },
+      resolve: {
+        fallback: {
+          "fs": false,
+          "path": false,
+          "os": false
+        }
+      }
     }
   };
 
@@ -112,6 +155,60 @@ function generateDevConfig() {
     console.log('  ✅ Configuración de desarrollo generada');
   } catch (error) {
     console.log('  ❌ Error generando configuración de desarrollo:', error.message);
+  }
+}
+
+// Función para crear configuración específica para producción
+function createProductionConfig() {
+  console.log('\n🏭 Creando configuración de producción optimizada...');
+
+  const prodConfig = {
+    // Configuración específica para producción
+    build: {
+      optimization: {
+        splitChunks: {
+          chunks: 'all',
+          maxSize: 244000, // ~244KB para evitar problemas de carga
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 20,
+              enforce: true
+            },
+            common: {
+              minChunks: 2,
+              chunks: 'all',
+              name: 'common',
+              priority: 10
+            }
+          }
+        },
+        runtimeChunk: {
+          name: 'runtime'
+        }
+      },
+      performance: {
+        hints: 'warning',
+        maxEntrypointSize: 512000, // 512KB
+        maxAssetSize: 512000 // 512KB
+      }
+    },
+
+    // Configuración de service worker para mejor cacheo
+    serviceWorker: {
+      enabled: true,
+      registrationScope: '/',
+      updateStrategy: 'cache-first'
+    }
+  };
+
+  try {
+    fs.writeFileSync('prod-config.json', JSON.stringify(prodConfig, null, 2));
+    console.log('  ✅ Configuración de producción creada');
+  } catch (error) {
+    console.log('  ❌ Error creando configuración de producción:', error.message);
   }
 }
 
@@ -181,6 +278,9 @@ async function fixChunks() {
     console.log('');
 
     generateDevConfig();
+    console.log('');
+
+    createProductionConfig();
     console.log('');
 
     createBrowserCleanupScript();

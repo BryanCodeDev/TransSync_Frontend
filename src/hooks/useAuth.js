@@ -18,8 +18,8 @@ export const useAuth = () => {
     try {
       setError(null);
 
-      // Limpiar datos corruptos primero
-      clearCorruptedData();
+      // ✅ CORRECCIÓN CRÍTICA: Mejor validación de datos corruptos
+      const wasCorrupted = clearCorruptedData();
 
       const authenticated = isAuthenticated();
 
@@ -27,26 +27,54 @@ export const useAuth = () => {
         const userData = getCurrentUser();
         const role = getUserRole();
 
-        if (userData && role && userData.id && userData.email) {
+        // ✅ CORRECCIÓN CRÍTICA: Validar que tenemos todos los datos requeridos incluyendo empresaId
+        if (userData && role && userData.id && userData.email && userData.empresaId) {
           setIsLoggedIn(true);
           setUser(userData);
           setUserRole(role);
         } else {
-          // Limpiar datos corruptos y reintentar una vez más
+          console.warn('⚠️ Datos de usuario incompletos detectados:', {
+            hasUserData: !!userData,
+            hasRole: !!role,
+            hasId: !!userData?.id,
+            hasEmail: !!userData?.email,
+            hasEmpresaId: !!userData?.empresaId
+          });
+
+          // Intentar recuperar datos faltantes
+          if (userData && userData.id && userData.email) {
+            console.log('🔄 Intentando recuperar empresaId faltante...');
+
+            // Buscar empresaId en diferentes fuentes
+            const empresaIdFromStorage = localStorage.getItem('empresaId') ||
+                                       localStorage.getItem('userEmpresaId') ||
+                                       localStorage.getItem('companyId');
+
+            if (empresaIdFromStorage) {
+              userData.empresaId = empresaIdFromStorage;
+              console.log('✅ empresaId recuperado:', empresaIdFromStorage);
+
+              // Actualizar datos en localStorage
+              localStorage.setItem('userData', JSON.stringify(userData));
+              localStorage.setItem('empresaId', empresaIdFromStorage);
+
+              setIsLoggedIn(true);
+              setUser(userData);
+              setUserRole(role);
+              return;
+            }
+          }
+
+          // Si no se pudieron recuperar los datos, limpiar y mostrar error
           authAPI.clearAuthData();
+          setIsLoggedIn(false);
+          setUser(null);
+          setUserRole('');
 
-          // Verificar si hay datos de respaldo
-          const backupUserData = getCurrentUser();
-          const backupRole = getUserRole();
-
-          if (backupUserData && backupRole && backupUserData.id && backupUserData.email) {
-            setIsLoggedIn(true);
-            setUser(backupUserData);
-            setUserRole(backupRole);
+          if (wasCorrupted) {
+            setError('Los datos de autenticación estaban corruptos y fueron limpiados. Por favor inicie sesión nuevamente.');
           } else {
-            setIsLoggedIn(false);
-            setUser(null);
-            setUserRole('');
+            setError('Los datos de autenticación están incompletos. Por favor inicie sesión nuevamente.');
           }
         }
       } else {
@@ -55,6 +83,7 @@ export const useAuth = () => {
         setUserRole('');
       }
     } catch (err) {
+      console.error('❌ Error verificando estado de autenticación:', err);
       setError(err.message);
       setIsLoggedIn(false);
       setUser(null);
@@ -140,32 +169,55 @@ export const useAuth = () => {
   const recoverUserData = useCallback(async () => {
     try {
       const token = localStorage.getItem('authToken');
-      if (token) {
-        const profile = await authAPI.getProfile();
-        if (profile && profile.user) {
-          const userData = {
-            id: profile.user.id,
-            name: profile.user.name,
-            email: profile.user.email,
-            role: profile.user.role,
-            empresaId: profile.user.empresaId || profile.user.idEmpresa || profile.user.empresa_id || profile.user.companyId
-          };
+      if (!token) {
+        console.warn('⚠️ No hay token disponible para recuperar datos del usuario');
+        return false;
+      }
 
+      console.log('🔄 Intentando recuperar datos del usuario desde el servidor...');
+
+      const profile = await authAPI.getProfile();
+      if (profile && profile.user) {
+        const userData = {
+          id: profile.user.id,
+          name: profile.user.name,
+          email: profile.user.email,
+          role: profile.user.role,
+          empresaId: profile.user.empresaId || profile.user.idEmpresa || profile.user.empresa_id || profile.user.companyId
+        };
+
+        // ✅ CORRECCIÓN CRÍTICA: Validar que tenemos todos los datos requeridos
+        if (!userData.empresaId) {
+          console.error('❌ El servidor no devolvió empresaId en el perfil del usuario');
+          return false;
+        }
+
+        if (userData.id && userData.email && userData.empresaId) {
           // Guardar los datos recuperados
           localStorage.setItem('userData', JSON.stringify(userData));
+          localStorage.setItem('userContext', JSON.stringify(userData));
           localStorage.setItem('userName', userData.name || '');
           localStorage.setItem('userRole', userData.role || '');
           localStorage.setItem('userEmail', userData.email || '');
           localStorage.setItem('userId', userData.id || '');
+          localStorage.setItem('empresaId', userData.empresaId || '');
+
+          console.log('✅ Datos del usuario recuperados exitosamente:', userData);
 
           setUser(userData);
           setUserRole(userData.role);
           setIsLoggedIn(true);
           return true;
+        } else {
+          console.error('❌ Datos del usuario recuperados están incompletos:', userData);
+          return false;
         }
+      } else {
+        console.error('❌ El servidor no devolvió datos válidos del perfil del usuario');
+        return false;
       }
-      return false;
     } catch (error) {
+      console.error('❌ Error recuperando datos del usuario:', error);
       return false;
     }
   }, []);

@@ -50,21 +50,37 @@ const retryRequest = async (error, retries = MAX_RETRIES) => {
 };
 
 apiClient.interceptors.request.use(
-  (config) => {
-    const token =
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("userToken") ||
-      localStorage.getItem("token");
+   (config) => {
+     const token =
+       localStorage.getItem("authToken") ||
+       localStorage.getItem("userToken") ||
+       localStorage.getItem("token");
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+     if (token) {
+       config.headers.Authorization = `Bearer ${token}`;
+     }
 
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
+     // ✅ CORRECCIÓN CRÍTICA: Agregar empresaId a todas las peticiones
+     const empresaId =
+       localStorage.getItem("empresaId") ||
+       localStorage.getItem("userEmpresaId") ||
+       JSON.parse(localStorage.getItem("userData") || '{}')?.empresaId ||
+       JSON.parse(localStorage.getItem("userContext") || '{}')?.empresaId;
+
+     if (empresaId) {
+       config.headers['X-Empresa-Id'] = empresaId;
+       // También agregar como parámetro de query si no existe en la URL
+       if (config.url && !config.url.includes('empresaId') && !config.url.includes('idEmpresa')) {
+         const separator = config.url.includes('?') ? '&' : '?';
+         config.url += `${separator}idEmpresa=${empresaId}`;
+       }
+     }
+
+     return config;
+   },
+   (error) => {
+     return Promise.reject(error);
+   }
 );
 
 apiClient.interceptors.response.use(

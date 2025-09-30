@@ -389,6 +389,9 @@ const authAPI = {
             localStorage.setItem('userId', finalUserData.id || '');
             localStorage.setItem('empresaId', finalUserData.empresaId || '');
 
+            // ✅ CORRECCIÓN CRÍTICA: También guardar en userContext para compatibilidad
+            localStorage.setItem('userContext', JSON.stringify(finalUserData));
+
             console.log('✅ Datos de usuario guardados correctamente:', finalUserData);
           } else {
             console.error('❌ Datos de usuario incompletos:', finalUserData);
@@ -397,7 +400,39 @@ const authAPI = {
               email: !finalUserData.email,
               empresaId: !finalUserData.empresaId
             });
-            throw new Error('Los datos del usuario están incompletos (falta ID, email o empresaId)');
+
+            // ✅ CORRECCIÓN CRÍTICA: Si falta empresaId pero tenemos otros datos, intentar recuperar de fuentes alternativas
+            if (finalUserData.id && finalUserData.email) {
+              console.log('🔄 Intentando recuperar empresaId de fuentes alternativas...');
+
+              // Buscar empresaId en diferentes formatos y ubicaciones
+              const empresaIdFromStorage = localStorage.getItem('empresaId') ||
+                                         localStorage.getItem('userEmpresaId') ||
+                                         localStorage.getItem('companyId');
+
+              if (empresaIdFromStorage) {
+                finalUserData.empresaId = empresaIdFromStorage;
+                console.log('✅ empresaId recuperado de almacenamiento:', empresaIdFromStorage);
+              } else {
+                // Si no hay empresaId disponible, generar error específico
+                throw new Error('empresaId es requerido pero no está disponible en los datos del usuario ni en el almacenamiento local');
+              }
+            } else {
+              throw new Error('Los datos del usuario están incompletos (falta ID, email o empresaId)');
+            }
+          }
+
+          // ✅ CORRECCIÓN CRÍTICA: Guardar datos adicionales para asegurar compatibilidad
+          if (finalUserData.empresaId) {
+            localStorage.setItem('userData', JSON.stringify(finalUserData));
+            localStorage.setItem('userName', finalUserData.name || '');
+            localStorage.setItem('userRole', finalUserData.role || '');
+            localStorage.setItem('userEmail', finalUserData.email || '');
+            localStorage.setItem('userId', finalUserData.id || '');
+            localStorage.setItem('empresaId', finalUserData.empresaId || '');
+            localStorage.setItem('userContext', JSON.stringify(finalUserData));
+
+            console.log('✅ Datos de usuario guardados correctamente:', finalUserData);
           }
         } else {
           console.error('❌ No se recibieron datos del usuario en la respuesta');

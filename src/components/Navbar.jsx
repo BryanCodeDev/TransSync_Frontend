@@ -101,6 +101,12 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
 
   const loadNotifications = useCallback(async () => {
+    // ✅ CORRECCIÓN CRÍTICA: Evitar múltiples llamadas simultáneas
+    if (loadNotifications._loading) {
+      return;
+    }
+    loadNotifications._loading = true;
+
     try {
       const notificationsData = await dashboardAPI.getNotificationHistory(10);
 
@@ -125,12 +131,27 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         setUnreadCount(0);
       }
     } catch (error) {
-      // Solo mostrar error si no es por falta de contexto
-      if (!error.message?.includes('empresaId no encontrado')) {
-        console.error('Error cargando notificaciones:', error);
+      // ✅ CORRECCIÓN CRÍTICA: Mejor manejo de errores para evitar spam en consola
+      if (error.message?.includes('empresaId no encontrado')) {
+        // Error esperado cuando falta contexto, no mostrar en consola repetidamente
+        setNotifications([]);
+        setUnreadCount(0);
+      } else if (error.response?.status === 403) {
+        // Error 403 es esperado cuando falta autorización, no mostrar repetidamente
+        console.warn('⚠️ Acceso denegado a notificaciones (403) - posiblemente falta empresaId');
+        setNotifications([]);
+        setUnreadCount(0);
+      } else {
+        // Solo mostrar errores inesperados ocasionalmente para evitar spam
+        if (!loadNotifications._lastErrorTime || Date.now() - loadNotifications._lastErrorTime > 30000) {
+          console.error('❌ Error inesperado cargando notificaciones:', error);
+          loadNotifications._lastErrorTime = Date.now();
+        }
+        setNotifications([]);
+        setUnreadCount(0);
       }
-      setNotifications([]);
-      setUnreadCount(0);
+    } finally {
+      loadNotifications._loading = false;
     }
   }, []);
 
@@ -162,31 +183,54 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   }, []);
 
   useEffect(() => {
+    // ✅ CORRECCIÓN CRÍTICA: Evitar múltiples inicializaciones
+    if (isPublic || !isLoggedIn || servicesInitialized) {
+      return;
+    }
+
+    let isInitialized = false;
+
     const initializeNotifications = async () => {
-      if (!isPublic && isLoggedIn && !servicesInitialized) {
-        try {
-          if (!notificationService.isInitialized()) {
-            await notificationService.initialize();
-          }
+      if (isInitialized) return;
+      isInitialized = true;
 
-          if (!socket.isConnected()) {
-            await socket.connect();
-          }
+      try {
+        // ✅ CORRECCIÓN CRÍTICA: Verificar si ya están inicializados antes de intentar
+        if (!notificationService.isInitialized()) {
+          await notificationService.initialize();
+        }
 
+        if (!socket.isConnected()) {
+          await socket.connect();
+        }
+
+        // ✅ CORRECCIÓN CRÍTICA: Solo cargar notificaciones si tenemos contexto válido
+        const authData = getAuthData();
+        if (authData && authData.empresaId) {
           await loadNotifications();
+        }
 
-          setServicesInitialized(true);
+        setServicesInitialized(true);
 
-        } catch (error) {
+      } catch (error) {
+        // ✅ CORRECCIÓN CRÍTICA: Mejor manejo de errores sin spam
+        if (error.message?.includes('empresaId') || error.response?.status === 403) {
+          // Errores esperados, no mostrar repetidamente
+          setServicesInitialized(true); // Marcar como inicializado para evitar reintentos
+        } else {
+          console.error('❌ Error inicializando servicios de notificaciones:', error);
+          setServicesInitialized(true); // Evitar bucles infinitos
         }
       }
     };
 
-    initializeNotifications();
+    // ✅ CORRECCIÓN CRÍTICA: Usar timeout para evitar inicializaciones inmediatas múltiples
+    const timeoutId = setTimeout(initializeNotifications, 100);
 
     return () => {
+      clearTimeout(timeoutId);
     };
-  }, [isPublic, isLoggedIn, servicesInitialized, loadNotifications, notificationService, socket]);
+  }, [isPublic, isLoggedIn, servicesInitialized, loadNotifications, notificationService, socket, getAuthData]);
 
   useEffect(() => {
     if (authData && authData.token && socket) {

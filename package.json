@@ -58,7 +58,12 @@
     "analyze": "npm run build && npx serve -s build",
     "clean": "rd /s /q node_modules && del package-lock.json && npm install",
     "clean-build": "node clear-cache.js && npm install --legacy-peer-deps && npm run build",
-    "fix-cache": "node clear-cache.js"
+    "fix-cache": "node clear-cache.js",
+    "fix-chunks": "node fix-chunks.js",
+    "build:analyze": "npm run build && npx source-map-explorer 'build/static/js/*.js'",
+    "build:clean": "node fix-chunks.js && npm run clean && npm run build",
+    "start:clean": "node fix-chunks.js && npm start",
+    "serve": "npx serve -s build -l 3000"
   },
   "eslintConfig": {
     "extends": [

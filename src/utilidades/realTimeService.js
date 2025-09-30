@@ -30,6 +30,11 @@ class RealTimeService {
       return;
     }
 
+    // ✅ CORRECCIÓN CRÍTICA: Si no hay contexto, intentar obtenerlo de múltiples fuentes
+    if (!userContext) {
+      userContext = this.getUserContextFromStorage();
+    }
+
     this.userContext = userContext;
 
     try {
@@ -46,22 +51,37 @@ class RealTimeService {
 
       // Verificar que tenemos datos de usuario válidos
       if (!userContext || !userContext.idUsuario) {
-        console.warn('⚠️ Datos de usuario incompletos para WebSocket');
-        this.emit('connection:error', {
-          error: 'Incomplete user context',
-          timestamp: new Date()
-        });
-        return;
+        console.warn('⚠️ Datos de usuario incompletos para WebSocket, intentando recuperar...');
+        userContext = this.getUserContextFromStorage();
+
+        if (!userContext || !userContext.idUsuario) {
+          console.error('❌ No se pudieron obtener datos válidos del usuario para WebSocket');
+          this.emit('connection:error', {
+            error: 'Unable to get valid user context for WebSocket',
+            timestamp: new Date()
+          });
+          return;
+        }
       }
 
       // ✅ CORRECCIÓN CRÍTICA: empresaId es obligatorio según correcciones de seguridad
       if (!userContext.empresaId && !userContext.idEmpresa) {
-        console.error('❌ empresaId es requerido para la conexión WebSocket');
-        this.emit('connection:error', {
-          error: 'empresaId is required for WebSocket connection',
-          timestamp: new Date()
-        });
-        return;
+        console.warn('⚠️ empresaId no disponible, intentando recuperar...');
+        const empresaId = localStorage.getItem('empresaId') ||
+                         JSON.parse(localStorage.getItem('userData') || '{}')?.empresaId;
+
+        if (empresaId) {
+          userContext.empresaId = empresaId;
+          userContext.idEmpresa = empresaId;
+          console.log('✅ empresaId recuperado:', empresaId);
+        } else {
+          console.error('❌ empresaId es requerido para la conexión WebSocket');
+          this.emit('connection:error', {
+            error: 'empresaId is required for WebSocket connection',
+            timestamp: new Date()
+          });
+          return;
+        }
       }
 
       console.log('🔗 Conectando WebSocket con contexto:', {
@@ -113,6 +133,58 @@ class RealTimeService {
     } catch (error) {
       console.error('❌ Error conectando WebSocket:', error);
       this.handleConnectionError(error);
+    }
+  }
+
+  /**
+   * ✅ CORRECCIÓN CRÍTICA: Método para obtener contexto de usuario de múltiples fuentes
+   */
+  getUserContextFromStorage() {
+    try {
+      // Intentar obtener de userData primero
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      if (userData && userData.id && userData.email) {
+        return {
+          idUsuario: userData.id,
+          empresaId: userData.empresaId,
+          idEmpresa: userData.empresaId,
+          rol: userData.role || 'USER',
+          email: userData.email
+        };
+      }
+
+      // Intentar obtener de userContext como respaldo
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      if (userContext && userContext.id && userContext.email) {
+        return {
+          idUsuario: userContext.id,
+          empresaId: userContext.empresaId,
+          idEmpresa: userContext.empresaId,
+          rol: userContext.role || 'USER',
+          email: userContext.email
+        };
+      }
+
+      // Intentar obtener datos individuales como último recurso
+      const userId = localStorage.getItem('userId');
+      const empresaId = localStorage.getItem('empresaId');
+      const userRole = localStorage.getItem('userRole');
+      const userEmail = localStorage.getItem('userEmail');
+
+      if (userId && empresaId && userEmail) {
+        return {
+          idUsuario: userId,
+          empresaId: empresaId,
+          idEmpresa: empresaId,
+          rol: userRole || 'USER',
+          email: userEmail
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('❌ Error obteniendo contexto de usuario del almacenamiento:', error);
+      return null;
     }
   }
 
@@ -914,7 +986,31 @@ export const useSocket = (authData = null) => {
   return {
     socket: realTimeService.socket,
     isConnected: () => realTimeService.isConnected,
-    connect: (customAuthData = null) => realTimeService.connect(customAuthData || authData),
+    connect: (customAuthData = null) => {
+      // ✅ CORRECCIÓN CRÍTICA: Asegurar que tenemos datos completos del usuario
+      let finalAuthData = customAuthData || authData;
+
+      if (!finalAuthData) {
+        // Intentar obtener datos del contexto de autenticación
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const empresaId = localStorage.getItem('empresaId');
+
+        if (userData && userData.id && empresaId) {
+          finalAuthData = {
+            idUsuario: userData.id,
+            empresaId: empresaId,
+            rol: userData.role || 'USER',
+            email: userData.email
+          };
+          console.log('✅ Datos de usuario recuperados para WebSocket:', finalAuthData);
+        } else {
+          console.error('❌ No se pudieron obtener datos completos del usuario para WebSocket');
+          return;
+        }
+      }
+
+      realTimeService.connect(finalAuthData);
+    },
     disconnect: () => realTimeService.disconnect(),
     emit: (event, data) => realTimeService.emit(event, data),
     on: (event, callback) => realTimeService.on(event, callback),
