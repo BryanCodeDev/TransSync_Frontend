@@ -1,3 +1,4 @@
+// src/utilidades/nlpProcessor.js - Procesador Avanzado de Lenguaje Natural
 const nlpProcessor = {
   /**
    * Análisis semántico avanzado del mensaje

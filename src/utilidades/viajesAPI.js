@@ -1,4 +1,4 @@
-
+// utilidades/viajesAPI.js - Servicio para viajes (tabla Viajes)
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const viajesAPI = {
@@ -9,21 +9,7 @@ const viajesAPI = {
   // Obtener todos los viajes con filtros
   getAll: async (filters = {}) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId automáticamente en filtros
-      const filtrosConEmpresa = {
-        ...filters,
-        idEmpresa: empresaId  // ✅ Filtro de seguridad por empresa
-      };
-
-      const params = apiUtils.createUrlParams(filtrosConEmpresa);
+      const params = apiUtils.createUrlParams(filters);
       const response = await apiClient.get(`/api/viajes${params ? `?${params}` : ''}`);
       return response.data;
     } catch (error) {
@@ -45,29 +31,21 @@ const viajesAPI = {
   // Crear nuevo viaje
   create: async (viajeData) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      const {
-        idVehiculo,
-        idConductor,
-        idRuta,
-        fecHorSalViaje,
+      const { 
+        idVehiculo, 
+        idConductor, 
+        idRuta, 
+        fecHorSalViaje, 
         fecHorLleViaje,
         estViaje,
         obsViaje
       } = viajeData;
 
       // Validaciones básicas
-      const missing = apiUtils.validateRequired({
+      const missing = apiUtils.validateRequired({ 
         idVehiculo,
-        idConductor,
-        idRuta,
+        idConductor, 
+        idRuta, 
         fecHorSalViaje
       });
 
@@ -79,7 +57,7 @@ const viajesAPI = {
       const fechaSalida = new Date(fecHorSalViaje);
       const hoy = new Date();
       if (fechaSalida < hoy) {
-
+        console.warn('Creando viaje con fecha de salida en el pasado');
       }
 
       // Validar que si hay fecha de llegada, sea posterior a la salida
@@ -103,8 +81,7 @@ const viajesAPI = {
         fecHorSalViaje,
         fecHorLleViaje: fecHorLleViaje || null,
         estViaje: estViaje || 'PROGRAMADO',
-        obsViaje: obsViaje || null,
-        idEmpresa: empresaId // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId del contexto
+        obsViaje: obsViaje || null
       });
 
       return response.data;
@@ -206,16 +183,7 @@ const viajesAPI = {
   // Obtener viajes por estado
   getByStatus: async (estado) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta por estado
-      const response = await apiClient.get(`/api/viajes?estViaje=${estado}&idEmpresa=${empresaId}`);
+      const response = await apiClient.get(`/api/viajes?estViaje=${estado}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -241,17 +209,7 @@ const viajesAPI = {
   getByConductor: async (idConductor) => {
     try {
       if (!idConductor) throw new Error('ID de conductor requerido');
-
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta por conductor
-      const response = await apiClient.get(`/api/viajes?idConductor=${idConductor}&idEmpresa=${empresaId}`);
+      const response = await apiClient.get(`/api/viajes?idConductor=${idConductor}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -262,17 +220,7 @@ const viajesAPI = {
   getByVehicle: async (idVehiculo) => {
     try {
       if (!idVehiculo) throw new Error('ID de vehículo requerido');
-
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta por vehículo
-      const response = await apiClient.get(`/api/viajes?idVehiculo=${idVehiculo}&idEmpresa=${empresaId}`);
+      const response = await apiClient.get(`/api/viajes?idVehiculo=${idVehiculo}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -283,17 +231,7 @@ const viajesAPI = {
   getByRoute: async (idRuta) => {
     try {
       if (!idRuta) throw new Error('ID de ruta requerido');
-
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta por ruta
-      const response = await apiClient.get(`/api/viajes?idRuta=${idRuta}&idEmpresa=${empresaId}`);
+      const response = await apiClient.get(`/api/viajes?idRuta=${idRuta}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -304,17 +242,7 @@ const viajesAPI = {
   getByDate: async (fecha) => {
     try {
       if (!fecha) throw new Error('Fecha requerida');
-
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta por fecha
-      const response = await apiClient.get(`/api/viajes?fecha=${fecha}&idEmpresa=${empresaId}`);
+      const response = await apiClient.get(`/api/viajes?fecha=${fecha}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -328,16 +256,7 @@ const viajesAPI = {
         throw new Error('El término de búsqueda debe tener al menos 2 caracteres');
       }
 
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la búsqueda
-      const response = await apiClient.get(`/api/viajes?search=${encodeURIComponent(searchTerm.trim())}&idEmpresa=${empresaId}`);
+      const response = await apiClient.get(`/api/viajes?search=${encodeURIComponent(searchTerm.trim())}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -387,6 +306,7 @@ const viajesAPI = {
     return date.toLocaleDateString('es-CO', options);
   },
 
+  // Calcular duración del viaje
   calculateDuration: (fecHorSalViaje, fecHorLleViaje) => {
     if (!fecHorSalViaje || !fecHorLleViaje) return null;
     
@@ -400,6 +320,7 @@ const viajesAPI = {
     return `${diffHours}h ${diffMins}m`;
   },
 
+  // Validar datos de viaje
   validateViajeData: (viajeData) => {
     const errors = [];
     

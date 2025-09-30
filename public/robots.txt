@@ -1,45 +1,36 @@
-# Robots.txt para TransSync
 # https://www.robotstxt.org/robotstxt.html
-
 User-agent: *
 Allow: /
 
-# Sitemap
-Sitemap: https://transync1.netlify.app/sitemap.xml
+# Sitemap location
+Sitemap: https://transsync.com/sitemap.xml
 
-# Bloquear archivos de desarrollo y sensibles
-Disallow: /build/
-Disallow: /node_modules/
-Disallow: /.env
-Disallow: /config/
-Disallow: /*.json$
-Disallow: /src/
-Disallow: /public/
-
-# Permitir archivos importantes
-Allow: /manifest.json
-Allow: /robots.txt
-Allow: /sitemap.xml
-
-# Bloquear rutas de administración
-Disallow: /admin/
-Disallow: /api/
-
-# Configuración específica para bots
+# Allow all major search engines
 User-agent: Googlebot
 Allow: /
-Disallow: /admin/
-Disallow: /api/
 
 User-agent: Bingbot
 Allow: /
-Disallow: /admin/
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Disallow common non-content paths
 Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /build/
+Disallow: /node_modules/
+Disallow: /*.json$
+Disallow: /*?*
 
-# Bloquear bots maliciosos conocidos
-User-agent: AhrefsBot
-Disallow: /
+# Allow important static assets
+Allow: /assets/
+Allow: /favicon.ico
+Allow: /manifest.json
 
-User-agent: MJ12bot
-Disallow: /
-Disallow:
+# Crawl delay to be respectful
+Crawl-delay: 1

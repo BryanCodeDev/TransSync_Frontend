@@ -1,3 +1,4 @@
+// src/utilidades/profileAPI.js - APIs específicas para gestión de perfil de usuario
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 /**
@@ -15,10 +16,9 @@ const profileAPI = {
    */
   getUserProfile: async () => {
     try {
-      // Usar el endpoint correcto que existe en el backend
       const response = await apiClient.get('/api/user/profile');
 
-      // El backend devuelve los datos en response.data
+      // El backend devuelve los datos en response.data.data
       const profileData = response.data.data || response.data;
 
       return profileData;
@@ -173,13 +173,12 @@ const profileAPI = {
 
   /**
    * Obtener información de la empresa del usuario
-   * NOTA: Este endpoint no existe en el backend actual, se obtiene desde auth
    * @returns {Promise<Object>} Información de la empresa
    */
   getUserCompany: async () => {
     try {
-      // Este endpoint no existe, devolver datos desde el contexto de usuario
-      throw new Error('Endpoint no disponible - usar datos del contexto de autenticación');
+      const response = await apiClient.get('/api/user/company');
+      return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }
@@ -250,13 +249,12 @@ const profileAPI = {
 
   /**
    * Verificar estado de la cuenta
-   * NOTA: Este endpoint no existe en el backend actual
    * @returns {Promise<Object>} Estado de la cuenta
    */
   verifyAccountStatus: async () => {
     try {
-      // Este endpoint no existe, devolver estado por defecto
-      throw new Error('Endpoint no disponible - usar verificación de token');
+      const response = await apiClient.get('/api/user/account-status');
+      return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
     }

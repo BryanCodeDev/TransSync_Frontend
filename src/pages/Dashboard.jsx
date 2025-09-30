@@ -35,11 +35,10 @@ import {
 import { dashboardAPI } from '../utilidades/dashboardAPI';
 import realTimeService from '../utilidades/realTimeService';
 import { useNotification } from '../utilidades/notificationService';
+import DashboardSkeleton from '../components/DashboardSkeleton';
 import BreadcrumbNav from '../components/BreadcrumbNav';
 import Tooltip from '../components/Tooltip';
-import ErrorRecovery from '../components/ErrorRecovery';
 import { useAuth } from '../hooks/useAuth';
-import authAPI from '../utilidades/authAPI';
 
 ChartJS.register(
   CategoryScale,
@@ -90,20 +89,11 @@ const Dashboard = () => {
   const fetchRealTimeData = useCallback(async () => {
     try {
       const response = await dashboardAPI.getRealTimeData();
-
-      // Verificar si la respuesta es válida
-      if (response && response.status === 'success' && response.data) {
+      if (response.status === 'success') {
         setRealTimeData(response.data);
-      } else if (response?.status === 'forbidden') {
-        console.warn('⚠️ Acceso denegado a datos en tiempo real - posiblemente esperando reinicio del servidor');
       }
-      // Si status es 'pending', simplemente no hacer nada (contexto no disponible aún)
     } catch (error) {
-      // Solo mostrar error si no es por falta de contexto o permisos
-      if (!error.message?.includes('empresaId no encontrado') &&
-          !error.message?.includes('Acceso denegado')) {
-        console.error("Error al cargar datos en tiempo real:", error);
-      }
+      console.error("Error al cargar datos en tiempo real:", error);
     }
   }, []);
 
@@ -113,18 +103,23 @@ const Dashboard = () => {
       // Cambiar a modo horario
       realTimeService.setUpdateMode(false, 60); // 1 hora
       setIsRealTimeActive(false);
+      console.log('⏰ Cambiado a modo horario (cada hora)');
     } else {
-      realTimeService.setUpdateMode(true);
+      // Cambiar a modo tiempo real
+      realTimeService.setUpdateMode(true); // tiempo real
       setIsRealTimeActive(true);
+      console.log('⚡ Cambiado a modo tiempo real');
     }
   }, [isRealTimeActive]);
 
   // Función para forzar actualización
   const forceUpdate = useCallback(async (dataType = 'all') => {
     try {
+      // Forzar actualización inmediata via WebSocket
       realTimeService.requestDashboardUpdate();
+      console.log('🔄 Actualización forzada:', dataType);
     } catch (error) {
-      // Error forzando actualización - logged in production builds
+      console.error('❌ Error forzando actualización:', error);
     }
   }, []);
 
@@ -132,38 +127,30 @@ const Dashboard = () => {
   const clearCache = useCallback(async (cacheType = null) => {
     try {
       await dashboardAPI.clearCache(cacheType);
+      console.log('💾 Cache limpiado:', cacheType || 'all');
     } catch (error) {
-      // Error limpiando cache - logged in production builds
+      console.error('❌ Error limpiando cache:', error);
     }
   }, []);
+
 
   // Función para alternar notificaciones
   const toggleNotifications = useCallback(() => {
     setNotificationsEnabled(prev => !prev);
-  }, []);
+    console.log('🔔 Notificaciones:', !notificationsEnabled ? 'habilitadas' : 'deshabilitadas');
+  }, [notificationsEnabled]);
 
   // Envolver fetchChartsData en useCallback
   const fetchChartsData = useCallback(async () => {
     try {
       const response = await dashboardAPI.getChartsData(selectedPeriod);
-
-      // Verificar si la respuesta es válida
-      if (response && response.status !== 'pending' && response.status !== 'forbidden') {
-        if (response.status === 'success' && response.data) {
-          setChartData(response.data);
-        }
-      } else if (response?.status === 'forbidden') {
-        console.warn('⚠️ Acceso denegado a gráficos - posiblemente esperando reinicio del servidor');
+      if (response.status === 'success') {
+        setChartData(response.data);
       }
-      // Si status es 'pending', simplemente no hacer nada (contexto no disponible aún)
     } catch (error) {
-      // Solo mostrar error si no es por falta de contexto o permisos
-      if (!error.message?.includes('empresaId no encontrado') &&
-          !error.message?.includes('Acceso denegado')) {
-        console.error("Error al cargar datos de gráficos:", error);
-      }
+      console.error("Error al cargar datos de gráficos:", error);
     }
-  }, [selectedPeriod]);
+  }, [selectedPeriod]); // Incluir selectedPeriod como dependencia
 
   // Envolver fetchDashboardData en useCallback
   const fetchDashboardData = useCallback(async () => {
@@ -173,19 +160,14 @@ const Dashboard = () => {
 
       // Obtener estadísticas generales
       const statsResponse = await dashboardAPI.getGeneralStatistics();
-      if (statsResponse && statsResponse.status === 'success' && statsResponse.data) {
+      if (statsResponse.status === 'success') {
         setStats(statsResponse.data);
-      } else if (statsResponse?.status === 'forbidden') {
-        console.warn('⚠️ Acceso denegado a estadísticas - posiblemente esperando reinicio del servidor');
       }
-      // Si status es 'pending', simplemente continuar (contexto no disponible aún)
 
       // Obtener alertas
       const alertsResponse = await dashboardAPI.getActiveAlerts();
-      if (alertsResponse && alertsResponse.status === 'success' && alertsResponse.data) {
+      if (alertsResponse.status === 'success') {
         setAlerts(alertsResponse.data || []);
-      } else if (alertsResponse?.status === 'forbidden') {
-        console.warn('⚠️ Acceso denegado a alertas - posiblemente esperando reinicio del servidor');
       }
 
       // Obtener datos de gráficos
@@ -195,106 +177,32 @@ const Dashboard = () => {
       await fetchRealTimeData();
 
     } catch (error) {
-      // Solo mostrar error si no es por falta de contexto o permisos
-      if (!error.message?.includes('empresaId no encontrado') &&
-          !error.message?.includes('Acceso denegado')) {
-        console.error("Error al cargar datos del dashboard:", error);
-        setError("Error al cargar los datos. Verifique su conexión.");
-      }
+      console.error("Error al cargar datos del dashboard:", error);
+      setError("Error al cargar los datos. Verifique su conexión.");
     } finally {
       setIsLoading(false);
     }
-  }, [fetchChartsData, fetchRealTimeData]);
-
-  // Funciones de manejo de eventos WebSocket
-  const handleStatsUpdate = useCallback((data) => {
-    console.log('📊 Estadísticas actualizadas via WebSocket:', data);
-    if (data.stats) {
-      setStats(prevStats => ({ ...prevStats, ...data.stats }));
-    }
-  }, []);
-
-  const handleRealtimeUpdate = useCallback((data) => {
-    console.log('⚡ Datos en tiempo real via WebSocket:', data);
-    if (data.realtime) {
-      setRealTimeData(data.realtime);
-    }
-  }, []);
-
-  const handleAlertsUpdate = useCallback((data) => {
-    console.log('🚨 Alertas actualizadas via WebSocket:', data);
-    if (data.alerts) {
-      setAlerts(data.alerts);
-    }
-  }, []);
-
-  const handleNotification = useCallback(async (data) => {
-    console.log('📱 Nueva notificación via WebSocket:', data);
-
-    // Mostrar notificación push si está habilitado
-    if (notificationsEnabled) {
-      await notificationService.showFromSocket(data);
-    }
-  }, [notificationsEnabled, notificationService]);
-
-  const handleConnectionStatus = useCallback((status) => {
-    console.log('🔗 Estado de conexión actualizado:', status);
-    setConnectionStatus(status.connected ? 'connected' : 'disconnected');
-    // En modo horario, isRealTimeActive indica si está conectado pero no en tiempo real continuo
-    setIsRealTimeActive(status.connected);
-  }, []);
+  }, [fetchChartsData, fetchRealTimeData]); // Incluir las funciones como dependencias
 
   // Inicializar servicios mejorados
   useEffect(() => {
     const initializeServices = async () => {
       try {
-        // ✅ CORRECCIÓN CRÍTICA: Verificar que tenemos datos completos del usuario
-        if (!user?.id || !user?.email || !user?.empresaId) {
-          console.warn('⚠️ Datos de usuario incompletos, intentando recuperar...');
-          // Intentar recuperar datos del localStorage como respaldo
-          const userData = authAPI.getCurrentUser();
-          if (!userData || !userData.empresaId) {
-            console.warn('⚠️ No se pudieron recuperar los datos del usuario, esperando contexto completo...');
-            return; // Salir sin error, esperar a que el contexto esté disponible
-          }
-        }
+        // Inicializar servicio de notificaciones
+        await notificationService.initialize();
 
-        // ✅ CORRECCIÓN CRÍTICA: Construir contexto de usuario con validación estricta
+        // Conectar WebSocket con contexto de usuario
         const userContext = {
           idUsuario: user?.id,
-          idEmpresa: user?.empresaId || localStorage.getItem('empresaId'),
-          rol: userRole,
-          email: user?.email
+          idEmpresa: user?.empresaId,
+          rol: userRole
         };
+        realTimeService.connect(userContext);
 
-        // ✅ CORRECCIÓN CRÍTICA: Validar que empresaId existe antes de conectar WebSocket
-        if (!userContext.idEmpresa) {
-          console.warn('⚠️ empresaId no disponible aún, esperando contexto completo...');
-          return; // Salir sin error, esperar a que empresaId esté disponible
-        }
+        // Configurar modo horario (cada hora) en lugar de tiempo real
+        realTimeService.setUpdateMode(false, 60); // 60 minutos = 1 hora
 
-        // Solo inicializar si tenemos todos los datos necesarios
-        if (userContext.idUsuario && userContext.idEmpresa && userContext.rol) {
-          // Inicializar servicio de notificaciones
-          await notificationService.initialize();
-
-          // Log detallado para debugging
-          console.log('🔗 Estado de conexión actualizado:', {
-            userId: userContext.idUsuario,
-            empresaId: userContext.idEmpresa,
-            timestamp: new Date()
-          });
-
-          console.log('🔗 Conectando WebSocket con contexto completo:', userContext);
-          realTimeService.connect(userContext);
-
-          // Configurar modo horario (cada hora) en lugar de tiempo real
-          realTimeService.setUpdateMode(false, 60); // 60 minutos = 1 hora
-
-          console.log('✅ Servicios mejorados inicializados en modo horario');
-        } else {
-          console.warn('⚠️ Contexto de usuario aún incompleto, esperando datos completos...');
-        }
+        console.log('✅ Servicios mejorados inicializados en modo horario');
       } catch (error) {
         console.error('❌ Error inicializando servicios mejorados:', error);
       }
@@ -302,23 +210,52 @@ const Dashboard = () => {
 
     initializeServices();
 
-    // Cleanup al desmontar - solo limpiar listeners, no desconectar completamente
+    // Cleanup al desmontar
     return () => {
-      // Solo limpiar listeners específicos del dashboard, mantener conexión WebSocket activa
-      realTimeService.off('notification:stats_update', handleStatsUpdate);
-      realTimeService.off('notification:realtime_update', handleRealtimeUpdate);
-      realTimeService.off('notification:alerts_update', handleAlertsUpdate);
-      realTimeService.off('notification:chatbot', handleNotification);
-      realTimeService.off('connection:established', handleConnectionStatus);
-      realTimeService.off('connection:error');
-
-      // No desconectar completamente el servicio WebSocket para mantener la conexión activa
-      // dashboardAPI.stopUpdates();
+      realTimeService.disconnect();
+      dashboardAPI.stopUpdates();
     };
-  }, [user, userRole, notificationService, handleStatsUpdate, handleRealtimeUpdate, handleAlertsUpdate, handleNotification, handleConnectionStatus]);
+  }, [user, userRole, notificationService]);
 
   // Configurar listeners para WebSocket
   useEffect(() => {
+    const handleStatsUpdate = (data) => {
+      console.log('📊 Estadísticas actualizadas via WebSocket:', data);
+      if (data.stats) {
+        setStats(prevStats => ({ ...prevStats, ...data.stats }));
+      }
+    };
+
+    const handleRealtimeUpdate = (data) => {
+      console.log('⚡ Datos en tiempo real via WebSocket:', data);
+      if (data.realtime) {
+        setRealTimeData(data.realtime);
+      }
+    };
+
+    const handleAlertsUpdate = (data) => {
+      console.log('🚨 Alertas actualizadas via WebSocket:', data);
+      if (data.alerts) {
+        setAlerts(data.alerts);
+      }
+    };
+
+    const handleNotification = async (data) => {
+      console.log('📱 Nueva notificación via WebSocket:', data);
+
+      // Mostrar notificación push si está habilitado
+      if (notificationsEnabled) {
+        await notificationService.showFromSocket(data);
+      }
+    };
+
+    const handleConnectionStatus = (status) => {
+      console.log('🔗 Estado de conexión actualizado:', status);
+      setConnectionStatus(status.connected ? 'connected' : 'disconnected');
+      // En modo horario, isRealTimeActive indica si está conectado pero no en tiempo real continuo
+      setIsRealTimeActive(status.connected);
+    };
+
     // Registrar listeners en realTimeService
     realTimeService.on('notification:stats_update', handleStatsUpdate);
     realTimeService.on('notification:realtime_update', handleRealtimeUpdate);
@@ -340,7 +277,7 @@ const Dashboard = () => {
       realTimeService.off('connection:established', handleConnectionStatus);
       realTimeService.off('connection:error');
     };
-  }, [handleStatsUpdate, handleRealtimeUpdate, handleAlertsUpdate, handleNotification, handleConnectionStatus]);
+  }, [notificationService, notificationsEnabled]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -349,10 +286,8 @@ const Dashboard = () => {
 
   // Actualizar datos de gráficos cuando cambia el período
   useEffect(() => {
-    if (selectedPeriod) {
-      fetchChartsData();
-    }
-  }, [selectedPeriod, fetchChartsData]);
+    fetchChartsData();
+  }, [fetchChartsData]);
 
   const prepareChartData = () => {
     const { viajes, rutas } = chartData;
@@ -419,22 +354,10 @@ const Dashboard = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
-    // ✅ CORRECCIÓN CRÍTICA: Usar componente de recuperación para errores críticos
-    if (error.includes('No user after sign in') ||
-        error.includes('Unexpected token') ||
-        error.includes('empresaId') ||
-        error.includes('userData')) {
-      return <ErrorRecovery error={error} onRetry={fetchDashboardData} />;
-    }
-
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] p-4 sm:p-6 md:p-8">
         <AlertTriangle className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-red-500 mb-3 sm:mb-4 flex-shrink-0" />

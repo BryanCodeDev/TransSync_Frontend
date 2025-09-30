@@ -1,29 +1,31 @@
-# Static assets - serve directly without redirect (must be before SPA fallback)
-# JavaScript files - IMPORTANT: These must be before SPA fallback
-/static/js/*    /static/js/:splat    200
-/static/css/*   /static/css/:splat   200
-/assets/*   /assets/:splat   200
+# SERVE CHUNKS DIRECTLY - MOST IMPORTANT - FIXED PATTERNS
+/admin/static/js/*.chunk.js    /static/js/:splat    200
+/admin/*.chunk.js              /:splat              200
+/admin/static/css/*.css        /static/css/:splat   200
+/static/js/*.chunk.js          /static/js/:splat    200
+/*.chunk.js                    /:splat              200
+/static/css/*.css              /static/css/:splat   200
 
-# Dynamic chunks with hash - serve JavaScript files correctly (IMPORTANT: Before SPA fallback)
-/static/js/*.js    /static/js/:splat    200
-/static/js/*.chunk.js    /static/js/:splat    200
-/admin/static/js/*.js    /admin/static/js/:splat    200
-/admin/static/js/*.chunk.js    /admin/static/js/:splat    200
+# SERVE STATIC ASSETS DIRECTLY
+/admin/static/*                /static/:splat        200
+/admin/assets/*                /assets/:splat        200
+/static/*                      /static/:splat        200
+/assets/*                      /assets/:splat        200
 
-# Critical static files - serve directly (IMPORTANT: Before SPA fallback)
-/favicon.ico    /favicon.ico   200
-/manifest.json  /manifest.json 200
-/robots.txt /robots.txt 200
-/sitemap.xml    /sitemap.xml   200
+# API CALLS
+/admin/api/*             https://transyncbackend-production.up.railway.app/:splat    200
+/api/*                   https://transyncbackend-production.up.railway.app/:splat    200
 
-# API proxy to Railway backend (IMPORTANT: Before SPA fallback)
-/api/*  https://transyncbackend-production.up.railway.app/:splat  200
+# CRITICAL FILES
+/admin/favicon.ico       /favicon.ico          200
+/admin/manifest.json     /manifest.json        200
+/admin/robots.txt        /robots.txt           200
+/admin/sitemap.xml       /sitemap.xml          200
+/favicon.ico             /favicon.ico          200
+/manifest.json           /manifest.json        200
+/robots.txt              /robots.txt           200
+/sitemap.xml             /sitemap.xml          200
 
-# Block access to sensitive files and invalid routes
-/node_modules/*    /   404
-/.git/*    /   404
-/.env*    /   404
-
-# SPA fallback - redirect only non-asset routes to index.html (must be last)
-# This should NOT match static files like /static/js/*.js
-/*    /index.html   200
+# SPA FALLBACK - MUST BE LAST
+/admin/*                 /index.html           200
+/*                       /index.html           200

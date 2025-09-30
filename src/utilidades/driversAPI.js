@@ -1,3 +1,5 @@
+// src/utilidades/driversAPI.js
+
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const driversAPI = {
@@ -12,29 +14,15 @@ const driversAPI = {
         throw new Error('Los filtros deben ser un objeto válido');
       }
 
-      // Agregar filtro de empresa automáticamente desde el contexto de autenticación
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const empresaId = userData.empresaId || userData.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('No se pudo obtener el ID de empresa del usuario');
-      }
-
-      // Crear filtros con empresa incluida
-      const filtrosConEmpresa = {
-        ...filters,
-        idEmpresa: empresaId
-      };
-
-      // Validar campos específicos (incluyendo idEmpresa)
-      const validFields = ['estConductor', 'tipLicConductor', 'conVehiculo', 'nomUsuario', 'apeUsuario', 'idEmpresa'];
-      for (const key in filtrosConEmpresa) {
+      // Validar campos específicos
+      const validFields = ['estConductor', 'tipLicConductor', 'conVehiculo', 'nomUsuario', 'apeUsuario'];
+      for (const key in filters) {
         if (!validFields.includes(key)) {
-          // Campo de filtro no válido - logged in production builds
+          console.warn(`Campo de filtro no válido: ${key}`);
         }
       }
 
-      const params = new URLSearchParams(filtrosConEmpresa).toString();
+      const params = new URLSearchParams(filters).toString();
       const url = `/api/conductores?${params}`;
 
       // Temporalmente sin cache para debugging

@@ -1,3 +1,4 @@
+// src/utilidades/adminAPI.js - API para funciones de administración
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const adminAPI = {
@@ -8,20 +9,9 @@ const adminAPI = {
   // Listar conductores y usuarios pendientes
   getUsers: async (filters = {}) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
       const params = new URLSearchParams();
 
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId como filtro obligatorio
-      params.append('idEmpresa', empresaId);
-
-      // Agregar filtros adicionales si existen
+      // Agregar filtros si existen
       if (filters.role) params.append('role', filters.role);
       if (filters.status) params.append('status', filters.status);
       if (filters.search) params.append('search', filters.search);
@@ -93,25 +83,16 @@ const adminAPI = {
   // Crear nuevo rol
   createRole: async (roleData) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Según esquema corregido, solo necesitamos nombre
-      const { name } = roleData;
+      const { name, description, permissions } = roleData;
 
       if (!name) {
         throw new Error('Nombre del rol es requerido');
       }
 
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Solo enviar campos que existen en la BD (idRol, nomRol)
       const response = await apiClient.post('/api/admin/roles', {
-        nomRol: name.trim(), // ✅ CORRECCIÓN CRÍTICA: Usar nomRol según esquema corregido
-        idEmpresa: empresaId  // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId para seguridad
+        name: name.trim(),
+        description: description?.trim() || '',
+        permissions: permissions || []
       });
       return response.data;
     } catch (error) {
@@ -154,16 +135,7 @@ const adminAPI = {
   // Obtener estadísticas generales
   getStats: async () => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en estadísticas generales
-      const response = await apiClient.get(`/api/admin/stats?idEmpresa=${empresaId}`);
+      const response = await apiClient.get('/api/admin/stats');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -173,16 +145,7 @@ const adminAPI = {
   // Obtener estadísticas de usuarios
   getUserStats: async () => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en estadísticas de usuarios
-      const response = await apiClient.get(`/api/admin/stats/users?idEmpresa=${empresaId}`);
+      const response = await apiClient.get('/api/admin/stats/users');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -192,16 +155,7 @@ const adminAPI = {
   // Obtener estadísticas de sistema
   getSystemStats: async () => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en estadísticas de sistema
-      const response = await apiClient.get(`/api/admin/stats/system?idEmpresa=${empresaId}`);
+      const response = await apiClient.get('/api/admin/stats/system');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));

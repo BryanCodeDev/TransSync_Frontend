@@ -1,4 +1,4 @@
-
+// utilidades/vehiculosAPI.js - Servicio corregido para vehículos
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const vehiculosAPI = {
@@ -9,22 +9,12 @@ const vehiculosAPI = {
   // Obtener vehículos con filtros
   getAll: async (filters = {}) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId automáticamente en filtros
-      const filtrosConEmpresa = {
-        ...filters,
-        idEmpresa: empresaId  // ✅ Filtro de seguridad por empresa
-      };
-
-      const params = apiUtils.createUrlParams(filtrosConEmpresa);
+      const params = apiUtils.createUrlParams(filters);
       const response = await apiClient.get(`/api/vehiculos${params ? `?${params}` : ''}`);
+
+      // Log para debugging
+      console.log('vehiculosAPI.getAll - Response data type:', typeof response.data);
+      console.log('vehiculosAPI.getAll - Response data:', response.data);
 
       // Asegurar que response.data sea un array - manejo más robusto
       let dataArray = [];
@@ -57,7 +47,7 @@ const vehiculosAPI = {
             }
           }
         } catch (parseError) {
-
+          console.warn('vehiculosAPI.getAll - No se pudo parsear response.data como JSON:', response.data);
           dataArray = [];
         }
       }
@@ -73,9 +63,18 @@ const vehiculosAPI = {
         direction: vehiculo.direction || 0
       }));
 
+      console.log('vehiculosAPI.getAll - Vehículos procesados:', vehiculos.length);
       return { vehiculos };
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      console.error('Error en vehiculosAPI.getAll:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      });
+      // Retornar datos vacíos si hay error
+      return { vehiculos: [] };
     }
   },
 
@@ -86,6 +85,7 @@ const vehiculosAPI = {
       const response = await apiClient.get(`/api/vehiculos/${id}`);
       return response.data;
     } catch (error) {
+      console.error('Error en vehiculosAPI.getById:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -93,33 +93,25 @@ const vehiculosAPI = {
   // Crear nuevo vehículo
   create: async (vehicleData) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const empresaId = userData.empresaId || userData.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
       // Validaciones específicas para vehículos según la base de datos
-      const {
-        numVehiculo,
-        plaVehiculo,
-        marVehiculo,
-        modVehiculo,
+      const { 
+        numVehiculo, 
+        plaVehiculo, 
+        marVehiculo, 
+        modVehiculo, 
         anioVehiculo,
         fecVenSOAT,
         fecVenTec,
         estVehiculo,
-        idEmpresa, // Este puede venir del formulario pero se valida contra el contexto
+        idEmpresa,
         idConductorAsignado
       } = vehicleData;
 
-      const missing = apiUtils.validateRequired({
+      const missing = apiUtils.validateRequired({ 
         numVehiculo,
-        plaVehiculo,
-        marVehiculo,
-        modVehiculo,
+        plaVehiculo, 
+        marVehiculo, 
+        modVehiculo, 
         anioVehiculo,
         fecVenSOAT,
         fecVenTec
@@ -127,11 +119,6 @@ const vehiculosAPI = {
 
       if (missing.length > 0) {
         throw new Error(`Campos requeridos: ${missing.join(', ')}`);
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Validar que el idEmpresa del formulario coincida con el contexto
-      if (idEmpresa && idEmpresa !== empresaId) {
-        throw new Error('No tienes permisos para crear vehículos en esta empresa');
       }
 
       // Validar placa (formato básico)
@@ -155,7 +142,7 @@ const vehiculosAPI = {
       const fechaSOAT = new Date(fecVenSOAT);
       const fechaTec = new Date(fecVenTec);
       const hoy = new Date();
-
+      
       if (fechaSOAT <= hoy) {
         throw new Error('La fecha de vencimiento del SOAT debe ser futura');
       }
@@ -173,12 +160,13 @@ const vehiculosAPI = {
         fecVenSOAT,
         fecVenTec,
         estVehiculo: estVehiculo || 'DISPONIBLE',
-        idEmpresa: empresaId, // ✅ CORRECCIÓN CRÍTICA: Usar empresaId del contexto
+        idEmpresa: idEmpresa || 1,
         idConductorAsignado: idConductorAsignado || null
       });
 
       return response.data;
     } catch (error) {
+      console.error('Error en vehiculosAPI.create:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -217,6 +205,7 @@ const vehiculosAPI = {
       const response = await apiClient.put(`/api/vehiculos/${id}`, cleanedData);
       return response.data;
     } catch (error) {
+      console.error('Error en vehiculosAPI.update:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -228,6 +217,7 @@ const vehiculosAPI = {
       const response = await apiClient.delete(`/api/vehiculos/${id}`);
       return response.data;
     } catch (error) {
+      console.error('Error en vehiculosAPI.delete:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -254,6 +244,7 @@ const vehiculosAPI = {
 
       return response.data;
     } catch (error) {
+      console.error('Error en vehiculosAPI.changeStatus:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -271,6 +262,7 @@ const vehiculosAPI = {
 
       return response.data;
     } catch (error) {
+      console.error('Error en vehiculosAPI.assignDriver:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -285,6 +277,7 @@ const vehiculosAPI = {
       const response = await apiClient.patch(`/api/vehiculos/${idVehiculo}/desasignar-conductor`);
       return response.data;
     } catch (error) {
+      console.error('Error en vehiculosAPI.unassignDriver:', error);
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -296,19 +289,20 @@ const vehiculosAPI = {
   // Obtener estadísticas de vehículos
   getStatistics: async () => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de autenticación
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      const empresaId = userData.empresaId || userData.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta de estadísticas
-      const response = await apiClient.get(`/api/vehiculos/estadisticas?idEmpresa=${empresaId}`);
+      const response = await apiClient.get('/api/vehiculos/estadisticas');
       return response.data;
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      console.error('Error en vehiculosAPI.getStatistics:', error);
+      // Retornar estadísticas vacías si hay error
+      return {
+        estadisticas: {
+          total: 0,
+          disponibles: 0,
+          enRuta: 0,
+          enMantenimiento: 0,
+          fueraDeServicio: 0
+        }
+      };
     }
   },
 
@@ -323,7 +317,9 @@ const vehiculosAPI = {
       );
       return { conductoresDisponibles };
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      console.error('Error en vehiculosAPI.getConductoresDisponibles:', error);
+      // Retornar array vacío si hay error
+      return { conductoresDisponibles: [] };
     }
   }
 };

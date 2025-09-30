@@ -9,6 +9,7 @@ const ThemeSwitcher = () => {
     try {
       setThemeMode(newTheme);
     } catch (error) {
+      console.error('Error changing theme:', error);
     }
   };
 

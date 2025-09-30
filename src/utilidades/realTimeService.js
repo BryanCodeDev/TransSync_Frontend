@@ -1,3 +1,4 @@
+// src/utilidades/realTimeService.js - Servicio de Notificaciones en Tiempo Real
 import { io } from 'socket.io-client';
 
 class RealTimeService {
@@ -27,101 +28,24 @@ class RealTimeService {
    */
   connect(userContext = null) {
     if (this.socket?.connected) {
+      console.log('🔗 WebSocket ya está conectado');
       return;
-    }
-
-    // ✅ CORRECCIÓN CRÍTICA: Si no hay contexto, intentar obtenerlo de múltiples fuentes
-    if (!userContext) {
-      userContext = this.getUserContextFromStorage();
     }
 
     this.userContext = userContext;
 
     try {
-      // Verificar que tenemos token de autenticación
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        console.warn('⚠️ No hay token de autenticación disponible para WebSocket');
-        this.emit('connection:error', {
-          error: 'No authentication token available',
-          timestamp: new Date()
-        });
-        return;
-      }
-
-      // Verificar que tenemos datos de usuario válidos
-      if (!userContext || !userContext.idUsuario) {
-        console.warn('⚠️ Datos de usuario incompletos para WebSocket, intentando recuperar...');
-        userContext = this.getUserContextFromStorage();
-
-        if (!userContext || !userContext.idUsuario) {
-          console.error('❌ No se pudieron obtener datos válidos del usuario para WebSocket');
-          this.emit('connection:error', {
-            error: 'Unable to get valid user context for WebSocket',
-            timestamp: new Date()
-          });
-          return;
-        }
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: empresaId es obligatorio según correcciones de seguridad
-      if (!userContext.empresaId && !userContext.idEmpresa) {
-        console.warn('⚠️ empresaId no disponible, intentando recuperar...');
-        const empresaId = localStorage.getItem('empresaId') ||
-                         JSON.parse(localStorage.getItem('userData') || '{}')?.empresaId;
-
-        if (empresaId) {
-          userContext.empresaId = empresaId;
-          userContext.idEmpresa = empresaId;
-          console.log('✅ empresaId recuperado:', empresaId);
-        } else {
-          console.error('❌ empresaId es requerido para la conexión WebSocket');
-          this.emit('connection:error', {
-            error: 'empresaId is required for WebSocket connection',
-            timestamp: new Date()
-          });
-          return;
-        }
-      }
-
-      console.log('🔗 Conectando WebSocket con contexto:', {
-        userId: userContext.idUsuario,
-        empresaId: userContext.idEmpresa,
-        rol: userContext.rol
-      });
-
-      // Conectar al servidor WebSocket con configuración mejorada
-      const wsUrl = process.env.REACT_APP_WS_URL || process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app';
-
-      console.log('🔗 Intentando conectar a WebSocket:', wsUrl);
-      console.log('🔑 Datos de autenticación:', {
-        userId: userContext.idUsuario,
-        empresaId: userContext.idEmpresa,
-        rol: userContext.rol
-      });
-
-      this.socket = io(wsUrl, {
+      // Conectar al servidor WebSocket
+      this.socket = io(process.env.REACT_APP_WS_URL || process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app', {
         transports: ['websocket', 'polling'],
-        timeout: 20000,
-        forceNew: false, // No forzar nueva conexión, reutilizar si es posible
-        reconnection: true,
-        reconnectionAttempts: this.maxReconnectAttempts,
-        reconnectionDelay: this.reconnectDelay,
-        reconnectionDelayMax: this.maxReconnectDelay,
-        randomizationFactor: 0.5, // Factor de aleatorización para evitar thundering herd
+        timeout: 10000, // Aumentado
+        forceNew: true,
         auth: {
-          token: token,
-          userId: userContext.idUsuario,
-          empresaId: userContext.idEmpresa,
-          rol: userContext.rol || 'USER'
-        },
-        // Configuración adicional para mejorar estabilidad
-        upgrade: true,
-        rememberUpgrade: true, // Recordar el upgrade para mejorar rendimiento
-        rejectUnauthorized: false,
-        // Configuración adicional para prevenir desconexiones
-        pingTimeout: 60000, // 60 segundos antes de considerar timeout
-        pingInterval: 25000 // Ping cada 25 segundos para mantener conexión
+          token: localStorage.getItem('authToken'),
+          userId: userContext?.idUsuario,
+          empresaId: userContext?.idEmpresa,
+          rol: userContext?.rol || 'USER'
+        }
       });
 
       this.setupEventListeners();
@@ -130,61 +54,11 @@ class RealTimeService {
       // Iniciar en modo horario por defecto (no tiempo real)
       this.setUpdateMode(false, 60); // 60 minutos = 1 hora
 
+      console.log('🔗 Conectando a WebSocket en modo horario...');
+
     } catch (error) {
-      console.error('❌ Error conectando WebSocket:', error);
+      console.error('❌ Error conectando a WebSocket:', error);
       this.handleConnectionError(error);
-    }
-  }
-
-  /**
-   * ✅ CORRECCIÓN CRÍTICA: Método para obtener contexto de usuario de múltiples fuentes
-   */
-  getUserContextFromStorage() {
-    try {
-      // Intentar obtener de userData primero
-      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      if (userData && userData.id && userData.email) {
-        return {
-          idUsuario: userData.id,
-          empresaId: userData.empresaId,
-          idEmpresa: userData.empresaId,
-          rol: userData.role || 'USER',
-          email: userData.email
-        };
-      }
-
-      // Intentar obtener de userContext como respaldo
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      if (userContext && userContext.id && userContext.email) {
-        return {
-          idUsuario: userContext.id,
-          empresaId: userContext.empresaId,
-          idEmpresa: userContext.empresaId,
-          rol: userContext.role || 'USER',
-          email: userContext.email
-        };
-      }
-
-      // Intentar obtener datos individuales como último recurso
-      const userId = localStorage.getItem('userId');
-      const empresaId = localStorage.getItem('empresaId');
-      const userRole = localStorage.getItem('userRole');
-      const userEmail = localStorage.getItem('userEmail');
-
-      if (userId && empresaId && userEmail) {
-        return {
-          idUsuario: userId,
-          empresaId: empresaId,
-          idEmpresa: empresaId,
-          rol: userRole || 'USER',
-          email: userEmail
-        };
-      }
-
-      return null;
-    } catch (error) {
-      console.error('❌ Error obteniendo contexto de usuario del almacenamiento:', error);
-      return null;
     }
   }
 
@@ -193,6 +67,7 @@ class RealTimeService {
    */
   setThrottleDelay(delayMs = 5000) {
     this.eventThrottleDelay = delayMs;
+    console.log(`⏱️ Throttling de eventos configurado a ${delayMs}ms`);
   }
 
   /**
@@ -214,30 +89,31 @@ class RealTimeService {
       this.emit('connection:established', {
         userId: this.userContext?.idUsuario,
         empresaId: this.userContext?.idEmpresa,
-        timestamp: new Date(),
-        socketId: this.socket.id
+        timestamp: new Date()
       });
 
       // Emitir evento de dashboard conectado (compatibilidad con socketService)
       this.emit('dashboard:connected', {
         timestamp: new Date().toISOString(),
         userId: this.userContext?.idUsuario || null,
-        empresaId: this.userContext?.idEmpresa || null,
-        socketId: this.socket.id
+        empresaId: this.userContext?.idEmpresa || null
       });
     });
 
     // Eventos de autenticación
     this.socket.on('auth:success', (data) => {
+      console.log('✅ Autenticación exitosa:', data);
       this.emit('auth:success', data);
     });
 
     this.socket.on('auth:error', (error) => {
+      console.error('❌ Error de autenticación:', error);
       this.emit('auth:error', error);
     });
 
     // Evento de desconexión
     this.socket.on('disconnect', (reason) => {
+      console.log('🔌 WebSocket desconectado:', reason);
       this.isConnected = false;
 
       if (reason === 'io server disconnect') {
@@ -248,6 +124,7 @@ class RealTimeService {
 
     // Evento de error de conexión
     this.socket.on('connect_error', (error) => {
+      console.error('❌ Error de conexión WebSocket:', error);
       this.handleConnectionError(error);
     });
 
@@ -264,51 +141,61 @@ class RealTimeService {
   setupDataEventListeners() {
     // Nuevos conductores
     this.socket.on('conductor:created', (data) => {
+      console.log('👨‍💼 Nuevo conductor registrado:', data);
       this.handleNewConductor(data);
     });
 
     // Actualizaciones de conductores
     this.socket.on('conductor:updated', (data) => {
+      console.log('👨‍💼 Conductor actualizado:', data);
       this.handleConductorUpdate(data);
     });
 
     // Nuevos vehículos
     this.socket.on('vehiculo:created', (data) => {
+      console.log('🚗 Nuevo vehículo registrado:', data);
       this.handleNewVehicle(data);
     });
 
     // Actualizaciones de vehículos
     this.socket.on('vehiculo:updated', (data) => {
+      console.log('🚗 Vehículo actualizado:', data);
       this.handleVehicleUpdate(data);
     });
 
     // Nuevas rutas
     this.socket.on('ruta:created', (data) => {
+      console.log('🗺️ Nueva ruta registrada:', data);
       this.handleNewRoute(data);
     });
 
     // Nuevos viajes
     this.socket.on('viaje:created', (data) => {
+      console.log('⏰ Nuevo viaje programado:', data);
       this.handleNewTrip(data);
     });
 
     // Actualizaciones de viajes
     this.socket.on('viaje:updated', (data) => {
+      console.log('⏰ Viaje actualizado:', data);
       this.handleTripUpdate(data);
     });
 
     // Alertas de vencimientos
     this.socket.on('vencimiento:alert', (data) => {
+      console.log('⚠️ Nueva alerta de vencimiento:', data);
       this.handleExpirationAlert(data);
     });
 
     // Cambios en el sistema
     this.socket.on('system:status_changed', (data) => {
+      console.log('📊 Cambio en estado del sistema:', data);
       this.handleSystemStatusChange(data);
     });
 
     // Notificaciones del chatbot
     this.socket.on('chatbot:notification', (data) => {
+      console.log('🤖 Notificación del chatbot:', data);
       this.handleChatbotNotification(data);
     });
   }
@@ -321,36 +208,43 @@ class RealTimeService {
 
     // Estadísticas actualizadas
     this.socket.on('dashboard:stats:update', (data) => {
+      console.log('📊 Estadísticas actualizadas:', data);
       this.emit('dashboard:stats:update', data);
     });
 
     // Datos en tiempo real actualizados
     this.socket.on('dashboard:realtime:update', (data) => {
+      console.log('⚡ Datos en tiempo real:', data);
       this.emit('dashboard:realtime:update', data);
     });
 
     // Alertas actualizadas
     this.socket.on('dashboard:alerts:update', (data) => {
+      console.log('🚨 Alertas actualizadas:', data);
       this.emit('dashboard:alerts:update', data);
     });
 
     // Nueva notificación
     this.socket.on('dashboard:notification', (data) => {
+      console.log('📱 Nueva notificación:', data);
       this.emit('dashboard:notification', data);
     });
 
     // Estado de actualizaciones automáticas
     this.socket.on('dashboard:updates:status', (data) => {
+      console.log('🔄 Estado de actualizaciones:', data);
       this.emit('dashboard:updates:status', data);
     });
 
     // Métricas de rendimiento
     this.socket.on('dashboard:performance', (data) => {
+      console.log('📈 Métricas de rendimiento:', data);
       this.emit('dashboard:performance', data);
     });
 
     // Eventos de cache
     this.socket.on('dashboard:cache:invalidated', (data) => {
+      console.log('💾 Cache invalidado:', data);
       this.emit('dashboard:cache:invalidated', data);
     });
   }
@@ -361,12 +255,9 @@ class RealTimeService {
   joinRooms() {
     if (!this.socket || !this.userContext) return;
 
-    // ✅ CORRECCIÓN CRÍTICA: Usar empresaId correcto (empresaId o idEmpresa)
-    const empresaId = this.userContext.empresaId || this.userContext.idEmpresa;
-
     // Unirse a sala de empresa
     this.socket.emit('join:empresa', {
-      empresaId: empresaId
+      empresaId: this.userContext.idEmpresa
     });
 
     // Unirse a sala de usuario
@@ -379,10 +270,10 @@ class RealTimeService {
       rol: this.userContext.rol
     });
 
-    console.log('🔗 Salas unidas:', {
-      empresaId: empresaId,
-      userId: this.userContext.idUsuario,
-      rol: this.userContext.rol
+    console.log('🏠 Unido a salas:', {
+      empresa: this.userContext.idEmpresa,
+      usuario: this.userContext.idUsuario,
+      rol: this.userContext.rol || 'USER'
     });
   }
 
@@ -391,10 +282,12 @@ class RealTimeService {
    */
   setupReconnection() {
     this.socket.on('reconnect_attempt', (attempt) => {
+      console.log(`🔄 Intento de reconexión ${attempt}/${this.maxReconnectAttempts}`);
       this.reconnectAttempts = attempt;
     });
 
     this.socket.on('reconnect_failed', () => {
+      console.error('❌ Fallaron todos los intentos de reconexión');
       this.isConnected = false;
       this.emit('connection:failed', {
         attempts: this.reconnectAttempts,
@@ -403,6 +296,7 @@ class RealTimeService {
     });
 
     this.socket.on('reconnect', (attempt) => {
+      console.log(`✅ Reconectado exitosamente en intento ${attempt}`);
       this.isConnected = true;
       this.reconnectAttempts = 0;
       this.emit('connection:reestablished', {
@@ -417,19 +311,10 @@ class RealTimeService {
    */
   handleConnectionError(error) {
     this.isConnected = false;
-
-    console.error('❌ Error de conexión WebSocket:', {
-      message: error.message,
-      code: error.code,
-      type: error.type,
-      attempts: this.reconnectAttempts
-    });
+    console.error('❌ Error de conexión WebSocket:', error);
 
     this.emit('connection:error', {
       error: error.message,
-      code: error.code,
-      type: error.type,
-      attempts: this.reconnectAttempts,
       timestamp: new Date()
     });
 
@@ -443,7 +328,7 @@ class RealTimeService {
         this.maxReconnectDelay
       );
 
-      console.log(`🔄 Intentando reconectar en ${delay}ms (intento ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      console.log(`🔄 Reintentando conexión en ${delay / 1000} segundos (intento ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
       setTimeout(() => {
         this.reconnect();
@@ -452,7 +337,6 @@ class RealTimeService {
       console.error('❌ Máximo número de intentos de reconexión alcanzado');
       this.emit('connection:failed', {
         attempts: this.reconnectAttempts,
-        maxAttempts: this.maxReconnectAttempts,
         timestamp: new Date()
       });
     }
@@ -462,20 +346,9 @@ class RealTimeService {
    * Reconectar manualmente
    */
   reconnect() {
-    if (this.socket) {
-      if (!this.socket.connected) {
-        console.log('🔄 Reconectando WebSocket...');
-        this.socket.connect();
-      } else {
-        console.log('✅ WebSocket ya está conectado');
-      }
-    } else {
-      console.log('🔄 Creando nueva conexión WebSocket...');
-      if (this.userContext) {
-        this.connect(this.userContext);
-      } else {
-        console.error('❌ No se puede reconectar sin contexto de usuario');
-      }
+    if (this.socket && !this.socket.connected) {
+      console.log('🔄 Intentando reconectar...');
+      this.socket.connect();
     }
   }
 
@@ -484,6 +357,7 @@ class RealTimeService {
    */
   disconnect() {
     if (this.socket) {
+      console.log('🔌 Desconectando WebSocket...');
       this.socket.disconnect();
       this.isConnected = false;
     }
@@ -507,8 +381,10 @@ class RealTimeService {
 
     if (realTime) {
       this.stopScheduledUpdates();
+      console.log('⚡ Modo tiempo real activado');
     } else {
       this.startScheduledUpdates();
+      console.log(`⏰ Modo horario activado (${intervalMinutes} minutos)`);
     }
   }
 
@@ -520,9 +396,12 @@ class RealTimeService {
 
     this.updateTimer = setInterval(() => {
       if (this.isConnected) {
+        console.log('⏰ Actualización horaria programada');
         this.requestDashboardUpdate();
       }
     }, this.updateInterval);
+
+    console.log(`⏰ Actualizaciones programadas cada ${this.updateInterval / (60 * 1000)} minutos`);
   }
 
   /**
@@ -532,6 +411,7 @@ class RealTimeService {
     if (this.updateTimer) {
       clearInterval(this.updateTimer);
       this.updateTimer = null;
+      console.log('⏸️ Actualizaciones programadas detenidas');
     }
   }
 
@@ -572,6 +452,7 @@ class RealTimeService {
       try {
         callback(data);
       } catch (error) {
+        console.error(`❌ Error en listener de evento ${event}:`, error);
       }
     });
 
@@ -826,9 +707,6 @@ class RealTimeService {
    */
   sendNotification(type, title, message, data = {}, priority = 'medium') {
     if (this.socket && this.isConnected) {
-      // ✅ CORRECCIÓN CRÍTICA: Usar empresaId correcto (empresaId o idEmpresa)
-      const empresaId = this.userContext?.empresaId || this.userContext?.idEmpresa;
-
       this.socket.emit('notification:send', {
         type,
         title,
@@ -836,7 +714,7 @@ class RealTimeService {
         data,
         priority,
         userId: this.userContext?.idUsuario,
-        empresaId: empresaId, // ✅ CORRECCIÓN CRÍTICA: empresaId obligatorio
+        empresaId: this.userContext?.idEmpresa,
         timestamp: new Date()
       });
     }
@@ -846,16 +724,13 @@ class RealTimeService {
    * Obtener estadísticas de conexión
    */
   getConnectionStats() {
-    // ✅ CORRECCIÓN CRÍTICA: Usar empresaId correcto (empresaId o idEmpresa)
-    const empresaId = this.userContext?.empresaId || this.userContext?.idEmpresa;
-
     return {
       isConnected: this.isConnected,
       reconnectAttempts: this.reconnectAttempts,
       lastConnectionTime: this.socket?.connected ? new Date() : null,
       userContext: this.userContext,
       activeRooms: this.userContext ? [
-        `empresa_${empresaId}`, // ✅ CORRECCIÓN CRÍTICA: empresaId correcto
+        `empresa_${this.userContext.idEmpresa}`,
         `usuario_${this.userContext.idUsuario}`,
         `rol_${this.userContext.rol || 'USER'}`
       ] : []
@@ -881,6 +756,7 @@ class RealTimeService {
         throw new Error('Error al obtener estadísticas');
       }
     } catch (error) {
+      console.error('❌ Error obteniendo estadísticas:', error);
       return null;
     }
   }
@@ -904,6 +780,7 @@ class RealTimeService {
         throw new Error('Error al obtener clientes conectados');
       }
     } catch (error) {
+      console.error('❌ Error obteniendo clientes conectados:', error);
       return null;
     }
   }
@@ -935,6 +812,7 @@ class RealTimeService {
         throw new Error('Error al enviar notificación');
       }
     } catch (error) {
+      console.error('❌ Error enviando notificación via API:', error);
       return null;
     }
   }
@@ -958,6 +836,7 @@ class RealTimeService {
         throw new Error('Error al obtener métricas');
       }
     } catch (error) {
+      console.error('❌ Error obteniendo métricas:', error);
       return null;
     }
   }
@@ -985,32 +864,8 @@ const realTimeService = new RealTimeService();
 export const useSocket = (authData = null) => {
   return {
     socket: realTimeService.socket,
-    isConnected: () => realTimeService.isConnected,
-    connect: (customAuthData = null) => {
-      // ✅ CORRECCIÓN CRÍTICA: Asegurar que tenemos datos completos del usuario
-      let finalAuthData = customAuthData || authData;
-
-      if (!finalAuthData) {
-        // Intentar obtener datos del contexto de autenticación
-        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-        const empresaId = localStorage.getItem('empresaId');
-
-        if (userData && userData.id && empresaId) {
-          finalAuthData = {
-            idUsuario: userData.id,
-            empresaId: empresaId,
-            rol: userData.role || 'USER',
-            email: userData.email
-          };
-          console.log('✅ Datos de usuario recuperados para WebSocket:', finalAuthData);
-        } else {
-          console.error('❌ No se pudieron obtener datos completos del usuario para WebSocket');
-          return;
-        }
-      }
-
-      realTimeService.connect(finalAuthData);
-    },
+    isConnected: realTimeService.isConnected,
+    connect: (customAuthData = null) => realTimeService.connect(customAuthData || authData),
     disconnect: () => realTimeService.disconnect(),
     emit: (event, data) => realTimeService.emit(event, data),
     on: (event, callback) => realTimeService.on(event, callback),

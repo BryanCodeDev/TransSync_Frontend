@@ -1,5 +1,9 @@
+// api/baseAPI.js - Configuración unificada para todos los servicios
 import axios from "axios";
 
+// ================================
+// CONFIGURACIÓN BASE
+// ================================
 const API_BASE_URL = process.env.REACT_APP_API_URL ||
   (process.env.NODE_ENV === 'production'
     ? "https://transyncbackend-production.up.railway.app"
@@ -7,19 +11,27 @@ const API_BASE_URL = process.env.REACT_APP_API_URL ||
     ? "http://localhost:3001"
     : "https://transyncbackend-production.up.railway.app");
 
-const REQUEST_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000;
+const REQUEST_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000; // Aumentado a 30 segundos
 
+// Configuración de reintentos
 const MAX_RETRIES = parseInt(process.env.REACT_APP_MAX_RETRIES) || 3;
 const RETRY_DELAY = parseInt(process.env.REACT_APP_RETRY_DELAY) || 1000;
 
+console.log('🚀 BaseAPI initialized with URL:', API_BASE_URL);
+console.log('🔧 Environment:', process.env.NODE_ENV);
+console.log('⏱️ Timeout:', REQUEST_TIMEOUT, 'ms');
+console.log('🔄 Max retries:', MAX_RETRIES);
+
+// Crear instancia de axios con configuración base SIN /api
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE_URL, // Sin /api aquí - se maneja en cada servicio
   timeout: REQUEST_TIMEOUT,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
+// Función de reintento con backoff exponencial
 const retryRequest = async (error, retries = MAX_RETRIES) => {
   const config = error.config;
 
@@ -35,6 +47,7 @@ const retryRequest = async (error, retries = MAX_RETRIES) => {
 
   config.retryCount += 1;
 
+  // Solo reintentar en errores de red o servidor
   if (error.code !== 'ECONNABORTED' &&
       error.response?.status !== 429 &&
       error.response?.status !== 401 &&
@@ -44,64 +57,105 @@ const retryRequest = async (error, retries = MAX_RETRIES) => {
 
   const delay = RETRY_DELAY * Math.pow(2, config.retryCount - 1);
 
+  console.log(`🔄 Reintentando solicitud (${config.retryCount}/${retries}) después de ${delay}ms`);
+
   return new Promise(resolve => {
     setTimeout(() => resolve(apiClient(config)), delay);
   });
 };
 
+// ================================
+// INTERCEPTORES
+// ================================
+
+// Request interceptor - agregar token y logging
 apiClient.interceptors.request.use(
-   (config) => {
-     const token =
-       localStorage.getItem("authToken") ||
-       localStorage.getItem("userToken") ||
-       localStorage.getItem("token");
+  (config) => {
+    // Agregar token si existe (acepta varias claves)
+    const token =
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("userToken") ||
+      localStorage.getItem("token"); // 🔥 añadido soporte
 
-     if (token) {
-       config.headers.Authorization = `Bearer ${token}`;
-     }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-     // ✅ CORRECCIÓN CRÍTICA: Agregar empresaId a todas las peticiones
-     const empresaId =
-       localStorage.getItem("empresaId") ||
-       localStorage.getItem("userEmpresaId") ||
-       JSON.parse(localStorage.getItem("userData") || '{}')?.empresaId ||
-       JSON.parse(localStorage.getItem("userContext") || '{}')?.empresaId;
+    // Logging en desarrollo
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`,
+        {
+          params: config.params,
+          data: config.data,
+        }
+      );
+    }
 
-     if (empresaId) {
-       config.headers['X-Empresa-Id'] = empresaId;
-       // También agregar como parámetro de query si no existe en la URL
-       if (config.url && !config.url.includes('empresaId') && !config.url.includes('idEmpresa')) {
-         const separator = config.url.includes('?') ? '&' : '?';
-         config.url += `${separator}idEmpresa=${empresaId}`;
-       }
-     }
-
-     return config;
-   },
-   (error) => {
-     return Promise.reject(error);
-   }
+    return config;
+  },
+  (error) => {
+    console.error("❌ Request Error:", error);
+    return Promise.reject(error);
+  }
 );
 
+// Response interceptor - manejo de errores globales y logging
 apiClient.interceptors.response.use(
   (response) => {
+    // Logging en desarrollo
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `✅ API Response: ${response.config.method?.toUpperCase()} ${
+          response.config.url
+        }`,
+        {
+          status: response.status,
+          data: response.data,
+        }
+      );
+    }
     return response;
   },
   async (error) => {
+    // Intentar reintento antes de manejar el error
     try {
       return await retryRequest(error);
     } catch (retryError) {
+      // Si fallan los reintentos, manejar el error normalmente
       error = retryError;
     }
+    // Logging de errores - manejo especial para notificaciones 404
     const isNotification404 = error.response?.status === 404 &&
       error.config?.url?.includes('/notifications/') &&
       error.config?.url?.includes('/read');
 
     if (isNotification404) {
+      // No loguear como error crítico las notificaciones 404 (probablemente son de ejemplo)
+      console.warn("⚠️ Notificación no encontrada:", {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+      });
     } else {
+      // Loguear otros errores normalmente
+      console.error("❌ API Error:", {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        fullURL: error.config
+          ? `${API_BASE_URL}${error.config.url}`
+          : "Unknown",
+        errorObject: error,
+        responseData: error.response?.data
+      });
     }
 
+    // Manejo específico de errores
     if (error.response?.status === 401) {
+      // Token expirado o inválido
       const keysToRemove = [
         "authToken",
         "userToken",
@@ -116,11 +170,13 @@ apiClient.interceptors.response.use(
 
       keysToRemove.forEach((key) => localStorage.removeItem(key));
 
+      // Redirigir solo si no estamos ya en login
       if (!window.location.pathname.includes("/login")) {
         window.location.href = "/login";
       }
     }
 
+    // Agregar información adicional al error para mejor debugging
     const enhancedError = {
       ...error,
       isNetworkError: error.code === 'ECONNABORTED' || error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED',
@@ -137,9 +193,14 @@ apiClient.interceptors.response.use(
   }
 );
 
+// ================================
+// UTILIDADES GENERALES
+// ================================
 export const apiUtils = {
+  // Verificar si hay conexión a internet
   isOnline: () => navigator.onLine,
 
+  // Formatear errores para mostrar al usuario
   formatError: (error) => {
     if (!navigator.onLine) {
       return "Sin conexión a internet. Verifica tu conexión.";
@@ -184,11 +245,13 @@ export const apiUtils = {
     return error.message || "Error desconocido";
   },
 
+  // Validar email
   isValidEmail: (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   },
 
+  // Validar campos requeridos
   validateRequired: (fields) => {
     const missing = [];
     Object.entries(fields).forEach(([key, value]) => {
@@ -199,6 +262,7 @@ export const apiUtils = {
     return missing;
   },
 
+  // Crear parámetros de URL
   createUrlParams: (filters) => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -209,6 +273,7 @@ export const apiUtils = {
     return params.toString();
   },
 
+  // Formatear fechas
   formatDate: (date, format = "YYYY-MM-DD") => {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -225,6 +290,7 @@ export const apiUtils = {
     }
   },
 
+  // Debounce para búsquedas
   debounce: (func, wait) => {
     let timeout;
     return function executedFunction(...args) {
@@ -237,16 +303,19 @@ export const apiUtils = {
     };
   },
 
+  // Configuración de debounce por tipo de dato
   debounceConfig: {
-    search: 300,
-    filter: 500,
-    realtime: 100,
-    heavy: 1000,
-    default: 500,
+    search: 300,      // Búsquedas rápidas
+    filter: 500,      // Filtros
+    realtime: 100,    // Datos en tiempo real
+    heavy: 1000,      // Consultas pesadas
+    default: 500,     // Por defecto
   },
 
+  // Cache de funciones debounced
   debouncedCache: new Map(),
 
+  // Consultas debounced con configuración por tipo
   debouncedQuery: (queryKey, queryFunction, dataType = 'default') => {
     const cacheKey = `${queryKey}_${dataType}`;
     const delay = apiUtils.debounceConfig[dataType] || apiUtils.debounceConfig.default;
@@ -259,6 +328,9 @@ export const apiUtils = {
   },
 };
 
+// ================================
+// VERIFICACIÓN DE SALUD DEL API
+// ================================
 export const healthCheck = async () => {
   try {
     const startTime = Date.now();
@@ -285,6 +357,7 @@ export const healthCheck = async () => {
   }
 };
 
+// Verificar múltiples endpoints para diagnóstico
 export const comprehensiveHealthCheck = async () => {
   const endpoints = ['/api/health', '/api/rutas', '/api/vehiculos'];
   const results = {

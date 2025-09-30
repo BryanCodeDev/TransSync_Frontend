@@ -38,55 +38,24 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const { theme, toggleTheme: toggleThemeContext } = useTheme();
   const { startTutorial } = useTutorial();
 
+  // Obtener datos de autenticación para WebSocket (definido primero)
   const getAuthData = useCallback(() => {
-    try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
-      if (!token) {
-        return null;
-      }
-
-      // Obtener empresaId de diferentes fuentes posibles
-      let empresaId = null;
-
-      // Primero intentar obtenerlo del contexto de usuario si está disponible
-      if (user?.empresaId) {
-        empresaId = user.empresaId;
-      } else {
-        // Buscar en localStorage como respaldo
-        empresaId = localStorage.getItem('empresaId') || localStorage.getItem('userEmpresaId');
-      }
-
-      // Si no tenemos empresaId, intentar obtener datos completos del usuario
-      if (!empresaId && user?.id) {
-        const storedUserData = JSON.parse(localStorage.getItem('userData') || '{}');
-        empresaId = storedUserData.empresaId || storedUserData.idEmpresa;
-      }
-
-      // Validar que tenemos todos los datos necesarios
-      if (!empresaId || !user?.id || !userRole) {
-        console.warn('⚠️ Datos de autenticación incompletos:', {
-          hasEmpresaId: !!empresaId,
-          hasUserId: !!user?.id,
-          hasUserRole: !!userRole
-        });
-        return null;
-      }
-
-      return {
-        token,
-        userId: user.id,
-        empresaId: empresaId,
-        rol: userRole,
-        email: user.email || JSON.parse(localStorage.getItem('userData') || '{}').email
-      };
-    } catch (error) {
-      console.error('❌ Error obteniendo datos de autenticación:', error);
+    const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+    if (!token) {
       return null;
     }
-  }, [user?.id, user?.empresaId, userRole, user?.email]);
+    return {
+      token,
+      userId: user?.id || null,
+      empresaId: user?.empresaId || null,
+      rol: userRole || null
+    };
+  }, [user?.id, user?.empresaId, userRole]);
 
+  // Memoizar solo los valores que cambian
   const authData = useMemo(() => getAuthData(), [getAuthData]);
 
+  // Hooks que se llaman directamente en el componente
   const notificationService = useNotification();
   const socket = useSocket();
 
@@ -100,18 +69,14 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const notificationsRef = useRef(null);
 
 
+  // Cargar notificaciones iniciales desde la API
   const loadNotifications = useCallback(async () => {
-    // ✅ CORRECCIÓN CRÍTICA: Evitar múltiples llamadas simultáneas
-    if (loadNotifications._loading) {
-      return;
-    }
-    loadNotifications._loading = true;
-
     try {
+      // Cargar historial de notificaciones desde la API
       const notificationsData = await dashboardAPI.getNotificationHistory(10);
 
-      // Verificar si los datos están disponibles
-      if (notificationsData && notificationsData.notifications && notificationsData.status !== 'pending') {
+      if (notificationsData && notificationsData.notifications) {
+        // Transformar las notificaciones de la API al formato del navbar
         const transformedNotifications = notificationsData.notifications.map(notification => ({
           id: notification.id,
           type: notification.type || 'info',
@@ -126,35 +91,19 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         setNotifications(transformedNotifications);
         setUnreadCount(transformedNotifications.filter(n => !n.read).length);
       } else {
-        // Si el contexto no está disponible, mantener datos vacíos sin mostrar error
+        // Si no hay notificaciones de la API, no cargar notificaciones de ejemplo
         setNotifications([]);
         setUnreadCount(0);
       }
     } catch (error) {
-      // ✅ CORRECCIÓN CRÍTICA: Mejor manejo de errores para evitar spam en consola
-      if (error.message?.includes('empresaId no encontrado')) {
-        // Error esperado cuando falta contexto, no mostrar en consola repetidamente
-        setNotifications([]);
-        setUnreadCount(0);
-      } else if (error.response?.status === 403) {
-        // Error 403 es esperado cuando falta autorización, no mostrar repetidamente
-        console.warn('⚠️ Acceso denegado a notificaciones (403) - posiblemente falta empresaId');
-        setNotifications([]);
-        setUnreadCount(0);
-      } else {
-        // Solo mostrar errores inesperados ocasionalmente para evitar spam
-        if (!loadNotifications._lastErrorTime || Date.now() - loadNotifications._lastErrorTime > 30000) {
-          console.error('❌ Error inesperado cargando notificaciones:', error);
-          loadNotifications._lastErrorTime = Date.now();
-        }
-        setNotifications([]);
-        setUnreadCount(0);
-      }
-    } finally {
-      loadNotifications._loading = false;
+      console.error('Error cargando notificaciones:', error);
+      // No cargar notificaciones de ejemplo si falla la API
+      setNotifications([]);
+      setUnreadCount(0);
     }
   }, []);
 
+  // Detectar scroll para cambiar la apariencia del navbar
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
@@ -166,6 +115,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   }, []);
 
 
+  // Cerrar menús cuando se hace clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -182,62 +132,48 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     };
   }, []);
 
+  // Inicializar servicios de notificaciones (solo una vez por sesión)
   useEffect(() => {
-    // ✅ CORRECCIÓN CRÍTICA: Evitar múltiples inicializaciones
-    if (isPublic || !isLoggedIn || servicesInitialized) {
-      return;
-    }
-
-    let isInitialized = false;
-
     const initializeNotifications = async () => {
-      if (isInitialized) return;
-      isInitialized = true;
-
-      try {
-        // ✅ CORRECCIÓN CRÍTICA: Verificar si ya están inicializados antes de intentar
-        if (!notificationService.isInitialized()) {
+      if (!isPublic && isLoggedIn && !servicesInitialized) {
+        try {
+          // Inicializar servicio de notificaciones
           await notificationService.initialize();
-        }
 
-        if (!socket.isConnected()) {
+          // Conectar WebSocket
           await socket.connect();
-        }
 
-        // ✅ CORRECCIÓN CRÍTICA: Solo cargar notificaciones si tenemos contexto válido
-        const authData = getAuthData();
-        if (authData && authData.empresaId) {
+          // Cargar notificaciones iniciales desde la API
           await loadNotifications();
-        }
 
-        setServicesInitialized(true);
+          // Marcar servicios como inicializados
+          setServicesInitialized(true);
 
-      } catch (error) {
-        // ✅ CORRECCIÓN CRÍTICA: Mejor manejo de errores sin spam
-        if (error.message?.includes('empresaId') || error.response?.status === 403) {
-          // Errores esperados, no mostrar repetidamente
-          setServicesInitialized(true); // Marcar como inicializado para evitar reintentos
-        } else {
+          console.log('✅ Servicios de notificaciones inicializados en navbar');
+        } catch (error) {
           console.error('❌ Error inicializando servicios de notificaciones:', error);
-          setServicesInitialized(true); // Evitar bucles infinitos
         }
       }
     };
 
-    // ✅ CORRECCIÓN CRÍTICA: Usar timeout para evitar inicializaciones inmediatas múltiples
-    const timeoutId = setTimeout(initializeNotifications, 100);
+    initializeNotifications();
 
+    // Cleanup al desmontar el componente
     return () => {
-      clearTimeout(timeoutId);
+      if (servicesInitialized) {
+        socket.disconnect();
+      }
     };
-  }, [isPublic, isLoggedIn, servicesInitialized, loadNotifications, notificationService, socket, getAuthData]);
+  }, [isPublic, isLoggedIn, servicesInitialized, loadNotifications, notificationService, socket]);
 
+  // Conectar socket con datos de autenticación cuando cambien
   useEffect(() => {
     if (authData && authData.token && socket) {
       socket.connect(authData);
     }
   }, [authData, socket]);
 
+  // Resetear estado de inicialización cuando cambie el usuario
   useEffect(() => {
     if (!isLoggedIn) {
       setServicesInitialized(false);
@@ -246,10 +182,13 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   }, [isLoggedIn]);
 
+  // Configurar listeners para notificaciones en tiempo real
   useEffect(() => {
     if (!isPublic && isLoggedIn) {
       const handleNewNotification = async (data) => {
+        console.log('📱 Nueva notificación en navbar:', data);
 
+        // Crear objeto de notificación para el navbar
         const newNotification = {
           id: data.id || Date.now(),
           type: data.type || 'info',
@@ -283,18 +222,12 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     if (window.confirm(t('navbar.confirmLogout'))) {
       try {
         await handleLogoutAuth();
-        localStorage.clear();
-        sessionStorage.clear();
-        document.cookie.split(";").forEach(cookie => {
-          const eqPos = cookie.indexOf("=");
-          const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-          document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-        });
-        navigate("/home", { replace: true });
+        navigate("/home");
         setIsUserMenuOpen(false);
         setIsNotificationsOpen(false);
-        window.location.reload();
       } catch (error) {
+        console.error('Error during logout:', error);
+        // El hook useAuth ya maneja el logout local
         navigate("/home");
       }
     }
@@ -322,23 +255,27 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     setIsUserMenuOpen(false); // Cerrar menú de usuario si está abierto
   };
 
+  // Función para navegar al dashboard
   const goToDashboard = () => {
     const userRole = getUserRole();
-    if (userRole === "SUPERADMIN" || userRole === "GESTOR") {
+    if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
       navigate("/admin/dashboard", { replace: true });
     } else {
       navigate("/dashboard", { replace: true });
     }
   };
 
+  // Función para navegar al home
   const goToHome = () => {
     navigate("/home", { replace: true });
   };
 
 
 
+  // Marcar notificación como leída
   const markAsRead = async (notificationId) => {
     try {
+      // Actualizar en la API
       await dashboardAPI.markNotificationAsRead(notificationId);
 
       // Actualizar estado local
@@ -349,10 +286,14 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
+      // Solo loguear como warning si es error 404 (notificación no existe)
       if (error.response?.status === 404) {
+        console.warn(`⚠️ Notificación ${notificationId} no encontrada en el backend (probablemente es de ejemplo)`);
       } else {
+        console.error('Error marcando notificación como leída:', error);
       }
 
+      // Fallback: actualizar solo el estado local
       setNotifications(prev =>
         prev.map(notif =>
           notif.id === notificationId ? { ...notif, read: true } : notif
@@ -362,33 +303,42 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   };
 
+  // Marcar todas como leídas
   const markAllAsRead = async () => {
     try {
       // Obtener IDs de notificaciones no leídas
       const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
 
+      // Marcar todas como leídas en la API
       const results = await Promise.allSettled(unreadIds.map(id => dashboardAPI.markNotificationAsRead(id)));
 
+      // Contar errores 404 (notificaciones no encontradas)
       const notFoundErrors = results.filter(result =>
         result.status === 'rejected' && result.reason?.response?.status === 404
       ).length;
 
       if (notFoundErrors > 0) {
+        console.warn(`⚠️ ${notFoundErrors} notificaciones no encontradas en el backend (probablemente son de ejemplo)`);
       }
 
       // Actualizar estado local
       setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
       setUnreadCount(0);
     } catch (error) {
+      // Solo loguear como warning si todos son errores 404
       if (error.response?.status === 404) {
+        console.warn('⚠️ Notificaciones no encontradas en el backend (probablemente son de ejemplo)');
       } else {
+        console.error('Error marcando todas las notificaciones como leídas:', error);
       }
 
+      // Fallback: actualizar solo el estado local
       setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
       setUnreadCount(0);
     }
   };
 
+  // Eliminar notificación
   const deleteNotification = (notificationId) => {
     setNotifications(prev => {
       const updated = prev.filter(n => n.id !== notificationId);
@@ -397,6 +347,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     });
   };
 
+  // Obtener icono según el tipo de notificación
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'success':
@@ -419,6 +370,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   };
 
+  // Formatear tiempo relativo
   const formatTimeAgo = (date) => {
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
@@ -455,7 +407,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const formatUserRole = (role) => {
     const roles = {
       'SUPERADMIN': 'Super Administrador',
-      'GESTOR': 'Administrador',
+      'ADMINISTRADOR': 'Administrador',
       'USER': 'Usuario',
       'PENDIENTE': 'Usuario Pendiente'
     };
@@ -466,7 +418,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return 'from-purple-500 to-purple-700';
-      case 'GESTOR':
+      case 'ADMINISTRADOR':
         return 'from-[#3949ab] to-[#1a237e]';
       case 'USER':
         return 'from-[#283593] to-[#1a237e]';
@@ -481,7 +433,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return <FaUserShield size={14} className="text-white" />;
-      case 'GESTOR':
+      case 'ADMINISTRADOR':
         return <FaCogs size={14} className="text-white" />;
       default:
         return <FaUser size={14} className="text-white" />;
@@ -492,7 +444,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'GESTOR':
+      case 'ADMINISTRADOR':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'USER':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
@@ -503,6 +455,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     }
   };
 
+  // Mostrar indicador de carga mientras se verifica la autenticación
   if (authLoading) {
     return (
       <nav className="fixed top-0 left-0 right-0 z-[1000] bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-xl shadow-lg border-b border-border-light/50 dark:border-border-dark">
@@ -756,6 +709,7 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
 
                 <button
                   onClick={() => {
+                    console.log('Tutorial button clicked');
                     startTutorial();
                   }}
                   className="p-2.5 text-slate-700 dark:text-gray-300 hover:text-indigo-700 dark:hover:text-white hover:bg-indigo-50/80 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200 group min-h-[44px] min-w-[44px] flex items-center justify-center border border-transparent hover:border-indigo-200/50 dark:hover:border-gray-600"

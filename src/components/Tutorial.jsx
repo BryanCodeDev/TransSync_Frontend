@@ -3,6 +3,7 @@ import { useTutorial } from '../hooks/useTutorial';
 import { useAuthContext } from '../context/AuthContext';
 import Button from './Button';
 
+// Estilos CSS para el tutorial
 const tutorialStyles = `
   .tutorial-highlight {
     position: relative;
@@ -21,6 +22,7 @@ const tutorialStyles = `
     transition: transform 0.1s ease;
   }
 
+  /* Feedback táctil para botones */
   .touch-feedback {
     -webkit-tap-highlight-color: transparent;
     transition: all 0.2s ease;
@@ -30,15 +32,18 @@ const tutorialStyles = `
     opacity: 0.8;
   }
 
+  /* Mejorar scroll en móvil */
   .tutorial-overlay {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
 
+  /* Prevenir zoom en inputs en iOS */
   .tutorial-input {
     font-size: 16px;
   }
 
+  /* Optimizaciones de rendimiento */
   .tutorial-overlay * {
     will-change: transform;
   }
@@ -47,6 +52,7 @@ const tutorialStyles = `
     will-change: box-shadow, transform;
   }
 
+  /* Reducir motion para usuarios que prefieren menos animaciones */
   @media (prefers-reduced-motion: reduce) {
     .tutorial-highlight,
     .touch-feedback,
@@ -58,6 +64,7 @@ const tutorialStyles = `
   }
 `;
 
+// Inyectar estilos en el head
 if (typeof document !== 'undefined') {
   const styleSheet = document.createElement('style');
   styleSheet.type = 'text/css';
@@ -86,8 +93,10 @@ const Tutorial = () => {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
+  // Función para obtener mensajes personalizados según el rol usando traducciones
   const getRoleSpecificContent = () => {
     const t = (key) => {
+      // Por simplicidad, usaremos las traducciones directamente
       const translations = {
         'SUPERADMIN': {
           title: '¡Bienvenido SuperAdmin!',
@@ -115,6 +124,7 @@ const Tutorial = () => {
     };
   };
 
+  // Funciones para manejar gestos de swipe
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -142,109 +152,84 @@ const Tutorial = () => {
   };
 
   useEffect(() => {
+    // Mostrar pantalla de bienvenida en el primer paso
     setShowWelcome(currentStep === 0);
   }, [currentStep]);
 
+  // Efecto para resaltar elementos del tutorial
   useEffect(() => {
     if (currentStepData?.target && !showWelcome && isActive && !isPaused) {
       const element = document.querySelector(currentStepData.target);
       if (element) {
+        // Para el menú de usuario, abrirlo automáticamente si está cerrado
         if (currentStepData.target === '[data-tutorial="user-menu"]') {
           const userMenuButton = element;
           const isMenuOpen = document.querySelector('[data-tutorial="profile-menu-item"]') !== null;
-
-          // Si el menú no está abierto, abrirlo
           if (!isMenuOpen) {
+            // Simular clic para abrir el menú
             userMenuButton.click();
 
-            const waitForMenu = (attempt = 1) => {
+            // Usar un enfoque más robusto para esperar que el menú se abra
+            const waitForMenu = () => {
               const profileItem = document.querySelector('[data-tutorial="profile-menu-item"]');
               if (profileItem) {
-                // Agregar resaltado al elemento del menú
                 profileItem.classList.add('tutorial-highlight');
                 setHighlightedElement(profileItem);
                 setShowArrow(currentStepData.isNavigation || false);
 
+                // Calcular posición de la flecha
                 const rect = profileItem.getBoundingClientRect();
                 const arrowTop = rect.top + rect.height / 2 - 16;
                 const arrowLeft = rect.left - 40;
                 setArrowPosition({ top: arrowTop, left: arrowLeft });
 
+                // Función para manejar clics
                 const handleElementClick = (e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  // No llamar nextStep aquí, dejar que la navegación automática del tutorial lo maneje
-                  // El tutorial avanzará automáticamente cuando se detecte el cambio de página
+                  nextStep();
                 };
 
                 profileItem.addEventListener('click', handleElementClick);
 
-                // Cleanup function
                 return () => {
                   profileItem.classList.remove('tutorial-highlight');
                   profileItem.removeEventListener('click', handleElementClick);
                   setHighlightedElement(null);
                   setShowArrow(false);
                 };
-              } else if (attempt < 10) {
-                // Si el menú no está abierto después de intentar varias veces, intentar de nuevo
-                setTimeout(() => waitForMenu(attempt + 1), 200);
               } else {
-                // Si después de 10 intentos no se abrió el menú, proceder al siguiente paso
-                nextStep();
+                // Si no se encontró, intentar de nuevo en un breve momento
+                setTimeout(waitForMenu, 50);
               }
             };
 
-            // Esperar más tiempo para que el menú se abra completamente
-            setTimeout(() => waitForMenu(), 300);
+            // Iniciar la espera
+            setTimeout(waitForMenu, 50);
             return;
-          } else {
-            // Si el menú ya está abierto, solo resaltar el elemento
-            const profileItem = document.querySelector('[data-tutorial="profile-menu-item"]');
-            if (profileItem) {
-              profileItem.classList.add('tutorial-highlight');
-              setHighlightedElement(profileItem);
-              setShowArrow(currentStepData.isNavigation || false);
-
-              const rect = profileItem.getBoundingClientRect();
-              const arrowTop = rect.top + rect.height / 2 - 16;
-              const arrowLeft = rect.left - 40;
-              setArrowPosition({ top: arrowTop, left: arrowLeft });
-
-              const handleElementClick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // No llamar nextStep aquí, dejar que la navegación automática del tutorial lo maneje
-                // El tutorial avanzará automáticamente cuando se detecte el cambio de página
-              };
-
-              profileItem.addEventListener('click', handleElementClick);
-
-              return () => {
-                profileItem.classList.remove('tutorial-highlight');
-                profileItem.removeEventListener('click', handleElementClick);
-                setHighlightedElement(null);
-                setShowArrow(false);
-              };
-            }
           }
         }
 
+        // Verificar que el elemento sea visible y no esté oculto
         const rect = element.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) {
+          console.warn('Tutorial: Elemento objetivo no es visible', currentStepData.target);
           return;
         }
 
+        // Añadir clase de resaltado
         element.classList.add('tutorial-highlight');
         setHighlightedElement(element);
         setShowArrow(currentStepData.isNavigation || false);
 
+        // Calcular posición de la flecha
         const arrowTop = rect.top + rect.height / 2 - 16; // Centrar verticalmente
         const arrowLeft = rect.left - 40; // A la izquierda del elemento
         setArrowPosition({ top: arrowTop, left: arrowLeft });
 
+        // Función para manejar clics en elementos resaltados
         const handleElementClick = (e) => {
-          // Para elementos de menú desplegable, prevenir comportamiento por defecto
+          // Solo prevenir el comportamiento por defecto si es un enlace o botón
           if (element.tagName === 'A' || element.tagName === 'BUTTON' || element.onclick) {
             e.preventDefault();
             e.stopPropagation();
@@ -266,10 +251,12 @@ const Tutorial = () => {
      }
    }, [currentStepData, showWelcome, nextStep, isActive, isPaused]);
 
+  // No renderizar si el tutorial no está activo o está pausado
   if (!isActive || isPaused) {
     return null;
   }
 
+  // Pantalla de bienvenida
    if (showWelcome) {
      return (
        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 sm:p-3 md:p-4">
@@ -315,6 +302,7 @@ const Tutorial = () => {
      );
    }
 
+  // Overlay para los pasos del tutorial
   return (
     <div
       className="fixed inset-0 z-[100] pointer-events-none tutorial-overlay"

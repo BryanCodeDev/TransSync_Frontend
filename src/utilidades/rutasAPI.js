@@ -1,4 +1,4 @@
-
+// api/rutasAPI.js - Servicio específico para rutas
 import { apiClient, apiUtils } from '../api/baseAPI';
 
 const rutasAPI = {
@@ -9,21 +9,7 @@ const rutasAPI = {
   // Obtener rutas con filtros
   getAll: async (filters = {}) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId automáticamente en filtros
-      const filtrosConEmpresa = {
-        ...filters,
-        idEmpresa: empresaId  // ✅ Filtro de seguridad por empresa
-      };
-
-      const params = apiUtils.createUrlParams(filtrosConEmpresa);
+      const params = apiUtils.createUrlParams(filters);
       const response = await apiClient.get(`/api/rutas${params ? `?${params}` : ''}`);
       // Adaptar la respuesta para que tenga la estructura esperada
       const rutas = response.data.map(ruta => ({
@@ -50,20 +36,12 @@ const rutasAPI = {
   // Crear nueva ruta
   create: async (routeData) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
       // Validaciones específicas para rutas según la base de datos
       const {
         nomRuta,
         oriRuta,
         desRuta,
-        idEmpresa // Este puede venir del formulario pero se valida contra el contexto
+        idEmpresa
       } = routeData;
 
       const missing = apiUtils.validateRequired({
@@ -74,11 +52,6 @@ const rutasAPI = {
 
       if (missing.length > 0) {
         throw new Error(`Campos requeridos: ${missing.join(', ')}`);
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Validar que el idEmpresa del formulario coincida con el contexto
-      if (idEmpresa && idEmpresa !== empresaId) {
-        throw new Error('No tienes permisos para crear rutas en esta empresa');
       }
 
       // Validar que origen y destino sean diferentes
@@ -103,7 +76,7 @@ const rutasAPI = {
         nomRuta: nomRuta.trim(),
         oriRuta: oriRuta.trim(),
         desRuta: desRuta.trim(),
-        idEmpresa: empresaId // ✅ CORRECCIÓN CRÍTICA: Usar empresaId del contexto
+        idEmpresa: idEmpresa || 1
       });
 
       return response.data;
@@ -277,11 +250,7 @@ const rutasAPI = {
   // ================================
   // PARADAS Y PUNTOS DE RUTA
   // ================================
-  // ⚠️ CORRECCIÓN CRÍTICA: Funcionalidades de paradas comentadas temporalmente
-  // Estas funcionalidades requieren verificación del esquema de BD actual
-  // Si los endpoints /paradas no existen en el backend, estas funciones causarán errores
-
-  /*
+  
   // Obtener paradas de una ruta
   getStops: async (idRuta) => {
     try {
@@ -289,7 +258,9 @@ const rutasAPI = {
       const response = await apiClient.get(`/api/rutas/${idRuta}/paradas`);
       return response.data;
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      // Si las paradas no están implementadas, retornar array vacío
+      console.warn(`Paradas no disponibles para ruta ${idRuta}:`, error.message);
+      return { paradas: [] };
     }
   },
 
@@ -297,14 +268,14 @@ const rutasAPI = {
   addStop: async (idRuta, stopData) => {
     try {
       if (!idRuta) throw new Error('ID de ruta requerido');
-
+      
       const { nombreParada, latitud, longitud, orden, tiempoEstimado } = stopData;
-
-      const missing = apiUtils.validateRequired({
-        nombreParada,
-        latitud,
-        longitud,
-        orden
+      
+      const missing = apiUtils.validateRequired({ 
+        nombreParada, 
+        latitud, 
+        longitud, 
+        orden 
       });
 
       if (missing.length > 0) {
@@ -377,7 +348,6 @@ const rutasAPI = {
       throw new Error(apiUtils.formatError(error));
     }
   },
-  */
 
   // ================================
   // REPORTES Y ESTADÍSTICAS
@@ -386,16 +356,7 @@ const rutasAPI = {
   // Obtener estadísticas de rutas
   getStatistics: async () => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta de estadísticas
-      const response = await apiClient.get(`/api/rutas/estadisticas?idEmpresa=${empresaId}`);
+      const response = await apiClient.get('/api/rutas/estadisticas');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -405,16 +366,7 @@ const rutasAPI = {
   // Obtener distribución por estado
   getStatusDistribution: async () => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta de distribución
-      const response = await apiClient.get(`/api/rutas/distribucion-estados?idEmpresa=${empresaId}`);
+      const response = await apiClient.get('/api/rutas/distribucion-estados');
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -424,16 +376,7 @@ const rutasAPI = {
   // Obtener rutas más utilizadas
   getMostUsed: async (limit = 10) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta de rutas más utilizadas
-      const response = await apiClient.get(`/api/rutas/mas-utilizadas?limite=${limit}&idEmpresa=${empresaId}`);
+      const response = await apiClient.get(`/api/rutas/mas-utilizadas?limite=${limit}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -443,16 +386,7 @@ const rutasAPI = {
   // Obtener análisis de rentabilidad
   getProfitabilityAnalysis: async (fechaInicio, fechaFin) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta de análisis de rentabilidad
-      const params = apiUtils.createUrlParams({ fechaInicio, fechaFin, idEmpresa: empresaId });
+      const params = apiUtils.createUrlParams({ fechaInicio, fechaFin });
       const response = await apiClient.get(`/api/rutas/analisis-rentabilidad${params ? `?${params}` : ''}`);
       return response.data;
     } catch (error) {
@@ -539,26 +473,11 @@ const rutasAPI = {
   // Exportar lista de rutas
   exportRoutes: async (format = 'csv', filters = {}) => {
     try {
-      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
-      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
-      const empresaId = userContext.empresaId || userContext.idEmpresa;
-
-      if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
-      }
-
-      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en filtros de exportación
-      const filtrosConEmpresa = {
-        ...filters,
-        idEmpresa: empresaId,  // ✅ Filtro de seguridad por empresa
-        formato: format
-      };
-
-      const params = apiUtils.createUrlParams(filtrosConEmpresa);
+      const params = apiUtils.createUrlParams({ ...filters, formato: format });
       const response = await apiClient.get(`/api/rutas/export${params ? `?${params}` : ''}`, {
         responseType: 'blob'
       });
-
+      
       // Crear URL para descarga
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -568,7 +487,7 @@ const rutasAPI = {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-
+      
       return { success: true, message: 'Rutas exportadas exitosamente' };
     } catch (error) {
       throw new Error(apiUtils.formatError(error));

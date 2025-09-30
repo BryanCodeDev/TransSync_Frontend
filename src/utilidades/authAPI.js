@@ -1,8 +1,19 @@
+// api/authAPI.js - Servicio de autenticación integrado
 import { apiClient, apiUtils } from '../api/baseAPI';
 
+
 const authAPI = {
+  // ================================
+  // AUTENTICACIÓN BÁSICA
+  // ================================
+
+  // Registro de usuario
+  // REEMPLAZA LA FUNCIÓN VIEJA CON ESTA:
+
+  // Registro de usuario
   register: async (userData) => {
     try {
+      // 1. Validación de campos requeridos según el backend
       const requiredFields = ['nomUsuario', 'apeUsuario', 'numDocUsuario', 'telUsuario', 'email', 'password'];
       const missingFields = requiredFields.filter(field => !userData[field]);
 
@@ -10,14 +21,17 @@ const authAPI = {
         throw new Error(`Campos requeridos faltantes: ${missingFields.join(', ')}`);
       }
 
+      // 2. Validar formato de email
       if (!apiUtils.isValidEmail(userData.email)) {
         throw new Error('Formato de email inválido');
       }
 
+      // 3. Validar contraseña segura
       if (userData.password && userData.password.length < 6) {
         throw new Error('La contraseña debe tener al menos 6 caracteres');
       }
 
+      // 4. Enviar datos al backend con el formato correcto
       const response = await apiClient.post('/api/auth/register', {
         nomUsuario: userData.nomUsuario.trim(),
         apeUsuario: userData.apeUsuario.trim(),
@@ -30,20 +44,26 @@ const authAPI = {
       return response.data;
 
     } catch (error) {
+      // Re-lanzar el error para que sea manejado por el interceptor
+      // o por el componente que llamó a la función.
       throw error;
     }
   },
+  // Login de usuario
   login: async (credentials, password) => {
     try {
+      // Permitir tanto formato de objeto como parámetros separados
       let email, finalPassword;
 
       if (typeof credentials === 'object') {
         ({ email, password: finalPassword } = credentials);
       } else {
+        // Compatibilidad con authService.js (email, password como parámetros)
         email = credentials;
         finalPassword = password;
       }
 
+      // Validaciones
       if (!email || !finalPassword) {
         throw new Error("Email y contraseña son requeridos");
       }
@@ -52,40 +72,83 @@ const authAPI = {
         throw new Error('Formato de email inválido');
       }
 
+      console.log('🔐 Attempting login for:', email);
+
       const response = await apiClient.post('/api/auth/login', {
         email: email.trim().toLowerCase(),
         password: finalPassword
       });
 
+      console.log('📡 Login response received:', {
+        status: response.status,
+        hasData: !!response.data,
+        hasToken: !!response.data?.token,
+        hasUser: !!response.data?.user,
+        userKeys: response.data?.user ? Object.keys(response.data.user) : [],
+        fullResponse: response.data
+      });
+
+      // Verificar que la respuesta tenga la estructura esperada
       if (!response.data) {
+        console.error('❌ No response data received from server');
         throw new Error('No se recibió respuesta del servidor');
       }
 
       if (!response.data.token) {
+        console.error('❌ No token received in response:', response.data);
         throw new Error('No se recibió token de autenticación');
       }
 
+      // Buscar datos del usuario en diferentes ubicaciones de la respuesta
       let user = response.data.user;
       if (!user) {
+        // Intentar buscar en otras ubicaciones comunes
         user = response.data.userData || response.data.profile || response.data.data;
+        console.log('🔍 User data found in alternative location:', user ? 'YES' : 'NO');
       }
 
       if (!user) {
+        console.error('❌ No user data received in response:', {
+          hasUser: !!response.data.user,
+          hasUserData: !!response.data.userData,
+          hasProfile: !!response.data.profile,
+          hasData: !!response.data.data,
+          fullResponse: response.data
+        });
         throw new Error('No se recibieron datos del usuario');
       }
 
+      // Verificar que el usuario tenga los campos requeridos
       if (!user.id || !user.email) {
+        console.error('❌ User data incomplete:', {
+          user,
+          hasId: !!user.id,
+          hasEmail: !!user.email,
+          hasName: !!user.name,
+          hasRole: !!user.role
+        });
         throw new Error('Los datos del usuario están incompletos');
       }
 
+      // Guardar datos de autenticación automáticamente
       try {
         authAPI.saveAuthData(response.data);
+        console.log('✅ Authentication data saved successfully');
       } catch (saveError) {
+        console.error('❌ Error saving auth data:', saveError);
         throw new Error('Error al guardar los datos de autenticación');
       }
 
       return response.data;
     } catch (error) {
+      console.error('❌ Login error:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        fullError: error
+      });
+
+      // Manejo específico de errores de login
       if (error.status === 401 || error.response?.status === 401) {
         throw new Error('Credenciales incorrectas. Verifique su email y contraseña.');
       } else if (error.status === 403 || error.response?.status === 403) {
@@ -100,6 +163,7 @@ const authAPI = {
     }
   },
 
+  // Verificar cuenta
   verifyAccount: async (token) => {
     try {
       if (!token) {
@@ -119,6 +183,11 @@ const authAPI = {
     }
   },
 
+  // ================================
+  // RECUPERACIÓN DE CONTRASEÑA
+  // ================================
+
+  // Olvido de contraseña
   forgotPassword: async (email) => {
     try {
       if (!email) {
@@ -142,6 +211,7 @@ const authAPI = {
     }
   },
 
+  // Restablecer contraseña
   resetPassword: async (token, newPassword) => {
     try {
       if (!token || !newPassword) {
@@ -167,22 +237,37 @@ const authAPI = {
     }
   },
 
+  // ================================
+  // GESTIÓN DE SESIÓN
+  // ================================
+
+  // Logout
   logout: async () => {
     try {
+      // Intentar logout en el servidor (opcional)
       try {
         await apiClient.post('/api/auth/logout');
       } catch (error) {
+        console.warn('Error en logout del servidor:', error);
       }
 
+      // Limpiar datos locales
       authAPI.clearAuthData();
 
       return { success: true, message: 'Sesión cerrada exitosamente' };
     } catch (error) {
+      console.error('Error en logout:', error);
+      // Limpiar de todas formas
       authAPI.clearAuthData();
       return { success: false, message: 'Error al cerrar sesión, pero se limpió localmente' };
     }
   },
 
+  // ================================
+  // ENDPOINTS PROTEGIDOS
+  // ================================
+
+  // Obtener perfil del usuario
   getProfile: async () => {
     try {
       const response = await apiClient.get('/api/auth/profile');
@@ -192,6 +277,7 @@ const authAPI = {
     }
   },
 
+  // Verificar token
   verifyToken: async () => {
     try {
       const response = await apiClient.get('/api/auth/verify-token');
@@ -201,6 +287,11 @@ const authAPI = {
     }
   },
 
+  // ================================
+  // GESTIÓN DE PERFIL
+  // ================================
+
+  // Actualizar perfil de usuario
   updateProfile: async (profileData) => {
     try {
       const { name, email } = profileData;
@@ -214,6 +305,7 @@ const authAPI = {
         email: email?.trim().toLowerCase()
       });
 
+      // Actualizar datos en localStorage
       if (response.data.user) {
         const currentData = authAPI.getCurrentUser() || {};
         const updatedUser = { ...currentData, ...response.data.user };
@@ -229,6 +321,7 @@ const authAPI = {
     }
   },
 
+  // Cambiar contraseña
   changePassword: async (passwordData) => {
     try {
       const { currentPassword, newPassword, confirmPassword } = passwordData;
@@ -257,197 +350,202 @@ const authAPI = {
     }
   },
 
+  // ================================
+  // UTILIDADES DE AUTENTICACIÓN
+  // ================================
+
+  // Verificar si está autenticado
   isAuthenticated: () => {
     try {
       const token = localStorage.getItem('authToken') || localStorage.getItem('userToken');
       const isAuth = localStorage.getItem('isAuthenticated');
       return !!(token && isAuth === 'true');
     } catch (error) {
+      console.error('Error checking authentication:', error);
       return false;
     }
   },
 
+  // Obtener datos del usuario actual
   getCurrentUser: () => {
     try {
       const userData = localStorage.getItem('userData');
       if (userData) {
         try {
           const parsed = JSON.parse(userData);
-          if (parsed && typeof parsed === 'object' && parsed.id && parsed.email) {
-            // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en el retorno
+          // Validar que el objeto parseado tenga la estructura mínima
+          if (parsed && typeof parsed === 'object') {
             return {
               id: parsed.id || parsed.userId || parsed._id,
               name: parsed.name || parsed.userName || parsed.fullName || 'Usuario',
               email: parsed.email || parsed.userEmail,
-              role: parsed.role || parsed.userRole || parsed.type || 'USER',
-              empresaId: parsed.empresaId || parsed.idEmpresa || parsed.empresa_id || parsed.companyId
+              role: parsed.role || parsed.userRole || parsed.type || 'USER'
             };
           }
         } catch (parseError) {
-          console.error('❌ Error parseando datos de usuario:', parseError);
+          console.warn('⚠️ Error parsing userData JSON, attempting recovery:', parseError);
         }
       }
 
-      // Intentar recuperar datos individuales como respaldo
+      // Fallback con datos separados
       const userName = localStorage.getItem('userName');
       const userRole = localStorage.getItem('userRole');
       const userEmail = localStorage.getItem('userEmail');
       const userId = localStorage.getItem('userId');
-      const empresaId = localStorage.getItem('empresaId');
 
-      if (userId && userEmail && empresaId) {
-        console.log('✅ Datos de usuario recuperados de respaldo');
+      if (userName || userRole || userEmail || userId) {
         return {
-          id: userId,
+          id: userId || 'unknown',
           name: userName || 'Usuario',
-          email: userEmail,
-          role: userRole || 'USER',
-          empresaId: empresaId
+          email: userEmail || 'user@example.com',
+          role: userRole || 'USER'
         };
-      }
-
-      // Si no hay datos válidos, limpiar datos corruptos
-      if (userName || userRole || userEmail || userId || empresaId) {
-        console.warn('⚠️ Datos de usuario incompletos detectados, limpiando...');
-        authAPI.clearAuthData();
       }
 
       return null;
     } catch (error) {
-      console.error('❌ Error obteniendo datos de usuario:', error);
+      console.error('Error getting current user:', error);
       return null;
     }
   },
 
+  // Obtener rol del usuario
   getUserRole: () => {
     try {
       return localStorage.getItem('userRole') || null;
     } catch (error) {
+      console.error('Error getting user role:', error);
       return null;
     }
   },
 
+  // Verificar si el usuario tiene un rol específico
   hasRole: (role) => {
     const userRole = authAPI.getUserRole();
     return userRole === role;
   },
 
+  // Verificar si es superadmin
   isSuperAdmin: () => {
     return authAPI.hasRole('SUPERADMIN');
   },
 
+  // Verificar si es gestor
   isGestor: () => {
     return authAPI.hasRole('GESTOR');
   },
 
+  // Verificar si es conductor
   isConductor: () => {
     return authAPI.hasRole('CONDUCTOR');
   },
 
+  // Verificar si es administrador (mantiene compatibilidad)
   isAdmin: () => {
-    return authAPI.hasRole('GESTOR') || authAPI.hasRole('SUPERADMIN');
+    return authAPI.hasRole('ADMINISTRADOR') || authAPI.hasRole('SUPERADMIN') || authAPI.hasRole('GESTOR');
   },
 
+  // ================================
+  // MANEJO DE DATOS LOCALES
+  // ================================
+
+  // Guardar datos de autenticación
   saveAuthData: (authData) => {
     try {
       if (authData.token) {
         localStorage.setItem('authToken', authData.token);
-        localStorage.setItem('userToken', authData.token);
+        localStorage.setItem('userToken', authData.token); // Por compatibilidad
         localStorage.setItem('isAuthenticated', 'true');
 
+        // Buscar datos del usuario en múltiples ubicaciones posibles
         let userData = null;
+        let userSource = '';
 
-        // Buscar datos del usuario en diferentes ubicaciones posibles
+        // 1. Intentar obtener de authData.user
         if (authData.user && typeof authData.user === 'object') {
           userData = authData.user;
+          userSource = 'authData.user';
         }
+        // 2. Intentar obtener de authData.userData
         else if (authData.userData && typeof authData.userData === 'object') {
           userData = authData.userData;
+          userSource = 'authData.userData';
         }
+        // 3. Intentar obtener de authData.profile
         else if (authData.profile && typeof authData.profile === 'object') {
           userData = authData.profile;
+          userSource = 'authData.profile';
         }
+        // 4. Intentar obtener de authData.data
         else if (authData.data && typeof authData.data === 'object') {
           userData = authData.data;
+          userSource = 'authData.data';
         }
 
         if (userData) {
+          // Crear objeto de usuario con valores por defecto seguros
           const finalUserData = {
-            id: userData.id || userData.userId || userData._id || userData.idUsuario,
-            name: userData.name || userData.userName || userData.fullName || userData.displayName || userData.nomUsuario,
+            id: userData.id || userData.userId || userData._id,
+            name: userData.name || userData.userName || userData.fullName || userData.displayName,
             email: userData.email || userData.userEmail,
-            role: userData.role || userData.userRole || userData.type || userData.rol || 'USER',
-            empresaId: userData.empresaId || userData.idEmpresa || userData.empresa_id || userData.companyId
+            role: userData.role || userData.userRole || userData.type || 'USER'
           };
 
-          // ✅ CORRECCIÓN CRÍTICA: Validar que tenemos datos mínimos requeridos incluyendo empresaId
-          if (finalUserData.id && finalUserData.email && finalUserData.empresaId) {
+          // Validar que al menos tengamos id y email
+          if (finalUserData.id && finalUserData.email) {
             localStorage.setItem('userData', JSON.stringify(finalUserData));
             localStorage.setItem('userName', finalUserData.name || '');
             localStorage.setItem('userRole', finalUserData.role || '');
             localStorage.setItem('userEmail', finalUserData.email || '');
             localStorage.setItem('userId', finalUserData.id || '');
-            localStorage.setItem('empresaId', finalUserData.empresaId || '');
 
-            // ✅ CORRECCIÓN CRÍTICA: También guardar en userContext para compatibilidad
-            localStorage.setItem('userContext', JSON.stringify(finalUserData));
-
-            console.log('✅ Datos de usuario guardados correctamente:', finalUserData);
+            console.log('✅ User data saved successfully:', finalUserData, 'from:', userSource);
           } else {
-            console.error('❌ Datos de usuario incompletos:', finalUserData);
-            console.error('🔍 Campos faltantes:', {
-              id: !finalUserData.id,
-              email: !finalUserData.email,
-              empresaId: !finalUserData.empresaId
-            });
+            console.warn('⚠️ User data incomplete, creating minimal user object:', finalUserData);
+            // Crear usuario mínimo con datos disponibles
+            const minimalUserData = {
+              id: finalUserData.id || 'unknown',
+              name: finalUserData.name || 'Usuario',
+              email: finalUserData.email || 'user@example.com',
+              role: finalUserData.role || 'USER'
+            };
 
-            // ✅ CORRECCIÓN CRÍTICA: Si falta empresaId pero tenemos otros datos, intentar recuperar de fuentes alternativas
-            if (finalUserData.id && finalUserData.email) {
-              console.log('🔄 Intentando recuperar empresaId de fuentes alternativas...');
+            localStorage.setItem('userData', JSON.stringify(minimalUserData));
+            localStorage.setItem('userName', minimalUserData.name);
+            localStorage.setItem('userRole', minimalUserData.role);
+            localStorage.setItem('userEmail', minimalUserData.email);
+            localStorage.setItem('userId', minimalUserData.id);
 
-              // Buscar empresaId en diferentes formatos y ubicaciones
-              const empresaIdFromStorage = localStorage.getItem('empresaId') ||
-                                         localStorage.getItem('userEmpresaId') ||
-                                         localStorage.getItem('companyId');
-
-              if (empresaIdFromStorage) {
-                finalUserData.empresaId = empresaIdFromStorage;
-                console.log('✅ empresaId recuperado de almacenamiento:', empresaIdFromStorage);
-              } else {
-                // Si no hay empresaId disponible, generar error específico
-                throw new Error('empresaId es requerido pero no está disponible en los datos del usuario ni en el almacenamiento local');
-              }
-            } else {
-              throw new Error('Los datos del usuario están incompletos (falta ID, email o empresaId)');
-            }
-          }
-
-          // ✅ CORRECCIÓN CRÍTICA: Guardar datos adicionales para asegurar compatibilidad
-          if (finalUserData.empresaId) {
-            localStorage.setItem('userData', JSON.stringify(finalUserData));
-            localStorage.setItem('userName', finalUserData.name || '');
-            localStorage.setItem('userRole', finalUserData.role || '');
-            localStorage.setItem('userEmail', finalUserData.email || '');
-            localStorage.setItem('userId', finalUserData.id || '');
-            localStorage.setItem('empresaId', finalUserData.empresaId || '');
-            localStorage.setItem('userContext', JSON.stringify(finalUserData));
-
-            console.log('✅ Datos de usuario guardados correctamente:', finalUserData);
+            console.log('✅ Minimal user data saved successfully:', minimalUserData);
           }
         } else {
-          console.error('❌ No se recibieron datos del usuario en la respuesta');
-          throw new Error('No se recibieron datos del usuario después del login');
+          console.warn('⚠️ No user data found in response, creating fallback user');
+          // Crear usuario de fallback
+          const fallbackUserData = {
+            id: 'fallback',
+            name: 'Usuario',
+            email: 'user@example.com',
+            role: 'USER'
+          };
+
+          localStorage.setItem('userData', JSON.stringify(fallbackUserData));
+          localStorage.setItem('userName', fallbackUserData.name);
+          localStorage.setItem('userRole', fallbackUserData.role);
+          localStorage.setItem('userEmail', fallbackUserData.email);
+          localStorage.setItem('userId', fallbackUserData.id);
+
+          console.log('✅ Fallback user data saved successfully:', fallbackUserData);
         }
       } else {
         throw new Error('No authentication token provided');
       }
     } catch (error) {
-      console.error('❌ Error guardando datos de autenticación:', error);
-      // ✅ CORRECCIÓN CRÍTICA: No limpiar datos automáticamente, dejar que el usuario decida
+      console.error('❌ Error saving auth data:', error);
       throw new Error(`Failed to save authentication data: ${error.message}`);
     }
   },
 
+  // Limpiar datos de autenticación
   clearAuthData: () => {
     try {
       const keysToRemove = [
@@ -460,15 +558,23 @@ const authAPI = {
 
       return true;
     } catch (error) {
+      console.error('Error en clearAuthData:', error);
+      // Limpiar de todas formas
       localStorage.clear();
       return false;
     }
   },
 
+  // Obtener token de autorización
   getAuthToken: () => {
     return localStorage.getItem('authToken') || localStorage.getItem('userToken');
   },
 
+  // ================================
+  // UTILIDADES DE DEBUGGING
+  // ================================
+
+  // Limpiar datos corruptos de localStorage
   clearCorruptedData: () => {
     try {
       const token = localStorage.getItem('authToken');
@@ -479,46 +585,39 @@ const authAPI = {
 
       if (token && isAuth === 'true') {
         if (!userData) {
-          console.warn('⚠️ Token existe pero no hay datos de usuario - datos corruptos');
+          console.warn('⚠️ Token exists but no user data - clearing corrupted data');
           corrupted = true;
         } else {
           try {
             const parsedUser = JSON.parse(userData);
-            if (!parsedUser || typeof parsedUser !== 'object') {
-              console.warn('⚠️ Datos de usuario no son un objeto válido');
+            if (!parsedUser.id || !parsedUser.email) {
+              console.warn('⚠️ User data incomplete - clearing corrupted data');
               corrupted = true;
-            } else if (!parsedUser.id || !parsedUser.email) {
-              console.warn('⚠️ Datos de usuario incompletos (falta ID o email)');
-              corrupted = true;
-            } else {
-              // ✅ CORRECCIÓN CRÍTICA: Validar también empresaId
-              if (!parsedUser.empresaId) {
-                console.warn('⚠️ Datos de usuario incompletos (falta empresaId)');
-                // No marcar como corrupted, intentar recuperar empresaId
-                console.log('🔄 Intentando recuperar empresaId...');
-                return false;
-              }
             }
           } catch (e) {
-            console.warn('⚠️ Error parseando datos de usuario - datos corruptos');
+            console.warn('⚠️ User data corrupted JSON - clearing corrupted data');
             corrupted = true;
           }
         }
       }
 
       if (corrupted) {
-        console.log('🧹 Limpiando datos corruptos de autenticación...');
         authAPI.clearAuthData();
         return true;
       }
 
       return false;
     } catch (error) {
-      console.error('❌ Error limpiando datos corruptos:', error);
+      console.error('❌ Error checking for corrupted data:', error);
       return false;
     }
   },
 
+  // ================================
+  // DIAGNÓSTICO DE CONEXIÓN
+  // ================================
+
+  // Función para diagnosticar problemas de conexión
   diagnoseConnection: async () => {
     const diagnostics = {
       timestamp: new Date().toISOString(),
@@ -528,12 +627,14 @@ const authAPI = {
     };
 
     try {
+      // Verificar configuración del frontend
       diagnostics.frontend = {
         apiUrl: process.env.REACT_APP_API_URL || "https://transyncbackend-production.up.railway.app",
         timeout: parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000,
         environment: process.env.NODE_ENV || 'development'
       };
 
+      // Verificar localStorage
       const token = localStorage.getItem('authToken');
       const userData = localStorage.getItem('userData');
       const isAuth = localStorage.getItem('isAuthenticated');
@@ -548,6 +649,7 @@ const authAPI = {
         diagnostics.frontend.localStorage.tokenLength = token.length;
       }
 
+      // Verificar conectividad básica
       const apiUrl = diagnostics.frontend.apiUrl;
       try {
         const response = await fetch(`${apiUrl}/api/health`, {
@@ -576,6 +678,7 @@ const authAPI = {
         diagnostics.issues.push('No se puede conectar al endpoint de health');
       }
 
+      // Verificar endpoint de login
       try {
         const response = await fetch(`${apiUrl}/api/auth/login`, {
           method: 'OPTIONS',
@@ -599,6 +702,7 @@ const authAPI = {
         diagnostics.issues.push('No se puede acceder al endpoint de login');
       }
 
+      // Verificar CORS
       try {
         const response = await fetch(`${apiUrl}/api/auth/login`, {
           method: 'POST',
@@ -637,17 +741,25 @@ const authAPI = {
       diagnostics.issues.push('Error general en el diagnóstico');
     }
 
+    console.log('🔍 Connection Diagnostics:', diagnostics);
     return diagnostics;
   },
 
+  // ================================
+  // VERIFICACIÓN DE SALUD
+  // ================================
+
+  // Verificar la salud de la conexión con el servidor de auth
   checkServerHealth: async () => {
     try {
       const startTime = Date.now();
 
+      // Intentar tanto el endpoint de health específico como uno general
       let response;
       try {
         response = await apiClient.get('/api/auth/health', { timeout: 5000 });
       } catch (error) {
+        // Fallback a health check general usando la URL configurada
         const apiUrl = process.env.REACT_APP_API_URL || "https://transyncbackend-production.up.railway.app";
         response = await fetch(`${apiUrl}/api/health`, {
           method: "GET",
@@ -693,8 +805,10 @@ const authAPI = {
   }
 };
 
+// Exportaciones compatibles con ambos sistemas
 export default authAPI;
 
+// Exportaciones individuales para compatibilidad con authService.js
 export const {
   register,
   login,

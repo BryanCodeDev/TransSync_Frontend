@@ -1,27 +1,23 @@
+// src/utilidades/cacheService.js - Servicio de Cache Inteligente
 const cacheService = {
   // Cache en memoria usando Map para mejor rendimiento
   memoryCache: new Map(),
 
-  // Configuración del cache optimizada
+  // Configuración del cache
   config: {
-    defaultTTL: 10 * 60 * 1000, // 10 minutos (aumentado)
-    maxSize: 200, // Máximo 200 entradas (aumentado)
-    cleanupInterval: 2 * 60 * 1000, // Limpieza cada 2 minutos
-    compressionEnabled: true,
-    enableMetrics: true,
-    enableAutoCleanup: true
+    defaultTTL: 5 * 60 * 1000, // 5 minutos
+    maxSize: 100, // Máximo 100 entradas
+    cleanupInterval: 60 * 1000, // Limpieza cada minuto
+    compressionEnabled: true
   },
 
-  // Estadísticas del cache mejoradas
+  // Estadísticas del cache
   stats: {
     hits: 0,
     misses: 0,
     sets: 0,
     deletes: 0,
-    errors: 0,
-    size: 0,
-    lastCleanup: Date.now(),
-    totalRequests: 0
+    size: 0
   },
 
   /**
@@ -34,7 +30,7 @@ const cacheService = {
       self.cleanup();
     }, self.config.cleanupInterval);
 
-    
+    console.log('🗄️ Cache service initialized');
   },
 
   /**
@@ -125,7 +121,7 @@ const cacheService = {
     const size = this.memoryCache.size;
     this.memoryCache.clear();
     this.stats.size = 0;
-    
+    console.log(`🗑️ Cache cleared: ${size} entries removed`);
   },
 
   /**
@@ -141,7 +137,7 @@ const cacheService = {
     }
     this.stats.deletes += invalidated;
     this.stats.size = this.memoryCache.size;
-    
+    console.log(`🚫 Cache invalidated by pattern "${pattern}": ${invalidated} entries removed`);
   },
 
   /**
@@ -169,12 +165,12 @@ const cacheService = {
     let data = this.get(cacheKey);
 
     if (data !== null) {
-      
+      console.log('✅ Cache hit for query:', cacheKey);
       return data;
     }
 
     // Si no está en cache, ejecutar la función
-    
+    console.log('❌ Cache miss for query:', cacheKey);
     try {
       data = await fetchFunction();
 
@@ -241,83 +237,28 @@ const cacheService = {
     if (oldestKey) {
       this.memoryCache.delete(oldestKey);
       this.stats.deletes++;
-      
+      console.log('🚫 Evicted oldest cache entry:', oldestKey);
     }
   },
 
   /**
-   * Limpiar entradas expiradas y datos corruptos
+   * Limpiar entradas expiradas
    */
   cleanup: function() {
     const now = Date.now();
     let cleaned = 0;
-    let corrupted = 0;
 
-    try {
-      for (const [key, entry] of this.memoryCache) {
-        // Verificar si expiró
-        if (now > entry.expiry) {
-          this.memoryCache.delete(key);
-          cleaned++;
-          continue;
-        }
-
-        // Verificar si los datos están corruptos
-        if (this.isCorruptedData(entry.data)) {
-          this.memoryCache.delete(key);
-          corrupted++;
-          continue;
-        }
-
-        // Verificar tamaño de entrada (evitar memory leaks)
-        const entrySize = JSON.stringify(entry.data).length;
-        if (entrySize > 1024 * 1024) { // 1MB límite
-          this.memoryCache.delete(key);
-          cleaned++;
-        }
+    for (const [key, entry] of this.memoryCache) {
+      if (now > entry.expiry) {
+        this.memoryCache.delete(key);
+        cleaned++;
       }
-
-      if (cleaned > 0 || corrupted > 0) {
-        this.stats.deletes += (cleaned + corrupted);
-        this.stats.size = this.memoryCache.size;
-        this.stats.lastCleanup = now;
-
-        if (corrupted > 0) {
-          console.log(`🧹 Cache limpiado: ${cleaned} expirados, ${corrupted} corruptos`);
-        }
-      }
-    } catch (error) {
-      console.error('❌ Error durante limpieza de cache:', error);
-      this.stats.errors++;
     }
-  },
 
-  /**
-   * Verificar si los datos están corruptos
-   */
-  isCorruptedData: function(data) {
-    try {
-      // Verificar si es null o undefined
-      if (data === null || data === undefined) {
-        return true;
-      }
-
-      // Verificar si es un objeto/array válido
-      if (typeof data === 'object') {
-        const jsonString = JSON.stringify(data);
-        if (jsonString === '{}' || jsonString === '[]') {
-          return true;
-        }
-      }
-
-      // Verificar si es un string vacío o con solo espacios
-      if (typeof data === 'string' && data.trim() === '') {
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      return true; // Si no se puede verificar, asumir corrupto
+    if (cleaned > 0) {
+      this.stats.deletes += cleaned;
+      this.stats.size = this.memoryCache.size;
+      console.log(`🧹 Cache cleanup: ${cleaned} expired entries removed`);
     }
   },
 
@@ -351,13 +292,13 @@ const cacheService = {
     // Si el hit rate es bajo, aumentar TTL
     if (stats.hitRate < 50) {
       this.config.defaultTTL *= 1.5;
-      
+      console.log('📈 Low hit rate detected, increasing TTL to:', this.config.defaultTTL);
     }
 
     // Si el cache está muy lleno, reducir TTL
     if (stats.size > this.config.maxSize * 0.8) {
       this.config.defaultTTL *= 0.8;
-      
+      console.log('📉 Cache nearly full, reducing TTL to:', this.config.defaultTTL);
     }
 
     // Limpiar entradas poco accedidas
@@ -373,7 +314,7 @@ const cacheService = {
     }
 
     if (cleaned > 0) {
-      
+      console.log(`🧽 Cache optimization: ${cleaned} stale entries removed`);
     }
   },
 
@@ -383,7 +324,7 @@ const cacheService = {
   preloadCommonQueries: async function(userContext, apiClient) {
     // Solo pre-cargar si tenemos contexto de usuario válido
     if (!userContext || !userContext.idEmpresa) {
-      
+      console.log('⏭️ Skipping preload - no valid user context');
       return;
     }
 
@@ -414,9 +355,9 @@ const cacheService = {
         });
 
         this.set(cacheKey, data.data, this.config.defaultTTL * 2); // TTL más largo para datos comunes
-        
+        console.log(`📦 Preloaded common query: ${query.name}`);
       } catch (error) {
-        
+        console.error(`Error preloading query ${query.name}:`, error);
         // No propagar el error para evitar romper la inicialización
       }
     }

@@ -1,3 +1,4 @@
+// src/utilidades/conversationMemory.js - Sistema de Memoria de Conversación
 const conversationMemory = {
   // Almacenamiento en memoria de las conversaciones activas
   activeConversations: new Map(),
