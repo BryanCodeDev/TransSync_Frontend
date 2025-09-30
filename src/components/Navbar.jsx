@@ -43,10 +43,22 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     if (!token) {
       return null;
     }
+
+    // Obtener empresaId de diferentes fuentes posibles
+    let empresaId = null;
+
+    // Primero intentar obtenerlo del contexto de usuario si está disponible
+    if (user?.empresaId) {
+      empresaId = user.empresaId;
+    } else {
+      // Buscar en localStorage como respaldo
+      empresaId = localStorage.getItem('empresaId') || localStorage.getItem('userEmpresaId');
+    }
+
     return {
       token,
       userId: user?.id || null,
-      empresaId: user?.empresaId || null,
+      empresaId: empresaId,
       rol: userRole || null
     };
   }, [user?.id, user?.empresaId, userRole]);

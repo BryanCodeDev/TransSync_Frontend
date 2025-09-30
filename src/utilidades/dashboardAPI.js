@@ -8,7 +8,16 @@ export const dashboardAPI = {
   // Obtener estadísticas generales del dashboard
   getGeneralStatistics: async () => {
     try {
-      const response = await apiClient.get('/api/dashboard/estadisticas');
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en estadísticas generales
+      const response = await apiClient.get(`/api/dashboard/estadisticas?idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -16,11 +25,18 @@ export const dashboardAPI = {
   },
 
   // Obtener resumen operacional desde la tabla ResumenOperacional
-  getOperationalSummary: async (idEmpresa) => {
+  getOperationalSummary: async () => {
     try {
-      if (!idEmpresa) throw new Error('ID de empresa requerido');
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
 
-      const response = await apiClient.get(`/api/dashboard/resumen-operacional?idEmpresa=${idEmpresa}`);
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en resumen operacional
+      const response = await apiClient.get(`/api/dashboard/resumen-operacional?idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -35,7 +51,16 @@ export const dashboardAPI = {
         throw new Error('Período inválido');
       }
 
-      const response = await apiClient.get(`/api/dashboard/graficos?periodo=${period}`);
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en datos de gráficos
+      const response = await apiClient.get(`/api/dashboard/graficos?periodo=${period}&idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -45,7 +70,16 @@ export const dashboardAPI = {
   // Obtener alertas activas
   getActiveAlerts: async () => {
     try {
-      const response = await apiClient.get('/api/dashboard/alertas');
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en alertas activas
+      const response = await apiClient.get(`/api/dashboard/alertas?idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -53,11 +87,18 @@ export const dashboardAPI = {
   },
 
   // Obtener alertas de vencimientos desde la tabla AlertasVencimientos
-  getExpirationAlerts: async (idEmpresa) => {
+  getExpirationAlerts: async () => {
     try {
-      if (!idEmpresa) throw new Error('ID de empresa requerido');
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
 
-      const response = await apiClient.get(`/api/dashboard/alertas-vencimientos?idEmpresa=${idEmpresa}`);
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en alertas de vencimientos
+      const response = await apiClient.get(`/api/dashboard/alertas-vencimientos?idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -65,11 +106,18 @@ export const dashboardAPI = {
   },
 
   // Obtener alertas próximas a vencer (próximos 30 días)
-  getUpcomingAlerts: async (idEmpresa, dias = 30) => {
+  getUpcomingAlerts: async (dias = 30) => {
     try {
-      if (!idEmpresa) throw new Error('ID de empresa requerido');
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
 
-      const response = await apiClient.get(`/api/dashboard/alertas-proximas?idEmpresa=${idEmpresa}&dias=${dias}`);
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en alertas próximas
+      const response = await apiClient.get(`/api/dashboard/alertas-proximas?idEmpresa=${empresaId}&dias=${dias}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -77,11 +125,18 @@ export const dashboardAPI = {
   },
 
   // Obtener alertas vencidas
-  getOverdueAlerts: async (idEmpresa) => {
+  getOverdueAlerts: async () => {
     try {
-      if (!idEmpresa) throw new Error('ID de empresa requerido');
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
 
-      const response = await apiClient.get(`/api/dashboard/alertas-vencidas?idEmpresa=${idEmpresa}`);
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en alertas vencidas
+      const response = await apiClient.get(`/api/dashboard/alertas-vencidas?idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -91,7 +146,16 @@ export const dashboardAPI = {
   // Obtener actividad reciente
   getRecentActivity: async (limit = 10) => {
     try {
-      const response = await apiClient.get(`/api/dashboard/actividad?limite=${limit}`);
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en actividad reciente
+      const response = await apiClient.get(`/api/dashboard/actividad?limite=${limit}&idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -101,7 +165,17 @@ export const dashboardAPI = {
   // Obtener indicadores clave (KPIs)
   getKPIs: async (dateRange = {}) => {
     try {
-      const params = apiUtils.createUrlParams(dateRange);
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en KPIs
+      const filtrosConEmpresa = { ...dateRange, idEmpresa: empresaId };
+      const params = apiUtils.createUrlParams(filtrosConEmpresa);
       const response = await apiClient.get(`/api/dashboard/kpis${params ? `?${params}` : ''}`);
       return response.data;
     } catch (error) {
@@ -112,7 +186,16 @@ export const dashboardAPI = {
   // Obtener resumen ejecutivo
   getExecutiveSummary: async (period = 'mes') => {
     try {
-      const response = await apiClient.get(`/api/dashboard/resumen-ejecutivo?periodo=${period}`);
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en resumen ejecutivo
+      const response = await apiClient.get(`/api/dashboard/resumen-ejecutivo?periodo=${period}&idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));
@@ -122,7 +205,16 @@ export const dashboardAPI = {
   // Obtener datos en tiempo real
   getRealTimeData: async () => {
     try {
-      const response = await apiClient.get('/api/dashboard/tiempo-real');
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en datos en tiempo real
+      const response = await apiClient.get(`/api/dashboard/tiempo-real?idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));

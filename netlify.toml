@@ -36,6 +36,14 @@
 
 # Force proper MIME types for dynamic chunks (IMPORTANT: Before SPA fallback)
 [[headers]]
+  for = "/*.chunk.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "application/javascript; charset=utf-8"
+    X-Content-Type-Options = "nosniff"
+
+# Force proper MIME types for static JS chunks (IMPORTANT: Before SPA fallback)
+[[headers]]
   for = "/static/js/*.chunk.js"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
@@ -134,6 +142,18 @@
   status = 200
 
 # JavaScript files - serve directly (IMPORTANT: Before SPA fallback)
+[[redirects]]
+  from = "/static/js/*.js"
+  to = "/static/js/:splat"
+  status = 200
+
+# JavaScript chunk files - serve directly (IMPORTANT: Before SPA fallback)
+[[redirects]]
+  from = "/*.chunk.js"
+  to = "/:splat"
+  status = 200
+
+# JavaScript files in static/js - serve directly (IMPORTANT: Before SPA fallback)
 [[redirects]]
   from = "/static/js/*"
   to = "/static/js/:splat"

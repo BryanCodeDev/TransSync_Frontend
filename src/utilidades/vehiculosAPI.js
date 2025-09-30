@@ -9,9 +9,22 @@ const vehiculosAPI = {
   // Obtener vehículos con filtros
   getAll: async (filters = {}) => {
     try {
-      const params = apiUtils.createUrlParams(filters);
-      const response = await apiClient.get(`/api/vehiculos${params ? `?${params}` : ''}`);
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
 
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId automáticamente en filtros
+      const filtrosConEmpresa = {
+        ...filters,
+        idEmpresa: empresaId  // ✅ Filtro de seguridad por empresa
+      };
+
+      const params = apiUtils.createUrlParams(filtrosConEmpresa);
+      const response = await apiClient.get(`/api/vehiculos${params ? `?${params}` : ''}`);
 
       // Asegurar que response.data sea un array - manejo más robusto
       let dataArray = [];
@@ -44,7 +57,7 @@ const vehiculosAPI = {
             }
           }
         } catch (parseError) {
-          
+
           dataArray = [];
         }
       }
@@ -80,25 +93,33 @@ const vehiculosAPI = {
   // Crear nuevo vehículo
   create: async (vehicleData) => {
     try {
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
       // Validaciones específicas para vehículos según la base de datos
-      const { 
-        numVehiculo, 
-        plaVehiculo, 
-        marVehiculo, 
-        modVehiculo, 
+      const {
+        numVehiculo,
+        plaVehiculo,
+        marVehiculo,
+        modVehiculo,
         anioVehiculo,
         fecVenSOAT,
         fecVenTec,
         estVehiculo,
-        idEmpresa,
+        idEmpresa, // Este puede venir del formulario pero se valida contra el contexto
         idConductorAsignado
       } = vehicleData;
 
-      const missing = apiUtils.validateRequired({ 
+      const missing = apiUtils.validateRequired({
         numVehiculo,
-        plaVehiculo, 
-        marVehiculo, 
-        modVehiculo, 
+        plaVehiculo,
+        marVehiculo,
+        modVehiculo,
         anioVehiculo,
         fecVenSOAT,
         fecVenTec
@@ -106,6 +127,11 @@ const vehiculosAPI = {
 
       if (missing.length > 0) {
         throw new Error(`Campos requeridos: ${missing.join(', ')}`);
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Validar que el idEmpresa del formulario coincida con el contexto
+      if (idEmpresa && idEmpresa !== empresaId) {
+        throw new Error('No tienes permisos para crear vehículos en esta empresa');
       }
 
       // Validar placa (formato básico)
@@ -129,7 +155,7 @@ const vehiculosAPI = {
       const fechaSOAT = new Date(fecVenSOAT);
       const fechaTec = new Date(fecVenTec);
       const hoy = new Date();
-      
+
       if (fechaSOAT <= hoy) {
         throw new Error('La fecha de vencimiento del SOAT debe ser futura');
       }
@@ -147,7 +173,7 @@ const vehiculosAPI = {
         fecVenSOAT,
         fecVenTec,
         estVehiculo: estVehiculo || 'DISPONIBLE',
-        idEmpresa,
+        idEmpresa: empresaId, // ✅ CORRECCIÓN CRÍTICA: Usar empresaId del contexto
         idConductorAsignado: idConductorAsignado || null
       });
 
@@ -270,7 +296,16 @@ const vehiculosAPI = {
   // Obtener estadísticas de vehículos
   getStatistics: async () => {
     try {
-      const response = await apiClient.get('/api/vehiculos/estadisticas');
+      // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+      const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+      const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+      if (!empresaId) {
+        throw new Error('empresaId no encontrado en el contexto del usuario');
+      }
+
+      // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en la consulta de estadísticas
+      const response = await apiClient.get(`/api/vehiculos/estadisticas?idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
       throw new Error(apiUtils.formatError(error));

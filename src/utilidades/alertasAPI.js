@@ -6,22 +6,35 @@ const alertasAPI = {
   // ================================
 
   /**
-   * Obtener todas las alertas
-   * @param {Object} filters - Filtros para la consulta
-   * @param {number} filters.idEmpresa - ID de la empresa
-   * @param {string} filters.tipoDocumento - Tipo de documento (opcional)
-   * @param {string} filters.estado - Estado de la alerta (opcional)
-   * @returns {Promise<Object>} Lista de alertas
-   */
-  getAll: async (filters = {}) => {
-    try {
-      const params = apiUtils.createUrlParams(filters);
-      const response = await apiClient.get(`/api/alertas${params ? `?${params}` : ''}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
+    * Obtener todas las alertas
+    * @param {Object} filters - Filtros para la consulta
+    * @param {string} filters.tipoDocumento - Tipo de documento (opcional)
+    * @param {string} filters.estado - Estado de la alerta (opcional)
+    * @returns {Promise<Object>} Lista de alertas
+    */
+   getAll: async (filters = {}) => {
+     try {
+       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+       const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+       if (!empresaId) {
+         throw new Error('empresaId no encontrado en el contexto del usuario');
+       }
+
+       // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId automáticamente en filtros
+       const filtrosConEmpresa = {
+         ...filters,
+         idEmpresa: empresaId  // ✅ Filtro de seguridad por empresa
+       };
+
+       const params = apiUtils.createUrlParams(filtrosConEmpresa);
+       const response = await apiClient.get(`/api/alertas${params ? `?${params}` : ''}`);
+       return response.data;
+     } catch (error) {
+       throw new Error(apiUtils.formatError(error));
+     }
+   },
 
   /**
    * Obtener alerta por ID
@@ -59,134 +72,170 @@ const alertasAPI = {
   },
 
   /**
-   * Crear nueva alerta manualmente
-   * @param {Object} alertData - Datos de la alerta
-   * @returns {Promise<Object>} Respuesta del servidor
-   */
-  createAlert: async (alertData) => {
-    try {
-      const {
-        idEmpresa,
-        tipoDocumento,
-        idReferencia,
-        descripcion,
-        fechaVencimiento,
-        diasParaVencer
-      } = alertData;
+    * Crear nueva alerta manualmente
+    * @param {Object} alertData - Datos de la alerta
+    * @returns {Promise<Object>} Respuesta del servidor
+    */
+   createAlert: async (alertData) => {
+     try {
+       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+       const empresaId = userContext.empresaId || userContext.idEmpresa;
 
-      const missing = apiUtils.validateRequired({
-        idEmpresa,
-        tipoDocumento,
-        idReferencia,
-        descripcion,
-        fechaVencimiento
-      });
+       if (!empresaId) {
+         throw new Error('empresaId no encontrado en el contexto del usuario');
+       }
 
-      if (missing.length > 0) {
-        throw new Error(`Campos requeridos: ${missing.join(', ')}`);
-      }
+       const {
+         idEmpresa, // Este puede venir del formulario pero se valida contra el contexto
+         tipoDocumento,
+         idReferencia,
+         descripcion,
+         fechaVencimiento,
+         diasParaVencer
+       } = alertData;
 
-      // Validar tipo de documento
-      const validTypes = ['LICENCIA_CONDUCCION', 'SOAT', 'TECNICO_MECANICA', 'SEGURO'];
-      if (!validTypes.includes(tipoDocumento)) {
-        throw new Error('Tipo de documento inválido');
-      }
+       const missing = apiUtils.validateRequired({
+         tipoDocumento,
+         idReferencia,
+         descripcion,
+         fechaVencimiento
+       });
 
-      // Validar fecha de vencimiento
-      const fechaVenc = new Date(fechaVencimiento);
-      const hoy = new Date();
-      if (fechaVenc <= hoy) {
-        throw new Error('La fecha de vencimiento debe ser futura');
-      }
+       if (missing.length > 0) {
+         throw new Error(`Campos requeridos: ${missing.join(', ')}`);
+       }
 
-      const response = await apiClient.post('/api/alertas', {
-        idEmpresa: parseInt(idEmpresa),
-        tipoDocumento,
-        idReferencia: parseInt(idReferencia),
-        descripcion: descripcion.trim(),
-        fechaVencimiento,
-        diasParaVencer: diasParaVencer || 30,
-        estado: 'PENDIENTE'
-      });
+       // ✅ CORRECCIÓN CRÍTICA: Validar que el idEmpresa del formulario coincida con el contexto
+       if (idEmpresa && idEmpresa !== empresaId) {
+         throw new Error('No tienes permisos para crear alertas en esta empresa');
+       }
 
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
+       // Validar tipo de documento
+       const validTypes = ['LICENCIA_CONDUCCION', 'SOAT', 'TECNICO_MECANICA', 'SEGURO'];
+       if (!validTypes.includes(tipoDocumento)) {
+         throw new Error('Tipo de documento inválido');
+       }
+
+       // Validar fecha de vencimiento
+       const fechaVenc = new Date(fechaVencimiento);
+       const hoy = new Date();
+       if (fechaVenc <= hoy) {
+         throw new Error('La fecha de vencimiento debe ser futura');
+       }
+
+       const response = await apiClient.post('/api/alertas', {
+         idEmpresa: empresaId, // ✅ CORRECCIÓN CRÍTICA: Usar empresaId del contexto
+         tipoDocumento,
+         idReferencia: parseInt(idReferencia),
+         descripcion: descripcion.trim(),
+         fechaVencimiento,
+         diasParaVencer: diasParaVencer || 30,
+         estado: 'PENDIENTE'
+       });
+
+       return response.data;
+     } catch (error) {
+       throw new Error(apiUtils.formatError(error));
+     }
+   },
 
   // ================================
   // ESTADÍSTICAS Y REPORTES
   // ================================
 
   /**
-   * Obtener estadísticas de alertas
-   * @param {number} idEmpresa - ID de la empresa
-   * @returns {Promise<Object>} Estadísticas de alertas
-   */
-  getStatistics: async (idEmpresa) => {
-    try {
-      if (!idEmpresa) throw new Error('ID de empresa requerido');
+    * Obtener estadísticas de alertas
+    * @returns {Promise<Object>} Estadísticas de alertas
+    */
+   getStatistics: async () => {
+     try {
+       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+       const empresaId = userContext.empresaId || userContext.idEmpresa;
 
-      const response = await apiClient.get(`/api/alertas/stats?idEmpresa=${idEmpresa}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
+       if (!empresaId) {
+         throw new Error('empresaId no encontrado en el contexto del usuario');
+       }
 
-  /**
-   * Obtener alertas vencidas
-   * @param {number} idEmpresa - ID de la empresa
-   * @returns {Promise<Object>} Lista de alertas vencidas
-   */
-  getOverdue: async (idEmpresa) => {
-    try {
-      if (!idEmpresa) throw new Error('ID de empresa requerido');
+       // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en estadísticas
+       const response = await apiClient.get(`/api/alertas/stats?idEmpresa=${empresaId}`);
+       return response.data;
+     } catch (error) {
+       throw new Error(apiUtils.formatError(error));
+     }
+   },
 
-      const response = await apiClient.get(`/api/alertas/overdue?idEmpresa=${idEmpresa}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
+   /**
+    * Obtener alertas vencidas
+    * @returns {Promise<Object>} Lista de alertas vencidas
+    */
+   getOverdue: async () => {
+     try {
+       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+       const empresaId = userContext.empresaId || userContext.idEmpresa;
 
-  /**
-   * Obtener alertas próximas a vencer
-   * @param {number} idEmpresa - ID de la empresa
-   * @param {number} dias - Días para considerar como "próximas" (default: 30)
-   * @returns {Promise<Object>} Lista de alertas próximas
-   */
-  getUpcoming: async (idEmpresa, dias = 30) => {
-    try {
-      if (!idEmpresa) throw new Error('ID de empresa requerido');
+       if (!empresaId) {
+         throw new Error('empresaId no encontrado en el contexto del usuario');
+       }
 
-      const response = await apiClient.get(`/api/alertas/upcoming?idEmpresa=${idEmpresa}&dias=${dias}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
+       // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en consulta de vencidas
+       const response = await apiClient.get(`/api/alertas/overdue?idEmpresa=${empresaId}`);
+       return response.data;
+     } catch (error) {
+       throw new Error(apiUtils.formatError(error));
+     }
+   },
+
+   /**
+    * Obtener alertas próximas a vencer
+    * @param {number} dias - Días para considerar como "próximas" (default: 30)
+    * @returns {Promise<Object>} Lista de alertas próximas
+    */
+   getUpcoming: async (dias = 30) => {
+     try {
+       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+       const empresaId = userContext.empresaId || userContext.idEmpresa;
+
+       if (!empresaId) {
+         throw new Error('empresaId no encontrado en el contexto del usuario');
+       }
+
+       // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en consulta de próximas
+       const response = await apiClient.get(`/api/alertas/upcoming?idEmpresa=${empresaId}&dias=${dias}`);
+       return response.data;
+     } catch (error) {
+       throw new Error(apiUtils.formatError(error));
+     }
+   },
 
   // ================================
   // GESTIÓN DE DASHBOARD
   // ================================
 
   /**
-   * Obtener resumen de alertas para dashboard
-   * @param {number} idEmpresa - ID de la empresa
-   * @returns {Promise<Object>} Resumen de alertas
-   */
-  getDashboardSummary: async (idEmpresa) => {
-    try {
-      if (!idEmpresa) throw new Error('ID de empresa requerido');
+    * Obtener resumen de alertas para dashboard
+    * @returns {Promise<Object>} Resumen de alertas
+    */
+   getDashboardSummary: async () => {
+     try {
+       // ✅ CORRECCIÓN CRÍTICA: Obtener empresaId del contexto de usuario
+       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+       const empresaId = userContext.empresaId || userContext.idEmpresa;
 
-      const response = await apiClient.get(`/api/alertas/dashboard?idEmpresa=${idEmpresa}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(apiUtils.formatError(error));
-    }
-  },
+       if (!empresaId) {
+         throw new Error('empresaId no encontrado en el contexto del usuario');
+       }
+
+       // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en resumen de dashboard
+       const response = await apiClient.get(`/api/alertas/dashboard?idEmpresa=${empresaId}`);
+       return response.data;
+     } catch (error) {
+       throw new Error(apiUtils.formatError(error));
+     }
+   },
 
   // ================================
   // UTILIDADES

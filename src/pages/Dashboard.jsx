@@ -126,7 +126,6 @@ const Dashboard = () => {
     }
   }, []);
 
-
   // Función para alternar notificaciones
   const toggleNotifications = useCallback(() => {
     setNotificationsEnabled(prev => !prev);
@@ -142,7 +141,7 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error al cargar datos de gráficos:", error);
     }
-  }, [selectedPeriod]); // Incluir selectedPeriod como dependencia
+  }, [selectedPeriod]);
 
   // Envolver fetchDashboardData en useCallback
   const fetchDashboardData = useCallback(async () => {
@@ -174,7 +173,45 @@ const Dashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchChartsData, fetchRealTimeData]); // Incluir las funciones como dependencias
+  }, [fetchChartsData, fetchRealTimeData]);
+
+  // Funciones de manejo de eventos WebSocket
+  const handleStatsUpdate = useCallback((data) => {
+    console.log('📊 Estadísticas actualizadas via WebSocket:', data);
+    if (data.stats) {
+      setStats(prevStats => ({ ...prevStats, ...data.stats }));
+    }
+  }, []);
+
+  const handleRealtimeUpdate = useCallback((data) => {
+    console.log('⚡ Datos en tiempo real via WebSocket:', data);
+    if (data.realtime) {
+      setRealTimeData(data.realtime);
+    }
+  }, []);
+
+  const handleAlertsUpdate = useCallback((data) => {
+    console.log('🚨 Alertas actualizadas via WebSocket:', data);
+    if (data.alerts) {
+      setAlerts(data.alerts);
+    }
+  }, []);
+
+  const handleNotification = useCallback(async (data) => {
+    console.log('📱 Nueva notificación via WebSocket:', data);
+
+    // Mostrar notificación push si está habilitado
+    if (notificationsEnabled) {
+      await notificationService.showFromSocket(data);
+    }
+  }, [notificationsEnabled, notificationService]);
+
+  const handleConnectionStatus = useCallback((status) => {
+    console.log('🔗 Estado de conexión actualizado:', status);
+    setConnectionStatus(status.connected ? 'connected' : 'disconnected');
+    // En modo horario, isRealTimeActive indica si está conectado pero no en tiempo real continuo
+    setIsRealTimeActive(status.connected);
+  }, []);
 
   // Inicializar servicios mejorados
   useEffect(() => {
@@ -183,13 +220,23 @@ const Dashboard = () => {
         // Inicializar servicio de notificaciones
         await notificationService.initialize();
 
-        // Conectar WebSocket con contexto de usuario
-        const userContext = {
-          idUsuario: user?.id,
-          idEmpresa: user?.empresaId,
-          rol: userRole
-        };
-        realTimeService.connect(userContext);
+        // Conectar WebSocket con contexto de usuario mejorado
+         const userContext = {
+           idUsuario: user?.id,
+           idEmpresa: user?.empresaId || user?.idEmpresa || localStorage.getItem('empresaId'),
+           rol: userRole,
+           email: user?.email
+         };
+
+         // Log detallado para debugging
+         console.log('🔗 Estado de conexión actualizado:', {
+           userId: userContext.idUsuario,
+           empresaId: userContext.idEmpresa,
+           timestamp: new Date()
+         });
+
+         console.log('🔗 Conectando WebSocket con contexto completo:', userContext);
+         realTimeService.connect(userContext);
 
         // Configurar modo horario (cada hora) en lugar de tiempo real
         realTimeService.setUpdateMode(false, 60); // 60 minutos = 1 hora
@@ -202,52 +249,23 @@ const Dashboard = () => {
 
     initializeServices();
 
-    // Cleanup al desmontar
+    // Cleanup al desmontar - solo limpiar listeners, no desconectar completamente
     return () => {
-      realTimeService.disconnect();
-      dashboardAPI.stopUpdates();
+      // Solo limpiar listeners específicos del dashboard, mantener conexión WebSocket activa
+      realTimeService.off('notification:stats_update', handleStatsUpdate);
+      realTimeService.off('notification:realtime_update', handleRealtimeUpdate);
+      realTimeService.off('notification:alerts_update', handleAlertsUpdate);
+      realTimeService.off('notification:chatbot', handleNotification);
+      realTimeService.off('connection:established', handleConnectionStatus);
+      realTimeService.off('connection:error');
+
+      // No desconectar completamente el servicio WebSocket para mantener la conexión activa
+      // dashboardAPI.stopUpdates();
     };
-  }, [user, userRole, notificationService]);
+  }, [user, userRole, notificationService, handleStatsUpdate, handleRealtimeUpdate, handleAlertsUpdate, handleNotification, handleConnectionStatus]);
 
   // Configurar listeners para WebSocket
   useEffect(() => {
-    const handleStatsUpdate = (data) => {
-      console.log('📊 Estadísticas actualizadas via WebSocket:', data);
-      if (data.stats) {
-        setStats(prevStats => ({ ...prevStats, ...data.stats }));
-      }
-    };
-
-    const handleRealtimeUpdate = (data) => {
-      console.log('⚡ Datos en tiempo real via WebSocket:', data);
-      if (data.realtime) {
-        setRealTimeData(data.realtime);
-      }
-    };
-
-    const handleAlertsUpdate = (data) => {
-      console.log('🚨 Alertas actualizadas via WebSocket:', data);
-      if (data.alerts) {
-        setAlerts(data.alerts);
-      }
-    };
-
-    const handleNotification = async (data) => {
-      console.log('📱 Nueva notificación via WebSocket:', data);
-
-      // Mostrar notificación push si está habilitado
-      if (notificationsEnabled) {
-        await notificationService.showFromSocket(data);
-      }
-    };
-
-    const handleConnectionStatus = (status) => {
-      console.log('🔗 Estado de conexión actualizado:', status);
-      setConnectionStatus(status.connected ? 'connected' : 'disconnected');
-      // En modo horario, isRealTimeActive indica si está conectado pero no en tiempo real continuo
-      setIsRealTimeActive(status.connected);
-    };
-
     // Registrar listeners en realTimeService
     realTimeService.on('notification:stats_update', handleStatsUpdate);
     realTimeService.on('notification:realtime_update', handleRealtimeUpdate);
@@ -269,7 +287,7 @@ const Dashboard = () => {
       realTimeService.off('connection:established', handleConnectionStatus);
       realTimeService.off('connection:error');
     };
-  }, [notificationService, notificationsEnabled]);
+  }, [handleStatsUpdate, handleRealtimeUpdate, handleAlertsUpdate, handleNotification, handleConnectionStatus]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -278,8 +296,10 @@ const Dashboard = () => {
 
   // Actualizar datos de gráficos cuando cambia el período
   useEffect(() => {
-    fetchChartsData();
-  }, [fetchChartsData]);
+    if (selectedPeriod) {
+      fetchChartsData();
+    }
+  }, [selectedPeriod, fetchChartsData]);
 
   const prepareChartData = () => {
     const { viajes, rutas } = chartData;

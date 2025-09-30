@@ -372,7 +372,8 @@ const authAPI = {
             id: userData.id || userData.userId || userData._id || userData.idUsuario,
             name: userData.name || userData.userName || userData.fullName || userData.displayName || userData.nomUsuario,
             email: userData.email || userData.userEmail,
-            role: userData.role || userData.userRole || userData.type || userData.rol || 'USER'
+            role: userData.role || userData.userRole || userData.type || userData.rol || 'USER',
+            empresaId: userData.empresaId || userData.idEmpresa || userData.empresa_id || userData.companyId
           };
 
           // Validar que tenemos datos mínimos requeridos

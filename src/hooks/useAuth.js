@@ -147,7 +147,8 @@ export const useAuth = () => {
             id: profile.user.id,
             name: profile.user.name,
             email: profile.user.email,
-            role: profile.user.role
+            role: profile.user.role,
+            empresaId: profile.user.empresaId || profile.user.idEmpresa || profile.user.empresa_id || profile.user.companyId
           };
 
           // Guardar los datos recuperados

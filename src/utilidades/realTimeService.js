@@ -54,26 +54,54 @@ class RealTimeService {
         return;
       }
 
+      // ✅ CORRECCIÓN CRÍTICA: empresaId es obligatorio según correcciones de seguridad
+      if (!userContext.empresaId && !userContext.idEmpresa) {
+        console.error('❌ empresaId es requerido para la conexión WebSocket');
+        this.emit('connection:error', {
+          error: 'empresaId is required for WebSocket connection',
+          timestamp: new Date()
+        });
+        return;
+      }
+
       console.log('🔗 Conectando WebSocket con contexto:', {
         userId: userContext.idUsuario,
         empresaId: userContext.idEmpresa,
         rol: userContext.rol
       });
 
-      // Conectar al servidor WebSocket
-      this.socket = io(process.env.REACT_APP_WS_URL || process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app', {
+      // Conectar al servidor WebSocket con configuración mejorada
+      const wsUrl = process.env.REACT_APP_WS_URL || process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app';
+
+      console.log('🔗 Intentando conectar a WebSocket:', wsUrl);
+      console.log('🔑 Datos de autenticación:', {
+        userId: userContext.idUsuario,
+        empresaId: userContext.idEmpresa,
+        rol: userContext.rol
+      });
+
+      this.socket = io(wsUrl, {
         transports: ['websocket', 'polling'],
-        timeout: 20000, // Aumentado
-        forceNew: true,
+        timeout: 20000,
+        forceNew: false, // No forzar nueva conexión, reutilizar si es posible
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,
         reconnectionDelay: this.reconnectDelay,
+        reconnectionDelayMax: this.maxReconnectDelay,
+        randomizationFactor: 0.5, // Factor de aleatorización para evitar thundering herd
         auth: {
           token: token,
           userId: userContext.idUsuario,
           empresaId: userContext.idEmpresa,
           rol: userContext.rol || 'USER'
-        }
+        },
+        // Configuración adicional para mejorar estabilidad
+        upgrade: true,
+        rememberUpgrade: true, // Recordar el upgrade para mejorar rendimiento
+        rejectUnauthorized: false,
+        // Configuración adicional para prevenir desconexiones
+        pingTimeout: 60000, // 60 segundos antes de considerar timeout
+        pingInterval: 25000 // Ping cada 25 segundos para mantener conexión
       });
 
       this.setupEventListeners();
@@ -261,9 +289,12 @@ class RealTimeService {
   joinRooms() {
     if (!this.socket || !this.userContext) return;
 
+    // ✅ CORRECCIÓN CRÍTICA: Usar empresaId correcto (empresaId o idEmpresa)
+    const empresaId = this.userContext.empresaId || this.userContext.idEmpresa;
+
     // Unirse a sala de empresa
     this.socket.emit('join:empresa', {
-      empresaId: this.userContext.idEmpresa
+      empresaId: empresaId
     });
 
     // Unirse a sala de usuario
@@ -273,6 +304,12 @@ class RealTimeService {
 
     // Unirse a sala de rol
     this.socket.emit('join:rol', {
+      rol: this.userContext.rol
+    });
+
+    console.log('🔗 Salas unidas:', {
+      empresaId: empresaId,
+      userId: this.userContext.idUsuario,
       rol: this.userContext.rol
     });
   }
@@ -717,6 +754,9 @@ class RealTimeService {
    */
   sendNotification(type, title, message, data = {}, priority = 'medium') {
     if (this.socket && this.isConnected) {
+      // ✅ CORRECCIÓN CRÍTICA: Usar empresaId correcto (empresaId o idEmpresa)
+      const empresaId = this.userContext?.empresaId || this.userContext?.idEmpresa;
+
       this.socket.emit('notification:send', {
         type,
         title,
@@ -724,7 +764,7 @@ class RealTimeService {
         data,
         priority,
         userId: this.userContext?.idUsuario,
-        empresaId: this.userContext?.idEmpresa,
+        empresaId: empresaId, // ✅ CORRECCIÓN CRÍTICA: empresaId obligatorio
         timestamp: new Date()
       });
     }
@@ -734,13 +774,16 @@ class RealTimeService {
    * Obtener estadísticas de conexión
    */
   getConnectionStats() {
+    // ✅ CORRECCIÓN CRÍTICA: Usar empresaId correcto (empresaId o idEmpresa)
+    const empresaId = this.userContext?.empresaId || this.userContext?.idEmpresa;
+
     return {
       isConnected: this.isConnected,
       reconnectAttempts: this.reconnectAttempts,
       lastConnectionTime: this.socket?.connected ? new Date() : null,
       userContext: this.userContext,
       activeRooms: this.userContext ? [
-        `empresa_${this.userContext.idEmpresa}`,
+        `empresa_${empresaId}`, // ✅ CORRECCIÓN CRÍTICA: empresaId correcto
         `usuario_${this.userContext.idUsuario}`,
         `rol_${this.userContext.rol || 'USER'}`
       ] : []
