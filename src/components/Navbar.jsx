@@ -39,29 +39,51 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const { startTutorial } = useTutorial();
 
   const getAuthData = useCallback(() => {
-    const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
-    if (!token) {
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+      if (!token) {
+        return null;
+      }
+
+      // Obtener empresaId de diferentes fuentes posibles
+      let empresaId = null;
+
+      // Primero intentar obtenerlo del contexto de usuario si está disponible
+      if (user?.empresaId) {
+        empresaId = user.empresaId;
+      } else {
+        // Buscar en localStorage como respaldo
+        empresaId = localStorage.getItem('empresaId') || localStorage.getItem('userEmpresaId');
+      }
+
+      // Si no tenemos empresaId, intentar obtener datos completos del usuario
+      if (!empresaId && user?.id) {
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        empresaId = userData.empresaId || userData.idEmpresa;
+      }
+
+      // Validar que tenemos todos los datos necesarios
+      if (!empresaId || !user?.id || !userRole) {
+        console.warn('⚠️ Datos de autenticación incompletos:', {
+          hasEmpresaId: !!empresaId,
+          hasUserId: !!user?.id,
+          hasUserRole: !!userRole
+        });
+        return null;
+      }
+
+      return {
+        token,
+        userId: user.id,
+        empresaId: empresaId,
+        rol: userRole,
+        email: user.email || userData.email
+      };
+    } catch (error) {
+      console.error('❌ Error obteniendo datos de autenticación:', error);
       return null;
     }
-
-    // Obtener empresaId de diferentes fuentes posibles
-    let empresaId = null;
-
-    // Primero intentar obtenerlo del contexto de usuario si está disponible
-    if (user?.empresaId) {
-      empresaId = user.empresaId;
-    } else {
-      // Buscar en localStorage como respaldo
-      empresaId = localStorage.getItem('empresaId') || localStorage.getItem('userEmpresaId');
-    }
-
-    return {
-      token,
-      userId: user?.id || null,
-      empresaId: empresaId,
-      rol: userRole || null
-    };
-  }, [user?.id, user?.empresaId, userRole]);
+  }, [user?.id, user?.empresaId, userRole, user?.email]);
 
   const authData = useMemo(() => getAuthData(), [getAuthData]);
 
@@ -82,7 +104,8 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     try {
       const notificationsData = await dashboardAPI.getNotificationHistory(10);
 
-      if (notificationsData && notificationsData.notifications) {
+      // Verificar si los datos están disponibles
+      if (notificationsData && notificationsData.notifications && notificationsData.status !== 'pending') {
         const transformedNotifications = notificationsData.notifications.map(notification => ({
           id: notification.id,
           type: notification.type || 'info',
@@ -97,10 +120,15 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
         setNotifications(transformedNotifications);
         setUnreadCount(transformedNotifications.filter(n => !n.read).length);
       } else {
+        // Si el contexto no está disponible, mantener datos vacíos sin mostrar error
         setNotifications([]);
         setUnreadCount(0);
       }
     } catch (error) {
+      // Solo mostrar error si no es por falta de contexto
+      if (!error.message?.includes('empresaId no encontrado')) {
+        console.error('Error cargando notificaciones:', error);
+      }
       setNotifications([]);
       setUnreadCount(0);
     }

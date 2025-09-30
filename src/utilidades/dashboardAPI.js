@@ -13,14 +13,28 @@ export const dashboardAPI = {
       const userData = authAPI.getCurrentUser();
       const empresaId = userData?.empresaId;
 
+      // Si no tenemos empresaId, intentar obtenerlo de otras fuentes
       if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
+        const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+        empresaId = userContext.empresaId || userContext.idEmpresa;
+      }
+
+      // Si aún no tenemos empresaId, devolver datos vacíos sin error
+      if (!empresaId) {
+        console.warn('⚠️ empresaId no disponible para estadísticas, devolviendo datos vacíos');
+        return { status: 'pending', message: 'Contexto de usuario no disponible' };
       }
 
       // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en estadísticas generales
       const response = await apiClient.get(`/api/dashboard/estadisticas?idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
+      // Si es error de permisos (403), devolver datos vacíos en lugar de lanzar error
+      if (error.response?.status === 403) {
+        console.warn('⚠️ Acceso denegado a estadísticas, posiblemente esperando reinicio del servidor');
+        return { status: 'forbidden', message: 'Acceso denegado - verificar permisos del servidor' };
+      }
+
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -56,14 +70,28 @@ export const dashboardAPI = {
       const userData = authAPI.getCurrentUser();
       const empresaId = userData?.empresaId;
 
+      // Si no tenemos empresaId, intentar obtenerlo de otras fuentes
       if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
+        const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
+        empresaId = userContext.empresaId || userContext.idEmpresa;
+      }
+
+      // Si aún no tenemos empresaId, devolver datos vacíos sin error
+      if (!empresaId) {
+        console.warn('⚠️ empresaId no disponible para gráficos, devolviendo datos vacíos');
+        return { status: 'pending', message: 'Contexto de usuario no disponible' };
       }
 
       // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en datos de gráficos
       const response = await apiClient.get(`/api/dashboard/graficos?periodo=${period}&idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
+      // Si es error de permisos (403), devolver datos vacíos en lugar de lanzar error
+      if (error.response?.status === 403) {
+        console.warn('⚠️ Acceso denegado a gráficos, posiblemente esperando reinicio del servidor');
+        return { status: 'forbidden', message: 'Acceso denegado - verificar permisos del servidor' };
+      }
+
       throw new Error(apiUtils.formatError(error));
     }
   },
@@ -414,14 +442,28 @@ export const dashboardAPI = {
       const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
       const empresaId = userContext.empresaId || userContext.idEmpresa;
 
+      // Si no tenemos empresaId, intentar obtenerlo de otras fuentes
       if (!empresaId) {
-        throw new Error('empresaId no encontrado en el contexto del usuario');
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        empresaId = userData.empresaId || userData.idEmpresa;
+      }
+
+      // Si aún no tenemos empresaId, devolver datos vacíos sin error
+      if (!empresaId) {
+        console.warn('⚠️ empresaId no disponible para historial de notificaciones, devolviendo datos vacíos');
+        return { notifications: [], status: 'pending', message: 'Contexto de usuario no disponible' };
       }
 
       // ✅ CORRECCIÓN CRÍTICA: Incluir empresaId en historial de notificaciones
       const response = await apiClient.get(`/api/dashboard/notifications/history?limit=${limit}&idEmpresa=${empresaId}`);
       return response.data;
     } catch (error) {
+      // Solo loguear error si no es por falta de contexto
+      if (error.message?.includes('empresaId no encontrado')) {
+        console.warn('⚠️ Contexto de usuario no disponible para notificaciones');
+        return { notifications: [], status: 'pending', message: 'Contexto de usuario no disponible' };
+      }
+
       console.error('Error obteniendo historial de notificaciones:', error);
       return { notifications: [], status: 'error', message: 'No se pudo obtener el historial de notificaciones' };
     }

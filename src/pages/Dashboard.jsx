@@ -90,11 +90,20 @@ const Dashboard = () => {
   const fetchRealTimeData = useCallback(async () => {
     try {
       const response = await dashboardAPI.getRealTimeData();
-      if (response.status === 'success') {
+
+      // Verificar si la respuesta es válida
+      if (response && response.status === 'success' && response.data) {
         setRealTimeData(response.data);
+      } else if (response?.status === 'forbidden') {
+        console.warn('⚠️ Acceso denegado a datos en tiempo real - posiblemente esperando reinicio del servidor');
       }
+      // Si status es 'pending', simplemente no hacer nada (contexto no disponible aún)
     } catch (error) {
-      // Error al cargar datos en tiempo real - logged in production builds
+      // Solo mostrar error si no es por falta de contexto o permisos
+      if (!error.message?.includes('empresaId no encontrado') &&
+          !error.message?.includes('Acceso denegado')) {
+        console.error("Error al cargar datos en tiempo real:", error);
+      }
     }
   }, []);
 
@@ -137,11 +146,22 @@ const Dashboard = () => {
   const fetchChartsData = useCallback(async () => {
     try {
       const response = await dashboardAPI.getChartsData(selectedPeriod);
-      if (response.status === 'success') {
-        setChartData(response.data);
+
+      // Verificar si la respuesta es válida
+      if (response && response.status !== 'pending' && response.status !== 'forbidden') {
+        if (response.status === 'success' && response.data) {
+          setChartData(response.data);
+        }
+      } else if (response?.status === 'forbidden') {
+        console.warn('⚠️ Acceso denegado a gráficos - posiblemente esperando reinicio del servidor');
       }
+      // Si status es 'pending', simplemente no hacer nada (contexto no disponible aún)
     } catch (error) {
-      console.error("Error al cargar datos de gráficos:", error);
+      // Solo mostrar error si no es por falta de contexto o permisos
+      if (!error.message?.includes('empresaId no encontrado') &&
+          !error.message?.includes('Acceso denegado')) {
+        console.error("Error al cargar datos de gráficos:", error);
+      }
     }
   }, [selectedPeriod]);
 
@@ -153,14 +173,19 @@ const Dashboard = () => {
 
       // Obtener estadísticas generales
       const statsResponse = await dashboardAPI.getGeneralStatistics();
-      if (statsResponse.status === 'success') {
+      if (statsResponse && statsResponse.status === 'success' && statsResponse.data) {
         setStats(statsResponse.data);
+      } else if (statsResponse?.status === 'forbidden') {
+        console.warn('⚠️ Acceso denegado a estadísticas - posiblemente esperando reinicio del servidor');
       }
+      // Si status es 'pending', simplemente continuar (contexto no disponible aún)
 
       // Obtener alertas
       const alertsResponse = await dashboardAPI.getActiveAlerts();
-      if (alertsResponse.status === 'success') {
+      if (alertsResponse && alertsResponse.status === 'success' && alertsResponse.data) {
         setAlerts(alertsResponse.data || []);
+      } else if (alertsResponse?.status === 'forbidden') {
+        console.warn('⚠️ Acceso denegado a alertas - posiblemente esperando reinicio del servidor');
       }
 
       // Obtener datos de gráficos
@@ -170,8 +195,12 @@ const Dashboard = () => {
       await fetchRealTimeData();
 
     } catch (error) {
-      console.error("Error al cargar datos del dashboard:", error);
-      setError("Error al cargar los datos. Verifique su conexión.");
+      // Solo mostrar error si no es por falta de contexto o permisos
+      if (!error.message?.includes('empresaId no encontrado') &&
+          !error.message?.includes('Acceso denegado')) {
+        console.error("Error al cargar datos del dashboard:", error);
+        setError("Error al cargar los datos. Verifique su conexión.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -225,13 +254,10 @@ const Dashboard = () => {
           // Intentar recuperar datos del localStorage como respaldo
           const userData = authAPI.getCurrentUser();
           if (!userData || !userData.empresaId) {
-            console.error('❌ No se pudieron recuperar los datos del usuario');
-            return;
+            console.warn('⚠️ No se pudieron recuperar los datos del usuario, esperando contexto completo...');
+            return; // Salir sin error, esperar a que el contexto esté disponible
           }
         }
-
-        // Inicializar servicio de notificaciones
-        await notificationService.initialize();
 
         // ✅ CORRECCIÓN CRÍTICA: Construir contexto de usuario con validación estricta
         const userContext = {
@@ -243,24 +269,32 @@ const Dashboard = () => {
 
         // ✅ CORRECCIÓN CRÍTICA: Validar que empresaId existe antes de conectar WebSocket
         if (!userContext.idEmpresa) {
-          console.error('❌ empresaId es requerido para conectar WebSocket');
-          return;
+          console.warn('⚠️ empresaId no disponible aún, esperando contexto completo...');
+          return; // Salir sin error, esperar a que empresaId esté disponible
         }
 
-        // Log detallado para debugging
-        console.log('🔗 Estado de conexión actualizado:', {
-          userId: userContext.idUsuario,
-          empresaId: userContext.idEmpresa,
-          timestamp: new Date()
-        });
+        // Solo inicializar si tenemos todos los datos necesarios
+        if (userContext.idUsuario && userContext.idEmpresa && userContext.rol) {
+          // Inicializar servicio de notificaciones
+          await notificationService.initialize();
 
-        console.log('🔗 Conectando WebSocket con contexto completo:', userContext);
-        realTimeService.connect(userContext);
+          // Log detallado para debugging
+          console.log('🔗 Estado de conexión actualizado:', {
+            userId: userContext.idUsuario,
+            empresaId: userContext.idEmpresa,
+            timestamp: new Date()
+          });
 
-        // Configurar modo horario (cada hora) en lugar de tiempo real
-        realTimeService.setUpdateMode(false, 60); // 60 minutos = 1 hora
+          console.log('🔗 Conectando WebSocket con contexto completo:', userContext);
+          realTimeService.connect(userContext);
 
-        console.log('✅ Servicios mejorados inicializados en modo horario');
+          // Configurar modo horario (cada hora) en lugar de tiempo real
+          realTimeService.setUpdateMode(false, 60); // 60 minutos = 1 hora
+
+          console.log('✅ Servicios mejorados inicializados en modo horario');
+        } else {
+          console.warn('⚠️ Contexto de usuario aún incompleto, esperando datos completos...');
+        }
       } catch (error) {
         console.error('❌ Error inicializando servicios mejorados:', error);
       }
