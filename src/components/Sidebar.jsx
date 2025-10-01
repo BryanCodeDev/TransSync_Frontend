@@ -132,14 +132,15 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
 
   const hasPermissionForRoute = (path) => {
     if (!userRole) return false;
+    const upperCaseRole = userRole.toUpperCase();
     const rolePermissions = {
       'SUPERADMIN': ['/dashboard', '/admin/dashboard', '/drivers', '/rutas', '/vehiculos', '/horarios'],
       'GESTOR': ['/dashboard', '/drivers', '/rutas', '/vehiculos', '/horarios'], // CORREGIDO
-      'CONDUCTOR': ['/dashboard', '/rutas'],
+      'CONDUCTOR': ['/rutas'],
       'USER': [], 'PENDIENTE': []
     };
-    return rolePermissions[userRole]?.includes(path) || false;
-  };
+      return rolePermissions[upperCaseRole]?.includes(path) || false;
+  }
 
   const allMenuItems = [
     { path: "/dashboard", icon: <FaChartLine />, label: t('sidebar.dashboard') },
