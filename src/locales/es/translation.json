@@ -217,7 +217,7 @@
   },
   "homePage": {
     "hero": {
-      "badge": "🚀 Startup Innovadora en Transporte Inteligente",
+      "badge": "Startup Innovadora en Transporte Inteligente",
       "title": "TranSync",
       "subtitle": "La plataforma emergente de IA que está revolucionando la gestión del transporte público en Colombia",
       "stats": {
@@ -306,10 +306,10 @@
       "title": "¿Listo para Transformar tu Sistema de Transporte?",
       "subtitle": "Sé parte de la revolución del transporte inteligente. Únete a nuestro programa de adopción temprana y transforma tu operación",
       "buttons": {
-        "demo": "Solicitar Demo Gratuita",
-        "expert": "Hablar con un Experto"
+        "demo": "Conoce Más",
+        "expert": "Contacto"
       },
-      "features": ["Implementación en 30 días", "Soporte 24/7 incluido", "Garantía de resultados"]
+      "features": ["Solución Personalizada", "Tecnología Avanzada", "Resultados Comprobados"]
     }
   },
   "navbar": {
@@ -1038,5 +1038,48 @@
       "button": "Abrir TransSync"
     },
     "footer": "TransSync es una aplicación web progresiva (PWA) que se puede instalar en cualquier dispositivo móvil"
+  },
+  "mobileDownload": {
+    "title": "Descarga TranSync Móvil",
+    "subtitle": "Instala nuestra aplicación móvil para acceder rápidamente a todas las funciones de TranSync desde tu dispositivo móvil.",
+    "qrSection": {
+      "title": "Escanea este código QR",
+      "description": "Código QR para instalación móvil"
+    },
+    "instructions": {
+      "title": "¿Cómo instalar la aplicación?",
+      "steps": [
+        {
+          "title": "Abre la cámara",
+          "description": "En tu dispositivo móvil, abre la aplicación de cámara"
+        },
+        {
+          "title": "Escanea el código",
+          "description": "Apunta la cámara hacia el código QR que aparece arriba"
+        },
+        {
+          "title": "Instala la app",
+          "description": "Toca el banner que aparece y selecciona 'Instalar' o 'Agregar a pantalla de inicio'"
+        }
+      ]
+    },
+    "features": {
+      "title": "Beneficios de la aplicación móvil",
+      "list": [
+        "Acceso rápido desde tu pantalla de inicio",
+        "Funciona sin conexión a internet",
+        "Notificaciones push en tiempo real",
+        "Interfaz optimizada para móviles",
+        "Actualizaciones automáticas"
+      ]
+    },
+    "alternative": {
+      "title": "¿Prefieres acceso directo?",
+      "description": "También puedes acceder directamente desde tu navegador móvil",
+      "button": "Abrir TranSync"
+    },
+    "qrCodeDescription": "Escanea este código QR para acceder a la página de descarga móvil",
+    "directAccess": "También puedes acceder directamente desde tu navegador móvil",
+    "url": "https://transync1.netlify.app/mobile-download"
   }
 }

@@ -489,36 +489,38 @@ const Home = () => {
       </section>
 
       {/* Código QR para descarga móvil */}
-      <section className="py-12 sm:py-16 md:py-20 bg-background-light dark:bg-gray-800 border-t border-border-light dark:border-gray-700">
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-surface-light via-primary-50/30 to-secondary-50/30 dark:from-gray-900 dark:via-primary-900/20 dark:to-secondary-900/20 border-t border-border-light dark:border-gray-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <div className="mb-8">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#3949ab] to-[#5c6bc0] dark:from-primary-600 dark:to-secondary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Smartphone className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-              📱 Descarga TransSync Móvil
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 bg-gradient-to-r from-primary-800 to-primary-600 dark:from-primary-300 dark:to-secondary-300 bg-clip-text text-transparent">
+              {t('mobileDownload.title')}
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-              Escanea este código QR para acceder a la página de descarga móvil
+            <p className="text-lg text-text-secondary-light dark:text-gray-300 mb-8 leading-relaxed">
+              {t('mobileDownload.qrCodeDescription')}
             </p>
           </div>
 
           <div className="flex justify-center mb-6">
-            <QRCode
-              url="https://transync1.netlify.app/mobile-download"
-              size={200}
-              className="mb-4"
-            />
+            <div className="bg-background-light dark:bg-gray-800 p-4 rounded-2xl shadow-xl border border-border-light dark:border-gray-600">
+              <QRCode
+                url={t('mobileDownload.url')}
+                size={200}
+                className="mb-4"
+              />
+            </div>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 max-w-md mx-auto">
-            <p className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
-              https://transync1.netlify.app/mobile-download
+          <div className="bg-gradient-to-r from-surface-light to-primary-50/50 dark:from-gray-800 dark:to-gray-700/50 rounded-xl p-4 max-w-md mx-auto border border-border-light dark:border-gray-600 shadow-lg">
+            <p className="text-sm font-mono text-text-primary-light dark:text-gray-200 break-all">
+              {t('mobileDownload.url')}
             </p>
           </div>
 
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-            También puedes acceder directamente desde tu navegador móvil
+          <p className="text-sm text-text-secondary-light dark:text-gray-400 mt-4 font-medium">
+            {t('mobileDownload.directAccess')}
           </p>
         </div>
       </section>
