@@ -85,7 +85,7 @@ export const useTutorial = () => {
         {
           id: 'navigate-admin-dashboard',
           title: 'Panel de Administración',
-          description: 'Como SuperAdmin, haz clic en "Administración" para gestionar usuarios y roles del sistema.',
+          description: 'Como SuperAdministrador, tienes acceso completo al sistema. Haz clic en "Administración" para gestionar usuarios, asignar roles y controlar el acceso al sistema.',
           target: '[data-tutorial="admin-dashboard"]',
           placement: 'right',
           page: null,
@@ -94,8 +94,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-admin-dashboard',
-          title: 'Gestión de Usuarios',
-          description: 'Administra usuarios, asigna roles (Gestor, Conductor) y controla el acceso al sistema.',
+          title: 'Gestión Completa de Usuarios',
+          description: 'Aquí puedes crear nuevos usuarios, editar información existente, asignar roles específicos (Gestor, Conductor), activar/desactivar cuentas y gestionar permisos de acceso al sistema completo.',
           target: '[data-tutorial="admin-dashboard"]',
           placement: 'bottom',
           page: '/admin-dashboard',
@@ -103,8 +103,8 @@ export const useTutorial = () => {
         },
         {
           id: 'navigate-dashboard',
-          title: 'Ve al Dashboard General',
-          description: 'Accede al panel principal para ver estadísticas generales del sistema completo.',
+          title: 'Dashboard General del Sistema',
+          description: 'Accede al panel principal para monitorear métricas globales, rendimiento de todas las empresas registradas y estadísticas generales del sistema.',
           target: '[data-tutorial="dashboard"]',
           placement: 'right',
           page: '/admin-dashboard',
@@ -113,11 +113,30 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-dashboard',
-          title: 'Panel de Control General',
-          description: 'Visualiza métricas globales, rendimiento de todas las empresas y estadísticas del sistema.',
+          title: 'Panel de Control Global',
+          description: 'Visualiza métricas en tiempo real de todas las empresas, rendimiento general de la plataforma, estadísticas de uso del sistema y alertas importantes que requieren tu atención.',
           target: '[data-tutorial="dashboard"]',
           placement: 'bottom',
           page: '/dashboard',
+          isNavigation: false
+        },
+        {
+          id: 'navigate-reports',
+          title: 'Informes y Analytics Avanzados',
+          description: 'Como SuperAdmin, accede a informes detallados sobre el uso del sistema, métricas de rendimiento y análisis avanzados de toda la plataforma.',
+          target: '[data-tutorial="reports"]',
+          placement: 'right',
+          page: '/dashboard',
+          isNavigation: true,
+          navigateTo: '/informes'
+        },
+        {
+          id: 'explain-reports',
+          title: 'Centro de Inteligencia de Negocios',
+          description: 'Genera reportes personalizados, analiza tendencias del sistema, monitorea KPIs críticos y obtén insights valiosos para la toma de decisiones estratégicas.',
+          target: '[data-tutorial="reports"]',
+          placement: 'bottom',
+          page: '/informes',
           isNavigation: false
         },
         baseSteps.profile,
@@ -134,8 +153,8 @@ export const useTutorial = () => {
         baseSteps.sidebar,
         {
           id: 'navigate-dashboard',
-          title: 'Panel de Control',
-          description: 'Como Gestor, haz clic en "Dashboard" para ver las estadísticas de tu empresa.',
+          title: 'Panel de Control Empresarial',
+          description: 'Como Gestor, haz clic en "Dashboard" para acceder al centro de operaciones de tu empresa y monitorear métricas clave en tiempo real.',
           target: '[data-tutorial="dashboard"]',
           placement: 'right',
           page: null,
@@ -144,8 +163,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-dashboard',
-          title: 'Panel de Control Empresarial',
-          description: 'Visualiza métricas de tu empresa, rendimiento de conductores y estado de la flota.',
+          title: 'Centro de Operaciones',
+          description: 'Visualiza métricas críticas de tu empresa: vehículos en operación, conductores activos, rutas en ejecución, alertas del sistema y estadísticas de rendimiento general.',
           target: '[data-tutorial="dashboard"]',
           placement: 'bottom',
           page: '/dashboard',
@@ -153,8 +172,8 @@ export const useTutorial = () => {
         },
         {
           id: 'navigate-drivers',
-          title: 'Gestiona tus Conductores',
-          description: 'Haz clic en "Conductores" para administrar el personal de tu empresa.',
+          title: 'Gestión Integral de Conductores',
+          description: 'Haz clic en "Conductores" para administrar todo tu personal: crear perfiles, asignar vehículos, gestionar licencias y horarios de trabajo.',
           target: '[data-tutorial="drivers"]',
           placement: 'right',
           page: '/dashboard',
@@ -163,8 +182,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-drivers',
-          title: 'Gestión de Conductores',
-          description: 'Administra conductores, asigna vehículos, verifica licencias y mantén el control de tu personal.',
+          title: 'Centro de Gestión de Personal',
+          description: 'Administra eficientemente tu equipo: registra nuevos conductores, actualiza información personal, verifica vencimientos de licencias, asigna vehículos y gestiona turnos de trabajo.',
           target: '[data-tutorial="drivers"]',
           placement: 'right',
           page: '/drivers',
@@ -172,8 +191,8 @@ export const useTutorial = () => {
         },
         {
           id: 'navigate-vehicles',
-          title: 'Administra tu Flota',
-          description: 'Haz clic en "Vehículos" para gestionar todos los vehículos de tu empresa.',
+          title: 'Control Total de tu Flota',
+          description: 'Haz clic en "Vehículos" para gestionar todos los vehículos de tu empresa: mantenimiento, asignaciones y estado operativo.',
           target: '[data-tutorial="vehicles"]',
           placement: 'right',
           page: '/drivers',
@@ -182,8 +201,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-vehicles',
-          title: 'Flota de Vehículos',
-          description: 'Controla el estado de tus vehículos, programa mantenimientos y asigna conductores.',
+          title: 'Gestión Avanzada de Flota',
+          description: 'Controla el estado operativo de cada vehículo: programa mantenimientos preventivos, monitorea vencimientos de documentos (SOAT, técnico-mecánica), asigna conductores y gestiona disponibilidad.',
           target: '[data-tutorial="vehicles"]',
           placement: 'right',
           page: '/vehiculos',
@@ -191,8 +210,8 @@ export const useTutorial = () => {
         },
         {
           id: 'navigate-routes',
-          title: 'Configura tus Rutas',
-          description: 'Haz clic en "Rutas" para definir y gestionar las rutas de tu empresa.',
+          title: 'Sistema Inteligente de Rutas',
+          description: 'Haz clic en "Rutas" para diseñar y optimizar los recorridos de tu empresa con herramientas avanzadas de geolocalización.',
           target: '[data-tutorial="routes"]',
           placement: 'right',
           page: '/vehiculos',
@@ -201,8 +220,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-routes',
-          title: 'Sistema de Rutas',
-          description: 'Crea rutas optimizadas, define paradas y administra los recorridos de tu flota.',
+          title: 'Centro de Diseño de Rutas',
+          description: 'Crea rutas optimizadas con geolocalización precisa, define paradas estratégicas, calcula tiempos estimados y administra recorridos eficientes para maximizar la productividad.',
           target: '[data-tutorial="routes"]',
           placement: 'right',
           page: '/rutas',
@@ -210,8 +229,8 @@ export const useTutorial = () => {
         },
         {
           id: 'navigate-schedules',
-          title: 'Programa Horarios',
-          description: 'Haz clic en "Horarios" para organizar los turnos y horarios de operación.',
+          title: 'Planificación Estratégica de Horarios',
+          description: 'Haz clic en "Horarios" para organizar toda la operación: crear viajes, asignar recursos y optimizar la programación diaria.',
           target: '[data-tutorial="schedules"]',
           placement: 'right',
           page: '/rutas',
@@ -220,8 +239,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-schedules',
-          title: 'Gestión de Horarios',
-          description: 'Crea horarios de salida, asigna rutas y optimiza la programación de tu servicio.',
+          title: 'Centro de Programación Operativa',
+          description: 'Crea y gestiona horarios de manera inteligente: asigna vehículos y conductores a rutas específicas, programa viajes recurrentes y optimiza la distribución de recursos para máxima eficiencia.',
           target: '[data-tutorial="schedules"]',
           placement: 'right',
           page: '/horarios',
@@ -229,8 +248,8 @@ export const useTutorial = () => {
         },
         {
           id: 'navigate-reports',
-          title: 'Revisa tus Reportes',
-          description: 'Haz clic en "Informes" para ver análisis detallados y reportes del rendimiento.',
+          title: 'Centro de Inteligencia Empresarial',
+          description: 'Haz clic en "Informes" para acceder a análisis detallados del rendimiento de tu operación y tomar decisiones basadas en datos.',
           target: '[data-tutorial="reports"]',
           placement: 'right',
           page: '/horarios',
@@ -239,8 +258,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-reports',
-          title: 'Sistema de Reportes',
-          description: 'Genera reportes de rendimiento, estadísticas de uso y análisis de eficiencia de tu empresa.',
+          title: 'Sistema Avanzado de Analytics',
+          description: 'Genera reportes personalizados sobre eficiencia operativa, analiza patrones de uso, identifica áreas de mejora y obtén métricas detalladas para optimizar tu negocio.',
           target: '[data-tutorial="reports"]',
           placement: 'right',
           page: '/informes',
@@ -260,8 +279,8 @@ export const useTutorial = () => {
         baseSteps.sidebar,
         {
           id: 'navigate-dashboard',
-          title: 'Panel de Control',
-          description: 'Como Conductor, haz clic en "Dashboard" para ver tus viajes y estadísticas personales.',
+          title: 'Tu Centro de Operaciones Personal',
+          description: 'Como Conductor, haz clic en "Dashboard" para acceder a tu panel personal donde encontrarás información específica sobre tus viajes, horarios y rendimiento.',
           target: '[data-tutorial="dashboard"]',
           placement: 'right',
           page: null,
@@ -270,8 +289,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-dashboard',
-          title: 'Panel Personal',
-          description: 'Visualiza tus viajes asignados, horarios y estadísticas de tu rendimiento como conductor.',
+          title: 'Panel Personalizado para Conductores',
+          description: 'Visualiza información específica para ti: viajes asignados para hoy, estadísticas de tu rendimiento, alertas importantes y resumen de tu actividad diaria como conductor.',
           target: '[data-tutorial="dashboard"]',
           placement: 'bottom',
           page: '/dashboard',
@@ -279,8 +298,8 @@ export const useTutorial = () => {
         },
         {
           id: 'navigate-schedules',
-          title: 'Tus Horarios',
-          description: 'Haz clic en "Horarios" para ver tus viajes programados y asignaciones.',
+          title: 'Consulta tus Horarios de Trabajo',
+          description: 'Haz clic en "Horarios" para revisar tu programación semanal, rutas asignadas y detalles específicos de cada viaje que tienes programado.',
           target: '[data-tutorial="schedules"]',
           placement: 'right',
           page: '/dashboard',
@@ -289,36 +308,55 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-schedules',
-          title: 'Gestión de Horarios',
-          description: 'Revisa tus horarios de trabajo, rutas asignadas y estado de tus viajes.',
+          title: 'Centro de Información de Viajes',
+          description: 'Aquí encontrarás toda tu programación: horarios de salida y llegada, rutas específicas asignadas, vehículos que utilizarás y cualquier instrucción especial para cada viaje.',
           target: '[data-tutorial="schedules"]',
           placement: 'right',
           page: '/horarios',
           isNavigation: false
         },
         {
+          id: 'navigate-routes',
+          title: 'Explora el Sistema de Rutas',
+          description: 'Como conductor, puedes consultar las rutas disponibles y familiarizarte con los recorridos que realizarás en tu jornada laboral.',
+          target: '[data-tutorial="routes"]',
+          placement: 'right',
+          page: '/horarios',
+          isNavigation: true,
+          navigateTo: '/rutas'
+        },
+        {
+          id: 'explain-routes',
+          title: 'Información Detallada de Rutas',
+          description: 'Visualiza mapas interactivos con las rutas asignadas, puntos de referencia importantes, paradas establecidas y detalles específicos de cada recorrido que realizarás.',
+          target: '[data-tutorial="routes"]',
+          placement: 'right',
+          page: '/rutas',
+          isNavigation: false
+        },
+        {
           id: 'navigate-profile',
-          title: 'Configura tu Perfil',
-          description: 'Haz clic en tu avatar para acceder a tu perfil personal.',
+          title: 'Gestiona tu Información Personal',
+          description: 'Haz clic en tu avatar para acceder a tu perfil personal donde puedes actualizar tu información y configurar tus preferencias.',
           target: '[data-tutorial="user-menu"]',
           placement: 'bottom',
-          page: '/horarios',
+          page: '/rutas',
           isNavigation: false
         },
         {
           id: 'show-profile-menu',
-          title: 'Menú Personal',
-          description: 'Aquí puedes ver tu información personal, cambiar contraseña y configurar preferencias.',
+          title: 'Menú de Configuración Personal',
+          description: 'Aquí puedes acceder a tu información personal, cambiar tu contraseña, actualizar datos de contacto y personalizar la experiencia de la aplicación.',
           target: '[data-tutorial="profile-menu-item"]',
           placement: 'left',
-          page: '/horarios',
+          page: '/rutas',
           isNavigation: true,
           navigateTo: '/profile'
         },
         {
           id: 'explain-profile',
-          title: 'Configuración Personal',
-          description: 'Actualiza tu información personal, cambia tu contraseña y configura tus preferencias.',
+          title: 'Centro de Gestión Personal',
+          description: 'Mantén actualizada tu información: datos personales, documentos importantes, información de contacto y configuraciones de seguridad para un mejor uso del sistema.',
           target: '[data-tutorial="profile"]',
           placement: 'bottom',
           page: '/profile',
@@ -359,6 +397,29 @@ export const useTutorial = () => {
     }
     return -1; // No hay más pasos disponibles
   }, [tutorialSteps, location.pathname, elementExists]);
+
+  // Función mejorada para verificar elementos con reintentos
+  const waitForElement = useCallback((selector, maxAttempts = 10, interval = 500) => {
+    return new Promise((resolve) => {
+      let attempts = 0;
+
+      const checkElement = () => {
+        attempts++;
+        const element = document.querySelector(selector);
+
+        if (element) {
+          resolve(element);
+        } else if (attempts < maxAttempts) {
+          setTimeout(checkElement, interval);
+        } else {
+          console.warn(`Elemento no encontrado después de ${maxAttempts} intentos: ${selector}`);
+          resolve(null);
+        }
+      };
+
+      checkElement();
+    });
+  }, []);
 
   // Verificar si el usuario ya completó o saltó el tutorial
   useEffect(() => {
