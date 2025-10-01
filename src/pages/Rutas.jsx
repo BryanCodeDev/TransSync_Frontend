@@ -1,87 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
+import {
+  Play, Square, Wrench, AlertCircle, RefreshCw, Bus, Menu, Route, MapPin,
+  Home, Info, ChevronLeft, Navigation, Zap, Users, Clock, Target, X,
+  Activity, ZoomIn, ZoomOut, Locate, MapIcon
+} from 'lucide-react';
+import {
+  MapContainer, TileLayer, Polyline, Marker, Popup, useMap, useMapEvents
+} from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import {
-  Bus,
-  MapPin,
-  Navigation,
-  Route,
-  X,
-  Home,
-  Play,
-  Square,
-  Wrench,
-  Users,
-  Zap,
-  Clock,
-  Activity,
-  ZoomIn,
-  ZoomOut,
-  Locate,
-  Map as MapIcon,
-  Info,
-  Target,
-  AlertCircle,
-  RefreshCw,
-  Menu,
-  ChevronLeft
-} from 'lucide-react';
 import rutasAPI from '../utilidades/rutasAPI';
 import vehiculosAPI from '../utilidades/vehiculosAPI';
 import dashboardAPI from '../utilidades/dashboardAPI';
 
-// Iconos personalizados para diferentes tipos de marcadores
-const createCustomIcon = (color, iconHtml) => {
-  return L.divIcon({
-    html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px;">${iconHtml}</div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15]
-  });
-};
-
-const stopIcon = createCustomIcon('#EF4444', '<svg width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>');
-
-// API data will be loaded dynamically
-
-// Componente para actualizar datos en tiempo real
-const RealTimeUpdater = ({ onRefresh }) => {
-  useEffect(() => {
-    const interval = setInterval(() => {
-      onRefresh();
-    }, 30000); // Actualizar cada 30 segundos
-
-    return () => clearInterval(interval);
-  }, [onRefresh]);
-
-  return null;
-};
-
-// Componente para manejar clics en el mapa
-const MapClickHandler = ({ onMapClick }) => {
-  useMapEvents({
-    click: (e) => {
-      onMapClick(e.latlng);
-    }
-  });
-  return null;
-};
-
-// Componente para controlar el mapa
-const MapControl = ({ center, zoom }) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (center) {
-      map.setView(center, zoom || map.getZoom(), { animate: true });
-    }
-  }, [center, zoom, map]);
-
-  return null;
-};
-
-const InteractiveMap = () => {
+const Rutas = () => {
   const { t } = useTranslation();
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
@@ -261,6 +194,54 @@ const InteractiveMap = () => {
       case 'FUERA_DE_SERVICIO': return <AlertCircle className="w-3 h-3" />;
       default: return <AlertCircle className="w-3 h-3" />;
     }
+  };
+
+  // Componente MapControl para controlar el centro y zoom del mapa
+  const MapControl = ({ center, zoom }) => {
+    const map = useMap();
+    useEffect(() => {
+      map.setView(center, zoom);
+    }, [center, zoom, map]);
+    return null;
+  };
+
+  // Componente MapClickHandler para manejar clicks en el mapa
+  const MapClickHandler = ({ onMapClick }) => {
+    useMapEvents({
+      click: (e) => {
+        onMapClick(e.latlng);
+      },
+    });
+    return null;
+  };
+
+  // Componente RealTimeUpdater para actualizar datos en tiempo real
+  const RealTimeUpdater = ({ onRefresh }) => {
+    useEffect(() => {
+      const interval = setInterval(() => {
+        onRefresh();
+      }, 30000); // Actualizar cada 30 segundos
+
+      return () => clearInterval(interval);
+    }, [onRefresh]);
+
+    return null;
+  };
+
+  // Función para crear ícono de parada
+  const stopIcon = L.divIcon({
+    html: '<div style="background-color: #3b82f6; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+  });
+
+  // Función para crear ícono personalizado
+  const createCustomIcon = (color, svgContent) => {
+    return L.divIcon({
+      html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">${svgContent}</div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
   };
 
   if (loading) {
@@ -947,4 +928,4 @@ const InteractiveMap = () => {
   );
 };
 
-export default InteractiveMap;
+export default Rutas;
