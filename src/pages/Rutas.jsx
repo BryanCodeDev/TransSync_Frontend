@@ -280,7 +280,7 @@ const Rutas = () => {
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 md:gap-6">
             <div className="flex items-center gap-3">
               <Bus className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-text-primary-light dark:text-text-primary-dark truncate">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-text-primary-light dark:text-text-primary-dark truncate" data-tutorial="routes">
                 {t('routes.title')}
               </h1>
             </div>
@@ -604,9 +604,25 @@ const Rutas = () => {
             {/* Rutas */}
             {showRoutes && routes.map(route => {
               // Usar coordenadas reales de la base de datos o coordenadas por defecto si no hay
-              const routePositions = route.coordenadasRuta ?
-                JSON.parse(route.coordenadasRuta) :
-                [[4.5981, -74.0758], [4.6280, -74.0631], [4.6601, -74.0547], [4.7110, -74.0721]];
+              let routePositions = [[4.5981, -74.0758], [4.6280, -74.0631], [4.6601, -74.0547], [4.7110, -74.0721]];
+
+              if (route.coordenadasRuta) {
+                try {
+                  // Verificar si ya es un array
+                  if (Array.isArray(route.coordenadasRuta)) {
+                    routePositions = route.coordenadasRuta;
+                  } else {
+                    // Intentar parsear como JSON
+                    const parsed = JSON.parse(route.coordenadasRuta);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                      routePositions = parsed;
+                    }
+                  }
+                } catch (error) {
+                  console.warn(`Error parseando coordenadas de ruta ${route.idRuta}:`, error);
+                  // Mantener coordenadas por defecto
+                }
+              }
 
               return (
                 <Polyline
