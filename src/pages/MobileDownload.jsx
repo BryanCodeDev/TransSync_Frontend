@@ -3,10 +3,11 @@ import QRWithInstall from '../components/QRWithInstall';
 import { Smartphone, CheckCircle, Globe, Download } from 'lucide-react';
 
 const MobileDownload = () => {
-  const appUrl = 'https://transync1.netlify.app/install';
   const [isMobile, setIsMobile] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Detectar si es dispositivo móvil
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
@@ -16,10 +17,31 @@ const MobileDownload = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
+    // Escuchar el evento beforeinstallprompt
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
     return () => {
       window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setShowInstallButton(false);
+      }
+    }
+  };
   const instructions = [
     {
       icon: <Smartphone className="w-6 h-6" />,
@@ -62,7 +84,7 @@ const MobileDownload = () => {
                 </h2>
                 <div className="mb-6">
                   <button
-                    onClick={() => window.location.href = 'https://transync1.netlify.app/install'}
+                    onClick={handleInstallClick}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105"
                   >
                     <Download className="w-6 h-6" />

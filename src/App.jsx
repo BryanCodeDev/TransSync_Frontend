@@ -30,7 +30,6 @@ const Register = lazy(() => import("./pages/Register"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const MobileDownload = lazy(() => import("./pages/MobileDownload"));
-const Install = lazy(() => import("./pages/Install"));
 
 // ======================================================
 // Tus componentes y hooks
@@ -131,7 +130,6 @@ function App() {
               <Route path="/forgot-password" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
               <Route path="/reset-password" element={<PublicLayout><ResetPassword /></PublicLayout>} />
               <Route path="/mobile-download" element={<PublicLayout><MobileDownload /></PublicLayout>} />
-              <Route path="/install" element={<Install />} />
 
               {/* Rutas protegidas usando tu ProtectedLayout y ProtectedRoute */}
               <Route path="/dashboard" element={<ProtectedRoute><ProtectedLayout><Dashboard /></ProtectedLayout></ProtectedRoute>} />
