@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target, Download } from 'lucide-react';
+import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target, Download, Smartphone } from 'lucide-react';
+import PWAButton from '../components/PWAButton';
+import QRCode from '../components/QRCode';
 
 const Home = () => {
   const { t } = useTranslation();
