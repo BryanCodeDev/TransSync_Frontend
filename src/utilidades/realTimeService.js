@@ -66,13 +66,13 @@ class RealTimeService {
         randomizationFactor: 0.5,
         auth: {
           token: token,
-          userId: userContext.idUsuario,
-          empresaId: userContext.idEmpresa,
+          userId: userContext.idUsuario || userContext.userId,
+          empresaId: userContext.idEmpresa || userContext.empresaId,
           rol: userContext.rol || 'SUPERADMIN'
         },
         query: {
-          userId: userContext.idUsuario,
-          empresaId: userContext.idEmpresa,
+          userId: userContext.idUsuario || userContext.userId,
+          empresaId: userContext.idEmpresa || userContext.empresaId,
           rol: userContext.rol || 'SUPERADMIN'
         }
       });
@@ -112,10 +112,26 @@ class RealTimeService {
       return false;
     }
 
-    if (!userContext.idUsuario || !userContext.idEmpresa) {
+    // Validar campos requeridos con logging detallado
+    const hasUserId = !!(userContext.idUsuario || userContext.userId);
+    const hasEmpresaId = !!(userContext.idEmpresa || userContext.empresaId);
+
+    console.log('🔍 Validando contexto de usuario:', {
+      idUsuario: userContext.idUsuario,
+      userId: userContext.userId,
+      idEmpresa: userContext.idEmpresa,
+      empresaId: userContext.empresaId,
+      rol: userContext.rol,
+      hasUserId,
+      hasEmpresaId
+    });
+
+    if (!hasUserId || !hasEmpresaId) {
       console.warn('⚠️ Contexto de usuario incompleto:', {
         idUsuario: userContext.idUsuario,
+        userId: userContext.userId,
         idEmpresa: userContext.idEmpresa,
+        empresaId: userContext.empresaId,
         rol: userContext.rol
       });
       return false;
@@ -141,16 +157,16 @@ class RealTimeService {
 
       // Notificar conexión exitosa
       this.emit('connection:established', {
-        userId: this.userContext?.idUsuario,
-        empresaId: this.userContext?.idEmpresa,
+        userId: this.userContext?.idUsuario || this.userContext?.userId,
+        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId,
         timestamp: new Date()
       });
 
       // Emitir evento de dashboard conectado (compatibilidad con socketService)
       this.emit('dashboard:connected', {
         timestamp: new Date().toISOString(),
-        userId: this.userContext?.idUsuario || null,
-        empresaId: this.userContext?.idEmpresa || null
+        userId: this.userContext?.idUsuario || this.userContext?.userId || null,
+        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId || null
       });
     });
 
@@ -320,12 +336,12 @@ class RealTimeService {
 
       // Unirse a sala de empresa
       this.socket.emit('join:empresa', {
-        empresaId: this.userContext.idEmpresa
+        empresaId: this.userContext.idEmpresa || this.userContext.empresaId
       });
 
       // Unirse a sala de usuario
       this.socket.emit('join:usuario', {
-        userId: this.userContext.idUsuario
+        userId: this.userContext.idUsuario || this.userContext.userId
       });
 
       // Unirse a sala de rol
@@ -335,8 +351,8 @@ class RealTimeService {
 
       // Actualizar salas actuales
       this.currentRooms = {
-        empresa: this.userContext.idEmpresa,
-        usuario: this.userContext.idUsuario,
+        empresa: this.userContext.idEmpresa || this.userContext.empresaId,
+        usuario: this.userContext.idUsuario || this.userContext.userId,
         rol: this.userContext.rol || 'SUPERADMIN'
       };
 
@@ -578,7 +594,7 @@ class RealTimeService {
     if (this.socket && this.isConnected) {
       this.socket.emit('dashboard:request_update', {
         timestamp: new Date(),
-        userId: this.userContext?.idUsuario
+        userId: this.userContext?.idUsuario || this.userContext?.userId
       });
     }
   }
@@ -869,8 +885,8 @@ class RealTimeService {
         message,
         data,
         priority,
-        userId: this.userContext?.idUsuario,
-        empresaId: this.userContext?.idEmpresa,
+        userId: this.userContext?.idUsuario || this.userContext?.userId,
+        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId,
         timestamp: new Date()
       });
     }
@@ -886,8 +902,8 @@ class RealTimeService {
       lastConnectionTime: this.socket?.connected ? new Date() : null,
       userContext: this.userContext,
       activeRooms: this.userContext ? [
-        `empresa_${this.userContext.idEmpresa}`,
-        `usuario_${this.userContext.idUsuario}`,
+        `empresa_${this.userContext.idEmpresa || this.userContext.empresaId}`,
+        `usuario_${this.userContext.idUsuario || this.userContext.userId}`,
         `rol_${this.userContext.rol || 'CONDUCTOR'}`
       ] : []
     };

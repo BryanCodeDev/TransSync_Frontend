@@ -4,7 +4,7 @@ import { Smartphone, CheckCircle, Globe, Download } from 'lucide-react';
 const MobileDownload = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [canInstall, setCanInstall] = useState(false);
+  const [showInstallButton, setShowInstallButton] = useState(false);
 
   useEffect(() => {
     // Detectar si es dispositivo móvil
@@ -128,29 +128,16 @@ const MobileDownload = () => {
                   Instalar TransSync Móvil
                 </h2>
                 <div className="mb-6">
-                  {canInstall && deferredPrompt ? (
-                    <button
-                      onClick={handleInstallClick}
-                      className="bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105 animate-pulse"
-                    >
-                      <Download className="w-6 h-6" />
-                      ¡Instalar ahora! (Disponible)
-                    </button>
-                  ) : (
-                    <button
-                      disabled
-                      className="bg-gray-400 text-gray-600 font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto cursor-not-allowed"
-                    >
-                      <Download className="w-6 h-6" />
-                      Instalación no disponible
-                    </button>
-                  )}
+                  <button
+                    onClick={handleInstallClick}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105"
+                  >
+                    <Download className="w-6 h-6" />
+                    Instalar aplicación móvil
+                  </button>
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  {canInstall && deferredPrompt
-                    ? "¡La instalación está disponible! Haz clic para instalar la aplicación."
-                    : "La instalación estará disponible cuando el navegador la soporte en este dispositivo."
-                  }
+                  Haz clic para instalar la aplicación directamente
                 </p>
               </div>
             </div>
