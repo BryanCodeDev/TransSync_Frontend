@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Download, X, Smartphone, CheckCircle } from 'lucide-react';
 import InstallModal from './InstallModal';
 
 const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }) => {
+  const { t } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -117,7 +119,7 @@ const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }
 
   const showIOSInstructions = () => {
     // Crear modal o alerta con instrucciones específicas para iOS
-    const message = 'Para instalar en iOS:\n\n1. Toca el botón compartir (⬜)\n2. Selecciona "Agregar a pantalla de inicio"\n3. Toca "Agregar" en la esquina superior derecha';
+    const message = `${t('installModal.steps.ios.description')}\n\n1. ${t('installModal.steps.ios.steps.0')}\n2. ${t('installModal.steps.ios.steps.2')}\n3. ${t('installModal.steps.ios.steps.4')}`;
 
     if (window.confirm(message + '\n\n¿Quieres que te mostremos cómo hacerlo?')) {
       window.open('https://support.apple.com/guide/iphone/bookmark-favorite-webpages-iph42ab2f3a7/ios', '_blank');
@@ -125,13 +127,13 @@ const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }
   };
 
   const showAndroidInstructions = () => {
-    const message = 'Para instalar en Android:\n\n1. Toca el menú de opciones (⋮)\n2. Selecciona "Instalar aplicación" o "Agregar a pantalla de inicio"\n3. Sigue las instrucciones';
+    const message = `${t('installModal.steps.android.description')}\n\n1. ${t('installModal.steps.android.steps.0')}\n2. ${t('installModal.steps.android.steps.2')}\n3. ${t('installModal.steps.android.steps.4')}`;
 
     alert(message);
   };
 
   const showBrowserNotSupported = () => {
-    const message = 'Para instalar la aplicación, usa:\n\n• Chrome o Edge en Android\n• Safari en iOS\n\n¿Quieres abrir la página en tu navegador predeterminado?';
+    const message = `${t('installModal.steps.desktop.description')}\n\n• Chrome o Edge en Android\n• Safari en iOS\n\n¿Quieres abrir la página en tu navegador predeterminado?`;
 
     if (window.confirm(message)) {
       window.location.reload();
@@ -143,8 +145,8 @@ const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }
     const event = new CustomEvent('showNotification', {
       detail: {
         type: 'success',
-        title: '¡Aplicación instalada!',
-        message: 'TransSync se ha instalado correctamente en tu dispositivo.'
+        title: t('installModal.success.title'),
+        message: t('installModal.success.description')
       }
     });
     window.dispatchEvent(event);
@@ -198,12 +200,12 @@ const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }
           {isInstalling ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Instalando...
+              {t('installModal.steps.desktop.steps.1')}
             </>
           ) : (
             <>
               <Smartphone className="w-5 h-5" />
-              Instalar aplicación
+              {t('installModal.steps.desktop.steps.3')}
             </>
           )}
         </button>
@@ -228,10 +230,10 @@ const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 truncate">
-                  Instalar TransSync
+                  {t('installModal.title')}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  Acceso rápido desde tu pantalla
+                  {t('installModal.steps.benefits.features.0')}
                 </p>
               </div>
             </div>
@@ -244,13 +246,13 @@ const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }
           </div>
 
           <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 leading-relaxed">
-            Instala la aplicación para acceso rápido desde tu pantalla de inicio y funciones offline.
+            {t('installModal.steps.benefits.description')}
           </p>
 
           <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
             <span className="text-xs text-gray-600 dark:text-gray-400">
-              {isIOS ? 'Compatible con iOS' : isAndroid ? 'Compatible con Android' : 'Funciona sin conexión'}
+              {isIOS ? t('installModal.steps.ios.title') : isAndroid ? t('installModal.steps.android.title') : t('installModal.steps.benefits.features.1')}
             </span>
           </div>
 
@@ -262,19 +264,19 @@ const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }
             {isInstalling ? (
               <>
                 <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span className="truncate">Instalando...</span>
+                <span className="truncate">{t('installModal.steps.desktop.steps.1')}</span>
               </>
             ) : (
               <>
                 <Download className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span className="truncate">{isIOS ? 'Ver instrucciones' : 'Instalar aplicación'}</span>
+                <span className="truncate">{isIOS ? t('installModal.steps.desktop.steps.2') : t('installModal.steps.desktop.steps.3')}</span>
               </>
             )}
           </button>
 
           <div className="mt-2 sm:mt-3 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {isIOS ? 'Toca arriba para ver cómo instalar' : 'Se instalará automáticamente'}
+              {isIOS ? t('installModal.steps.desktop.steps.2') : t('installModal.steps.desktop.steps.3')}
             </p>
           </div>
         </div>

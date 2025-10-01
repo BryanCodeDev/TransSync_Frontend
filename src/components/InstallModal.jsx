@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Smartphone, Download, ArrowRight, Zap, Bell, HardDrive } from 'lucide-react';
 
 const InstallModal = ({ isOpen, onClose, onInstall }) => {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [isIOS, setIsIOS] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
@@ -27,28 +29,28 @@ const InstallModal = ({ isOpen, onClose, onInstall }) => {
 
   const steps = [
     {
-      title: '¿Por qué instalar TransSync?',
-      description: 'Descubre los beneficios de tener la aplicación en tu dispositivo',
+      title: t('installModal.steps.benefits.title'),
+      description: t('installModal.steps.benefits.description'),
       content: (
         <div className="space-y-4">
           <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
             <Zap className="w-5 h-5 text-green-500" />
-            <span className="text-sm text-green-700 dark:text-green-300">Acceso rápido desde tu pantalla de inicio</span>
+            <span className="text-sm text-green-700 dark:text-green-300">{t('installModal.steps.benefits.features.0')}</span>
           </div>
           <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <HardDrive className="w-5 h-5 text-blue-500" />
-            <span className="text-sm text-blue-700 dark:text-blue-300">Funciona sin conexión a internet</span>
+            <span className="text-sm text-blue-700 dark:text-blue-300">{t('installModal.steps.benefits.features.1')}</span>
           </div>
           <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
             <Bell className="w-5 h-5 text-purple-500" />
-            <span className="text-sm text-purple-700 dark:text-purple-300">Notificaciones push en tiempo real</span>
+            <span className="text-sm text-purple-700 dark:text-purple-300">{t('installModal.steps.benefits.features.2')}</span>
           </div>
         </div>
       )
     },
     {
-      title: isIOS ? 'Instrucciones para iOS' : 'Instrucciones para Android',
-      description: isIOS ? 'Sigue estos pasos para instalar en tu iPhone o iPad' : 'Sigue estos pasos para instalar en tu dispositivo Android',
+      title: isIOS ? t('installModal.steps.ios.title') : t('installModal.steps.android.title'),
+      description: isIOS ? t('installModal.steps.ios.description') : t('installModal.steps.android.description'),
       content: (
         <div className="space-y-4">
           {isIOS ? (
@@ -56,22 +58,22 @@ const InstallModal = ({ isOpen, onClose, onInstall }) => {
               <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">1</div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">Abre el menú compartir</p>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Toca el botón cuadrado con flecha hacia arriba</p>
+                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">{t('installModal.steps.ios.steps.0')}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{t('installModal.steps.ios.steps.1')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">2</div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">Selecciona "Agregar a pantalla de inicio"</p>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Desplázate hacia abajo y toca esta opción</p>
+                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">{t('installModal.steps.ios.steps.2')}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{t('installModal.steps.ios.steps.3')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">3</div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">Confirma la instalación</p>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Toca "Agregar" en la esquina superior derecha</p>
+                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">{t('installModal.steps.ios.steps.4')}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{t('installModal.steps.ios.steps.5')}</p>
                 </div>
               </div>
             </>
@@ -80,22 +82,22 @@ const InstallModal = ({ isOpen, onClose, onInstall }) => {
               <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">1</div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">Toca el menú del navegador</p>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Busca los tres puntos o menú de opciones</p>
+                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">{t('installModal.steps.android.steps.0')}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{t('installModal.steps.android.steps.1')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">2</div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">Selecciona "Instalar aplicación"</p>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">O "Agregar a pantalla de inicio"</p>
+                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">{t('installModal.steps.android.steps.2')}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{t('installModal.steps.android.steps.3')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">3</div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">Confirma la instalación</p>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Sigue las instrucciones que aparecen</p>
+                  <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm sm:text-base">{t('installModal.steps.android.steps.4')}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{t('installModal.steps.android.steps.5')}</p>
                 </div>
               </div>
             </>
@@ -104,15 +106,15 @@ const InstallModal = ({ isOpen, onClose, onInstall }) => {
       )
     },
     {
-      title: '¡Listo para instalar!',
-      description: 'Haz clic en instalar y sigue las instrucciones',
+      title: t('installModal.steps.desktop.title'),
+      description: t('installModal.steps.desktop.description'),
       content: (
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Smartphone className="w-8 h-8 text-white" />
           </div>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Se abrirá automáticamente el proceso de instalación de tu dispositivo
+            {t('installModal.steps.desktop.steps.0')}
           </p>
           <button
             onClick={handleInstall}
@@ -122,12 +124,12 @@ const InstallModal = ({ isOpen, onClose, onInstall }) => {
             {isInstalling ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Instalando...
+                {t('installModal.steps.desktop.steps.1')}
               </>
             ) : (
               <>
                 <Download className="w-5 h-5" />
-                {isIOS ? 'Ver instrucciones' : 'Instalar aplicación'}
+                {isIOS ? t('installModal.steps.desktop.steps.2') : t('installModal.steps.desktop.steps.3')}
               </>
             )}
           </button>
@@ -161,10 +163,10 @@ const InstallModal = ({ isOpen, onClose, onInstall }) => {
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
-                Instalar TransSync
+                {t('installModal.title')}
               </h2>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
-                Paso {currentStep + 1} de {steps.length}
+                {t('navbar.step', { current: currentStep + 1, total: steps.length })}
               </p>
             </div>
           </div>
@@ -211,7 +213,7 @@ const InstallModal = ({ isOpen, onClose, onInstall }) => {
             disabled={currentStep === 0}
             className="px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-600 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors order-2 sm:order-1"
           >
-            Anterior
+            {t('installModal.navigation.previous')}
           </button>
 
           <div className="flex items-center justify-center gap-1 sm:gap-2 order-1 sm:order-2">
@@ -235,14 +237,14 @@ const InstallModal = ({ isOpen, onClose, onInstall }) => {
               onClick={onClose}
               className="px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm sm:text-base rounded-lg transition-colors order-3"
             >
-              Cerrar
+              {t('installModal.navigation.close')}
             </button>
           ) : (
             <button
               onClick={nextStep}
               className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base rounded-lg transition-colors flex items-center justify-center gap-1 sm:gap-2 order-3"
             >
-              <span>Siguiente</span>
+              <span>{t('installModal.navigation.next')}</span>
               <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           )}

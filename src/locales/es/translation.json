@@ -1081,5 +1081,71 @@
     "qrCodeDescription": "Escanea este código QR para acceder a la página de descarga móvil",
     "directAccess": "También puedes acceder directamente desde tu navegador móvil",
     "url": "https://transync1.netlify.app/mobile-download"
+  },
+  "installModal": {
+    "title": "Instalar TransSync",
+    "stepCounter": "Paso {{current}} de {{total}}",
+    "steps": {
+      "benefits": {
+        "title": "¿Por qué instalar TransSync?",
+        "description": "Descubre los beneficios de tener la aplicación en tu dispositivo",
+        "features": {
+          "quickAccess": "Acceso rápido desde tu pantalla de inicio",
+          "offline": "Funciona sin conexión a internet",
+          "notifications": "Notificaciones push en tiempo real"
+        }
+      },
+      "instructions": {
+        "ios": {
+          "title": "Instrucciones para iOS",
+          "description": "Sigue estos pasos para instalar en tu iPhone o iPad",
+          "steps": {
+            "1": {
+              "title": "Abre el menú compartir",
+              "description": "Toca el botón cuadrado con flecha hacia arriba"
+            },
+            "2": {
+              "title": "Selecciona \"Agregar a pantalla de inicio\"",
+              "description": "Desplázate hacia abajo y toca esta opción"
+            },
+            "3": {
+              "title": "Confirma la instalación",
+              "description": "Toca \"Agregar\" en la esquina superior derecha"
+            }
+          }
+        },
+        "android": {
+          "title": "Instrucciones para Android",
+          "description": "Sigue estos pasos para instalar en tu dispositivo Android",
+          "steps": {
+            "1": {
+              "title": "Toca el menú del navegador",
+              "description": "Busca los tres puntos o menú de opciones"
+            },
+            "2": {
+              "title": "Selecciona \"Instalar aplicación\"",
+              "description": "O \"Agregar a pantalla de inicio\""
+            },
+            "3": {
+              "title": "Confirma la instalación",
+              "description": "Sigue las instrucciones que aparecen"
+            }
+          }
+        }
+      },
+      "install": {
+        "title": "¡Listo para instalar!",
+        "description": "Haz clic en instalar y sigue las instrucciones",
+        "autoPrompt": "Se abrirá automáticamente el proceso de instalación de tu dispositivo",
+        "installButton": "Instalar aplicación",
+        "viewInstructions": "Ver instrucciones",
+        "installing": "Instalando..."
+      }
+    },
+    "navigation": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "close": "Cerrar"
+    }
   }
 }

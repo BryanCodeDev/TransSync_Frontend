@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target, Smartphone, Bell, Palette, RefreshCw, HardDrive } from 'lucide-react';
-import PWAButton from '../components/PWAButton';
 import QRCode from '../components/QRCode';
 
 const Home = () => {
@@ -229,11 +228,6 @@ const Home = () => {
 
           {/* CTA Buttons */}
           <div className={`flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center items-center transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <PWAButton
-              variant="inline"
-              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-              forceMobile={true}
-            />
           </div>
         </div>
       </header>
@@ -470,21 +464,6 @@ const Home = () => {
               {t('homePage.cta.buttons.expert')}
             </button>
           </div>
-
-          <div className="mt-6 sm:mt-8 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 md:gap-8 text-xs sm:text-sm text-blue-100 dark:text-gray-300">
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Check className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-400 flex-shrink-0" />
-              <span>{t('homePage.cta.features.0')}</span>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Check className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-400 flex-shrink-0" />
-              <span>{t('homePage.cta.features.1')}</span>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Check className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-400 flex-shrink-0" />
-              <span>{t('homePage.cta.features.2')}</span>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -563,11 +542,6 @@ const Home = () => {
                   <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-3 text-sm sm:text-base">
                     ¿Prefieres instalación directa?
                   </h4>
-                  <PWAButton
-                    variant="inline"
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-sm sm:text-base"
-                    forceMobile={true}
-                  />
                 </div>
               </div>
             </div>

@@ -916,5 +916,64 @@
     "allNotifications": "All Notifications",
     "error": "Error",
     "processingError": "Sorry, there was an error processing your query. Please check your connection and try again."
+  },
+  "installModal": {
+    "title": "Install TransSync App",
+    "subtitle": "Get the full experience with our mobile app",
+    "steps": {
+      "title": "Installation Steps",
+      "subtitle": "Follow these simple steps to install the app on your device",
+      "benefits": {
+        "title": "Why install the app?",
+        "description": "Get the best experience with offline access, push notifications, and faster performance",
+        "features": [
+          "Offline access to your data",
+          "Instant notifications",
+          "Faster loading times",
+          "Better mobile experience"
+        ]
+      },
+      "ios": {
+        "title": "iOS Installation",
+        "description": "On iPhone and iPad, tap the share button and select 'Add to Home Screen'",
+        "steps": [
+          "Tap the share button in Safari",
+          "Scroll down and tap 'Add to Home Screen'",
+          "Tap 'Add' to confirm",
+          "Find the app on your home screen"
+        ]
+      },
+      "android": {
+        "title": "Android Installation",
+        "description": "On Android devices, tap the menu button and select 'Install app' or 'Add to Home screen'",
+        "steps": [
+          "Tap the menu button in Chrome",
+          "Select 'Install app' or 'Add to Home screen'",
+          "Tap 'Install' to confirm",
+          "Find the app in your app drawer"
+        ]
+      },
+      "desktop": {
+        "title": "Desktop Installation",
+        "description": "In modern browsers, look for the install icon in the address bar",
+        "steps": [
+          "Look for the install icon in the address bar",
+          "Click the install button",
+          "Follow the browser prompts",
+          "Find the app in your applications"
+        ]
+      }
+    },
+    "navigation": {
+      "next": "Next",
+      "previous": "Previous",
+      "close": "Close",
+      "finish": "Finish"
+    },
+    "success": {
+      "title": "Installation Complete!",
+      "description": "The app has been successfully installed on your device",
+      "enjoy": "Enjoy the full TransSync experience!"
+    }
   }
 }
