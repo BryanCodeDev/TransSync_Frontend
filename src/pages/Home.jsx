@@ -8,6 +8,7 @@ const Home = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [, setDark] = useState(localStorage.getItem("theme") === "dark");
+  const installUrl = 'https://transync1.netlify.app/install';
 
   const caracteristicas = [
     {
@@ -228,7 +229,13 @@ const Home = () => {
 
           {/* CTA Buttons */}
           <div className={`flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center items-center transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <PWAButton variant="inline" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800" />
+            <a
+              href={installUrl}
+              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 sm:py-4 md:py-5 px-6 sm:px-8 md:px-10 rounded-2xl shadow-2xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:scale-105 text-sm sm:text-base md:text-lg"
+            >
+              <Download className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+              Instalar aplicación
+            </a>
           </div>
         </div>
       </header>
