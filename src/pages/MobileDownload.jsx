@@ -1,11 +1,25 @@
-import React from 'react';
-import QRCode from '../components/QRCode';
-import ThemeSwitcher from '../components/ThemeSwitcher';
-import LanguageSwitcher from '../components/LanguageSwitcher';
-import { Smartphone, Download, CheckCircle, Globe } from 'lucide-react';
+import React, { useState } from 'react';
+import QRWithInstall from '../components/QRWithInstall';
+import { Smartphone, CheckCircle, Globe } from 'lucide-react';
 
 const MobileDownload = () => {
   const appUrl = 'https://transync1.netlify.app/home';
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    // Detectar si es dispositivo móvil
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
   const instructions = [
     {
       icon: <Smartphone className="w-6 h-6" />,
@@ -29,10 +43,6 @@ const MobileDownload = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex justify-center items-center gap-4 mb-6">
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-          </div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             📱 Descarga TransSync Móvil
           </h1>
@@ -43,30 +53,14 @@ const MobileDownload = () => {
 
         {/* Main Content */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'} gap-8 items-center`}>
             {/* QR Code Section */}
-            <div className="text-center">
-              <div className="mb-6">
-                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                  Escanea este código QR
-                </h2>
-                <div className="flex justify-center">
-                  <QRCode
-                    url={appUrl}
-                    size={200}
-                    className="mb-4"
-                  />
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  Código QR para instalación móvil
-                </p>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <p className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
-                    {appUrl}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <QRWithInstall
+              url={appUrl}
+              size={isMobile ? 180 : 200}
+              title="Escanea este código QR"
+              description="Código QR para instalación móvil"
+            />
 
             {/* Instructions Section */}
             <div className="space-y-6">
@@ -113,22 +107,24 @@ const MobileDownload = () => {
           </div>
         </div>
 
-        {/* Alternative Download */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            ¿Prefieres acceso directo?
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            También puedes acceder directamente desde tu navegador móvil
-          </p>
-          <a
-            href={appUrl}
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Globe className="w-5 h-5 mr-2" />
-            Abrir TransSync
-          </a>
-        </div>
+        {/* Alternative Download - Solo para desktop */}
+        {!isMobile && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 text-center">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              ¿Prefieres acceso directo?
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              También puedes acceder directamente desde tu navegador móvil
+            </p>
+            <a
+              href={appUrl}
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Globe className="w-5 h-5 mr-2" />
+              Abrir TransSync
+            </a>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500 dark:text-gray-400">
@@ -137,6 +133,7 @@ const MobileDownload = () => {
           </p>
         </div>
       </div>
+
     </div>
   );
 };
