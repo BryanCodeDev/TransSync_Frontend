@@ -4,6 +4,7 @@ import { Smartphone, CheckCircle, Globe, Download } from 'lucide-react';
 const MobileDownload = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(true);
 
   // Definir la URL de la aplicación
   const appUrl = window.location.origin;
@@ -22,6 +23,7 @@ const MobileDownload = () => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      setShowInstallButton(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -83,16 +85,21 @@ const MobileDownload = () => {
                   Instalar TransSync Móvil
                 </h2>
                 <div className="mb-6">
-                  <button
-                    onClick={handleInstallClick}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105"
-                  >
-                    <Download className="w-6 h-6" />
-                    Instalar aplicación móvil
-                  </button>
+                  {showInstallButton && deferredPrompt && (
+                    <button
+                      onClick={handleInstallClick}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105"
+                    >
+                      <Download className="w-6 h-6" />
+                      Instalar aplicación móvil
+                    </button>
+                  )}
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  Haz clic para instalar la aplicación directamente
+                  {showInstallButton && deferredPrompt
+                    ? "Haz clic para instalar la aplicación directamente"
+                    : "Usa el código QR arriba para instalar la aplicación en tu dispositivo móvil"
+                  }
                 </p>
               </div>
             </div>
