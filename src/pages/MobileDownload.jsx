@@ -6,8 +6,6 @@ const MobileDownload = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(true);
 
-  // Definir la URL de la aplicación
-  const appUrl = window.location.origin;
 
   useEffect(() => {
     // Detectar si es dispositivo móvil
