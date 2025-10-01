@@ -65,7 +65,19 @@ const RouteSelector = ({
     if (!userLocation || !route.coordenadasRuta) return null;
 
     try {
-      const routeCoords = JSON.parse(route.coordenadasRuta);
+      let routeCoords = [];
+
+      // Verificar si ya es un array
+      if (Array.isArray(route.coordenadasRuta)) {
+        routeCoords = route.coordenadasRuta;
+      } else {
+        // Intentar parsear como JSON
+        const parsed = JSON.parse(route.coordenadasRuta);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          routeCoords = parsed;
+        }
+      }
+
       if (!routeCoords || routeCoords.length === 0) return null;
 
       // Calcular distancia al punto más cercano de la ruta

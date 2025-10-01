@@ -45,8 +45,25 @@ const NavigationPanel = ({
     if (!selectedRoute || !userLocation) return;
 
     try {
-      const routeCoords = selectedRoute.coordenadasRuta ?
-        JSON.parse(selectedRoute.coordenadasRuta) : [];
+      let routeCoords = [];
+
+      if (selectedRoute.coordenadasRuta) {
+        try {
+          // Verificar si ya es un array
+          if (Array.isArray(selectedRoute.coordenadasRuta)) {
+            routeCoords = selectedRoute.coordenadasRuta;
+          } else {
+            // Intentar parsear como JSON
+            const parsed = JSON.parse(selectedRoute.coordenadasRuta);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              routeCoords = parsed;
+            }
+          }
+        } catch (error) {
+          console.warn(`Error parseando coordenadas de ruta ${selectedRoute.idRuta}:`, error);
+          routeCoords = [];
+        }
+      }
 
       if (routeCoords.length === 0) {
         setNavigationSteps([{

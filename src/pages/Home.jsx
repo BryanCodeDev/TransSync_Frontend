@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target, Download, Smartphone } from 'lucide-react';
-import QRCode from '../components/QRCode';
+import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target, Download } from 'lucide-react';
 
 const Home = () => {
   const { t } = useTranslation();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [, setDark] = useState(localStorage.getItem("theme") === "dark");
-  const installUrl = 'https://transync1.netlify.app/install';
 
   const caracteristicas = [
     {
