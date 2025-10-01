@@ -213,9 +213,25 @@ const EnhancedMap = ({
         {/* Rutas */}
         {showRoutes && routes.map(route => {
           try {
-            const routePositions = route.coordenadasRuta ?
-              JSON.parse(route.coordenadasRuta) :
-              [[4.5981, -74.0758], [4.6280, -74.0631], [4.6601, -74.0547], [4.7110, -74.0721]];
+            let routePositions = [[4.5981, -74.0758], [4.6280, -74.0631], [4.6601, -74.0547], [4.7110, -74.0721]];
+
+            if (route.coordenadasRuta) {
+              try {
+                // Verificar si ya es un array
+                if (Array.isArray(route.coordenadasRuta)) {
+                  routePositions = route.coordenadasRuta;
+                } else {
+                  // Intentar parsear como JSON
+                  const parsed = JSON.parse(route.coordenadasRuta);
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    routePositions = parsed;
+                  }
+                }
+              } catch (error) {
+                console.warn(`Error parseando coordenadas de ruta ${route.idRuta}:`, error);
+                // Mantener coordenadas por defecto
+              }
+            }
 
             return (
               <Polyline
