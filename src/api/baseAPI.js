@@ -19,11 +19,6 @@ const RETRY_DELAY = parseInt(process.env.REACT_APP_RETRY_DELAY) || 1500; // Aume
 
 // Configuración específica por tipo de endpoint
 const ENDPOINT_CONFIG = {
-  chatbot: {
-    timeout: 20000,
-    retries: 2,
-    retryDelay: 1000
-  },
   realtime: {
     timeout: 15000,
     retries: 5,
@@ -144,9 +139,7 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     // Determinar tipo de endpoint para configuración específica
-    const endpointType = error.config?.url?.includes('/chatbot/')
-      ? 'chatbot'
-      : error.config?.url?.includes('/realtime/')
+    const endpointType = error.config?.url?.includes('/realtime/')
       ? 'realtime'
       : 'default';
 
@@ -219,8 +212,7 @@ apiClient.interceptors.response.use(
       timestamp: new Date().toISOString(),
       endpoint: error.config?.url,
       method: error.config?.method?.toUpperCase(),
-      endpointType: error.config?.url?.includes('/chatbot/') ? 'chatbot' :
-                   error.config?.url?.includes('/realtime/') ? 'realtime' : 'default',
+      endpointType: error.config?.url?.includes('/realtime/') ? 'realtime' : 'default',
       canRetry: error.code === 'ECONNABORTED' ||
                 error.response?.status === 429 ||
                 error.response?.status >= 500 ||

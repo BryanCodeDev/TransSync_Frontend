@@ -306,7 +306,6 @@ const Dashboard = () => {
     realTimeService.on('notification:stats_update', handleStatsUpdate);
     realTimeService.on('notification:realtime_update', handleRealtimeUpdate);
     realTimeService.on('notification:alerts_update', handleAlertsUpdate);
-    realTimeService.on('notification:chatbot', handleNotification);
     realTimeService.on('connection:established', handleConnectionStatus);
     realTimeService.on('connection:error', (error) => {
       console.error('❌ Error de conexión:', error);
@@ -319,7 +318,6 @@ const Dashboard = () => {
       realTimeService.off('notification:stats_update', handleStatsUpdate);
       realTimeService.off('notification:realtime_update', handleRealtimeUpdate);
       realTimeService.off('notification:alerts_update', handleAlertsUpdate);
-      realTimeService.off('notification:chatbot', handleNotification);
       realTimeService.off('connection:established', handleConnectionStatus);
       realTimeService.off('connection:error');
     };

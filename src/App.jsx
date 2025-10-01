@@ -11,7 +11,6 @@ import { UserProvider } from './context/UserContext';
 // Componentes principales (no lazy para mejor UX)
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
-import ChatBot from "./components/ChatBot";
 import Tutorial from "./components/Tutorial";
 import "./i18n";
 
@@ -96,7 +95,6 @@ const ProtectedLayout = ({ children }) => {
             {children}
         </div>
       </main>
-      <ChatBot className="fixed bottom-6 right-6 z-50" data-tutorial="chatbot" />
       <Tutorial />
     </div>
   );

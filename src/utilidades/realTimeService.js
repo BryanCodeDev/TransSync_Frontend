@@ -285,11 +285,6 @@ class RealTimeService {
       this.handleSystemStatusChange(data);
     });
 
-    // Notificaciones del chatbot
-    this.socket.on('chatbot:notification', (data) => {
-      console.log('🤖 Notificación del chatbot:', data);
-      this.handleChatbotNotification(data);
-    });
   }
 
   /**
@@ -835,25 +830,6 @@ class RealTimeService {
     this.emit('notification:system_status', notification);
   }
 
-  /**
-   * Manejar notificaciones del chatbot
-   */
-  handleChatbotNotification(data) {
-    const notification = {
-      type: 'chatbot_notificacion',
-      title: '🤖 Notificación del Chatbot',
-      message: data.message,
-      data: data,
-      timestamp: new Date(),
-      priority: data.priority || 'medium'
-    };
-
-    this.emit('notification:chatbot', notification);
-
-    if (data.showBrowserNotification) {
-      this.showBrowserNotification(notification);
-    }
-  }
 
   /**
    * Mostrar notificación del navegador
