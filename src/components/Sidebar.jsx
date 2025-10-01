@@ -1,11 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-// import { useAuth } from '../hooks/useAuth'; // <--- ELIMINADO
 import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import {
   FaChartLine, FaUserTie, FaRoute, FaBus,
-  FaClock, FaExclamationTriangle, FaFileAlt,
-  FaSignOutAlt, FaChevronLeft, FaChevronRight,
+  FaClock, FaSignOutAlt, FaChevronLeft, FaChevronRight,
   FaUserShield, FaCogs, FaUser
 } from "react-icons/fa";
 import { getCurrentUser, getUserRole, logout } from '../utilidades/authAPI';
@@ -21,7 +19,48 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ... (El resto de tus hooks useEffect, handlers, etc. se quedan igual) ...
+  useEffect(() => {
+    const checkDeviceType = () => {
+      const mobile = window.innerWidth <= 768;
+      const tablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+      setIsMobile(mobile);
+      setIsTablet(tablet);
+    };
+
+    if (isMobileProp !== undefined) {
+      setIsMobile(isMobileProp);
+      setIsTablet(false);
+    } else {
+      checkDeviceType();
+      window.addEventListener('resize', checkDeviceType);
+      return () => window.removeEventListener('resize', checkDeviceType);
+    }
+  }, [isMobileProp]);
+
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        const user = getCurrentUser();
+        const role = getUserRole();
+        setCurrentUser(user);
+        setUserRole(role);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        setCurrentUser(null);
+        setUserRole('');
+      }
+    };
+    loadUserData();
+  }, []);
+
+  useEffect(() => {
+    if ((isMobile || isTablet) && isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }
+  }, [isMobile, isTablet, isOpen]);
 
   const handleLogout = async () => {
     if (window.confirm(t('sidebar.logout'))) {
@@ -37,29 +76,20 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   };
 
   const handleOverlayClick = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    if (onOverlayClick) {
-      onOverlayClick();
-    } else {
-      toggleSidebar();
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (onOverlayClick) { onOverlayClick(); } else { toggleSidebar(); }
   };
 
   const handleLinkClick = () => {
     if (isMobile || isTablet) {
-      setTimeout(() => {
-        toggleSidebar();
-      }, 100);
+      setTimeout(() => { toggleSidebar(); }, 100);
     }
   };
 
   const formatUserRole = (role) => {
     const roles = {
       'SUPERADMIN': 'Super Administrador',
-      'ADMINISTRADOR': 'Administrador',
+      'GESTOR': 'Gestor', // CORREGIDO
       'CONDUCTOR': 'Conductor',
       'USER': 'Usuario',
       'PENDIENTE': 'Usuario Pendiente'
@@ -69,12 +99,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
 
   const getUserInitials = () => {
     if (currentUser?.name) {
-      return currentUser.name
-        .split(' ')
-        .map(word => word.charAt(0))
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
+      return currentUser.name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
     } else if (currentUser?.email) {
       return currentUser.email.charAt(0).toUpperCase();
     }
@@ -82,148 +107,77 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   };
 
   const getDisplayName = () => {
-    if (currentUser?.name) {
-      return currentUser.name;
-    } else if (currentUser?.email) {
-      return currentUser.email.split('@')[0];
-    }
+    if (currentUser?.name) { return currentUser.name; }
+    else if (currentUser?.email) { return currentUser.email.split('@')[0]; }
     return 'Usuario';
   };
 
   const getAvatarGradient = () => {
     switch (userRole) {
-      case 'SUPERADMIN':
-        return 'from-purple-500 to-purple-700';
-      case 'ADMINISTRADOR':
-        return 'from-[#3949ab] to-[#1a237e]';
-      case 'CONDUCTOR':
-        return 'from-green-500 to-green-700';
-      case 'USER':
-        return 'from-[#283593] to-[#1a237e]';
-      case 'PENDIENTE':
-        return 'from-yellow-500 to-orange-600';
-      default:
-        return 'from-[#3949ab] to-[#283593]';
+      case 'SUPERADMIN': return 'from-purple-500 to-purple-700';
+      case 'GESTOR': return 'from-[#3949ab] to-[#1a237e]'; // CORREGIDO
+      case 'CONDUCTOR': return 'from-green-500 to-green-700';
+      default: return 'from-[#3949ab] to-[#283593]';
     }
   };
 
   const getUserRoleIcon = () => {
     switch (userRole) {
-      case 'SUPERADMIN':
-        return <FaUserShield size={20} className="text-white" />;
-      case 'ADMINISTRADOR':
-        return <FaCogs size={20} className="text-white" />;
-      case 'CONDUCTOR':
-        return <FaUserTie size={20} className="text-white" />;
-      default:
-        return <FaUser size={20} className="text-white" />;
+      case 'SUPERADMIN': return <FaUserShield size={20} className="text-white" />;
+      case 'GESTOR': return <FaCogs size={20} className="text-white" />; // CORREGIDO
+      case 'CONDUCTOR': return <FaUserTie size={20} className="text-white" />;
+      default: return <FaUser size={20} className="text-white" />;
     }
   };
 
-  // Función de permisos corregida
   const hasPermissionForRoute = (path) => {
     if (!userRole) return false;
-
     const rolePermissions = {
-      'SUPERADMIN': [
-        '/dashboard', '/admin/dashboard', '/drivers', '/rutas',
-        '/vehiculos', '/horarios'
-      ],
-      'GESTOR': [ // <--- CORREGIDO de 'GESTOR' a 'ADMINISTRADOR'
-        '/dashboard', '/drivers', '/rutas', '/vehiculos',
-        '/horarios', '/informes'
-      ],
-      'CONDUCTOR': [
-        '/rutas'
-      ],
-      'USER': [],
-      'PENDIENTE': []
+      'SUPERADMIN': ['/dashboard', '/admin/dashboard', '/drivers', '/rutas', '/vehiculos', '/horarios'],
+      'GESTOR': ['/dashboard', '/drivers', '/rutas', '/vehiculos', '/horarios'], // CORREGIDO
+      'CONDUCTOR': ['/dashboard', '/rutas'],
+      'USER': [], 'PENDIENTE': []
     };
-
     return rolePermissions[userRole]?.includes(path) || false;
   };
 
   const allMenuItems = [
-    { path: "/dashboard", icon: <FaChartLine />, label: t('sidebar.dashboard'), description: "Panel principal" },
-    { path: "/admin/dashboard", icon: <FaCogs />, label: "Admin Dashboard", description: "Panel de administración" },
-    { path: "/drivers", icon: <FaUserTie />, label: t('sidebar.drivers'), description: "Gestión de conductores" },
-    { path: "/rutas", icon: <FaRoute />, label: t('sidebar.routes'), description: "Gestión de rutas" },
-    { path: "/vehiculos", icon: <FaBus />, label: t('sidebar.vehicles'), description: "Gestión de vehículos" },
-    { path: "/horarios", icon: <FaClock />, label: t('sidebar.schedules'), description: "Gestión de horarios" },
+    { path: "/dashboard", icon: <FaChartLine />, label: t('sidebar.dashboard') },
+    { path: "/admin/dashboard", icon: <FaCogs />, label: "Admin Dashboard" },
+    { path: "/drivers", icon: <FaUserTie />, label: t('sidebar.drivers') },
+    { path: "/rutas", icon: <FaRoute />, label: t('sidebar.routes') },
+    { path: "/vehiculos", icon: <FaBus />, label: t('sidebar.vehicles') },
+    { path: "/horarios", icon: <FaClock />, label: t('sidebar.schedules') },
   ];
 
   const menuItems = allMenuItems.filter(item => hasPermissionForRoute(item.path));
 
-  // ... (El resto de tu componente JSX se queda exactamente igual) ...
-
   return (
     <>
       {isOpen && (isMobile || isTablet) && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-[998] backdrop-blur-sm"
-          onClick={handleOverlayClick}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[998] backdrop-blur-sm" onClick={handleOverlayClick} />
       )}
-
       <aside
         id="sidebar-navigation"
-        className={`
-          fixed left-0 top-16 h-[calc(100vh-64px)] z-[999]
-          flex flex-col shadow-2xl transition-all duration-300 ease-in-out
-          ${theme === "dark"
-            ? "bg-gradient-to-br from-background-dark via-surface-dark to-background-dark text-text-primary-dark before:from-black/10"
-            : "bg-gradient-to-br from-primary-800 via-primary-700 to-primary-600 text-white before:from-white/5"}
-          before:absolute before:inset-0 before:bg-gradient-to-r before:to-transparent before:pointer-events-none
-          ${isMobile || isTablet
-            ? `w-[calc(100vw-2rem)] max-w-[320px] sm:w-[280px] ${isOpen ? 'translate-x-0' : '-translate-x-full'} transform-gpu`
-            : `${isOpen ? 'w-[280px]' : 'w-[70px]'} translate-x-0 transform-gpu`
-          }
-        `}
+        className={`fixed left-0 top-16 h-[calc(100vh-64px)] z-[999] flex flex-col shadow-2xl transition-all duration-300 ease-in-out ${theme === "dark" ? "bg-gradient-to-br from-background-dark via-surface-dark to-background-dark text-text-primary-dark before:from-black/10" : "bg-gradient-to-br from-primary-800 via-primary-700 to-primary-600 text-white before:from-white/5"} before:absolute before:inset-0 before:bg-gradient-to-r before:to-transparent before:pointer-events-none ${isMobile || isTablet ? `w-[calc(100vw-2rem)] max-w-[320px] sm:w-[280px] ${isOpen ? 'translate-x-0' : '-translate-x-full'} transform-gpu` : `${isOpen ? 'w-[280px]' : 'w-[70px]'} translate-x-0 transform-gpu`}`}
         role="navigation"
         aria-label="Navegación principal"
       >
-        {/* Header del sidebar */}
-        <div className={`relative p-3 sm:p-4 border-b min-h-[60px] sm:min-h-[70px] flex items-center justify-between backdrop-blur-sm
-          ${theme === "dark" ? "border-border-dark" : "border-white/30"}`}>
+        <div className={`relative p-3 sm:p-4 border-b min-h-[60px] sm:min-h-[70px] flex items-center justify-between backdrop-blur-sm ${theme === "dark" ? "border-border-dark" : "border-white/30"}`}>
           <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
             <div className="relative">
-              <img
-                src={`${process.env.PUBLIC_URL}/logo.svg`}
-                alt="Logo TransSync"
-                className="h-8 w-8 sm:h-10 sm:w-10 object-contain filter drop-shadow-lg"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
+              <img src={`${process.env.PUBLIC_URL}/logo.svg`} alt="Logo TransSync" className="h-8 w-8 sm:h-10 sm:w-10 object-contain filter drop-shadow-lg" />
               <div className={`absolute -inset-1 rounded-full blur opacity-50 ${theme === "dark" ? "bg-gray-700" : "bg-white/30"}`} />
             </div>
             {(isOpen || (!isMobile && !isTablet)) && (
               <div className={`flex flex-col transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent whitespace-nowrap">
-                  TransSync
-                </span>
-                <span className={`text-xs ${theme === "dark" ? "text-text-secondary-dark" : "text-primary-200 opacity-80"}`}>
-                  Sistema de Gestión
-                </span>
+                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent whitespace-nowrap">TransSync</span>
+                <span className={`text-xs ${theme === "dark" ? "text-text-secondary-dark" : "text-primary-200 opacity-80"}`}>Sistema de Gestión</span>
               </div>
             )}
           </div>
-          
           {!isMobile && !isTablet && (
-            <button
-              className={`border-none cursor-pointer w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110 active:scale-95 backdrop-blur-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50
-              ${theme === "dark" ? "bg-gray-700 hover:bg-gray-600 text-gray-200" : "bg-white/10 hover:bg-white/20 text-white"}`}
-              onClick={toggleSidebar}
-              aria-label={isOpen ? "Contraer menú lateral" : "Expandir menú lateral"}
-              aria-expanded={isOpen}
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  toggleSidebar();
-                }
-              }}
-            >
+            <button className={`border-none cursor-pointer w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110 active:scale-95 backdrop-blur-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 ${theme === "dark" ? "bg-gray-700 hover:bg-gray-600 text-gray-200" : "bg-white/10 hover:bg-white/20 text-white"}`} onClick={toggleSidebar} aria-label={isOpen ? "Contraer menú lateral" : "Expandir menú lateral"} aria-expanded={isOpen} tabIndex={0} >
               <div className="relative">
                 <FaChevronLeft className={`transition-all duration-300 ${isOpen ? 'opacity-100 rotate-0' : 'opacity-0 rotate-180'}`} aria-hidden="true" />
                 <FaChevronRight className={`absolute inset-0 transition-all duration-300 ${isOpen ? 'opacity-0 -rotate-180' : 'opacity-100 rotate-0'}`} aria-hidden="true" />
@@ -231,106 +185,32 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
             </button>
           )}
         </div>
-
-        {/* Perfil de usuario */}
         <div className={`p-3 sm:p-4 border-b backdrop-blur-sm ${theme === "dark" ? "border-gray-700" : "border-white/30"}`}>
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative">
-              <div
-                className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-lg ring-2 ${theme === "dark" ? "ring-gray-700" : "ring-white/30"}`}
-                data-tutorial="profile"
-              >
-                {currentUser ? (
-                  <span className="text-white font-bold text-xs sm:text-sm">
-                    {getUserInitials()}
-                  </span>
-                ) : (
-                  getUserRoleIcon()
-                )}
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center shadow-lg ring-2 ${theme === "dark" ? "ring-gray-700" : "ring-white/30"}`} data-tutorial="profile">
+                {currentUser ? (<span className="text-white font-bold text-xs sm:text-sm">{getUserInitials()}</span>) : (getUserRoleIcon())}
               </div>
               <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-400 rounded-full border-2 border-white/80 shadow-sm animate-pulse" />
             </div>
             {(isOpen || (!isMobile && !isTablet)) && (
               <div className={`flex-1 min-w-0 transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                <h4 className={`text-xs sm:text-sm font-semibold truncate ${theme === "dark" ? "text-gray-100" : "text-white"}`} title={getDisplayName()}>
-                  {getDisplayName()}
-                </h4>
-                <p className={`text-xs truncate ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`} title={formatUserRole(userRole)}>
-                  {formatUserRole(userRole)}
-                </p>
-                {currentUser?.email && (
-                  <p className={`text-xs truncate mt-0.5 ${theme === "dark" ? "text-gray-500" : "text-blue-300 opacity-60"}`} title={currentUser.email}>
-                    {currentUser.email}
-                  </p>
-                )}
-                <div className="flex items-center gap-1 mt-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-xs text-green-300">En línea</span>
-                </div>
-              </div>
-            )}
-            {/* Mostrar nombre del usuario cuando está colapsado en móvil */}
-            {(!isOpen && (isMobile || isTablet)) && (
-              <div className="flex-1 min-w-0">
-                <h4 className={`text-xs sm:text-sm font-semibold truncate ${theme === "dark" ? "text-gray-100" : "text-white"}`} title={getDisplayName()}>
-                  {getDisplayName()}
-                </h4>
-                <p className={`text-xs truncate ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`} title={formatUserRole(userRole)}>
-                  {formatUserRole(userRole)}
-                </p>
+                <h4 className={`text-xs sm:text-sm font-semibold truncate ${theme === "dark" ? "text-gray-100" : "text-white"}`} title={getDisplayName()}>{getDisplayName()}</h4>
+                <p className={`text-xs truncate ${theme === "dark" ? "text-gray-400" : "text-blue-200 opacity-80"}`} title={formatUserRole(userRole)}>{formatUserRole(userRole)}</p>
               </div>
             )}
           </div>
         </div>
-
-        {/* Menú de navegación */}
         <nav className="flex-1 py-3 sm:py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {menuItems.length > 0 ? (
             <div className="px-2 sm:px-3 space-y-1">
-              {menuItems.map(({ path, icon, label, superAdminOnly }) => {
+              {menuItems.map(({ path, icon, label }) => {
                 const isActive = location.pathname === path;
-
-                // Esta comprobación extra ya no es necesaria, pero no hace daño dejarla
-                if (superAdminOnly && userRole !== 'SUPERADMIN') {
-                  return null;
-                }
-
                 return (
                   <div key={path} className="relative group">
-                    <Link
-                      to={path}
-                      data-tutorial={
-                        path === "/dashboard" ? "dashboard" :
-                        path === "/drivers" ? "drivers" :
-                        path === "/rutas" ? "routes" :
-                        path === "/vehiculos" ? "vehicles" :
-                        path === "/horarios" ? "schedules" :
-                        null
-                      }
-                      title={(!isOpen && (isMobile || isTablet)) ? label : undefined}
-                      className={`
-                        flex items-center no-underline rounded-lg sm:rounded-xl
-                        transition-all duration-300 ease-in-out
-                        hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]
-                        ${isActive
-                          ? theme === "dark"
-                            ? "bg-gray-700 text-gray-100 font-semibold shadow-lg backdrop-blur-sm"
-                            : "bg-white/20 shadow-lg backdrop-blur-sm text-blue-100 font-semibold"
-                          : theme === "dark"
-                            ? "text-gray-300 hover:bg-gray-700 hover:text-gray-100"
-                            : "text-white/90 hover:bg-white/10 hover:text-white"}
-                        ${(isOpen || (!isMobile && !isTablet)) ? 'p-2 sm:p-3 justify-start' : 'p-2 sm:p-3 justify-center'}
-                      `}
-                      onClick={handleLinkClick}
-                    >
-                      <div className={`flex items-center justify-center text-base sm:text-lg ${(isOpen || (!isMobile && !isTablet)) ? 'w-5 sm:w-6 mr-3 sm:mr-4' : 'w-5 sm:w-6'} ${isActive ? (theme === "dark" ? "text-gray-200" : "text-blue-200") : ""}`}>
-                        {icon}
-                      </div>
-                      {(isOpen || (!isMobile && !isTablet)) && (
-                        <span className={`text-xs sm:text-sm font-medium truncate transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                          {label}
-                        </span>
-                      )}
+                    <Link to={path} className={`flex items-center no-underline rounded-lg sm:rounded-xl transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] ${isActive ? theme === "dark" ? "bg-gray-700 text-gray-100 font-semibold shadow-lg backdrop-blur-sm" : "bg-white/20 shadow-lg backdrop-blur-sm text-blue-100 font-semibold" : theme === "dark" ? "text-gray-300 hover:bg-gray-700 hover:text-gray-100" : "text-white/90 hover:bg-white/10 hover:text-white"} ${(isOpen || (!isMobile && !isTablet)) ? 'p-2 sm:p-3 justify-start' : 'p-2 sm:p-3 justify-center'}`} onClick={handleLinkClick} >
+                      <div className={`flex items-center justify-center text-base sm:text-lg ${(isOpen || (!isMobile && !isTablet)) ? 'w-5 sm:w-6 mr-3 sm:mr-4' : 'w-5 sm:w-6'} ${isActive ? (theme === "dark" ? "text-gray-200" : "text-blue-200") : ""}`}>{icon}</div>
+                      {(isOpen || (!isMobile && !isTablet)) && (<span className={`text-xs sm:text-sm font-medium truncate transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>{label}</span>)}
                     </Link>
                   </div>
                 );
@@ -340,32 +220,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
             <div className={`p-3 sm:p-4 text-center text-xs sm:text-sm ${theme === "dark" ? "text-gray-400" : "text-blue-200"}`}>Sin permisos de acceso</div>
           )}
         </nav>
-
-        {/* Footer del sidebar */}
         <div className={`p-3 sm:p-4 mt-auto backdrop-blur-sm space-y-2 sm:space-y-3 ${theme === "dark" ? "border-t border-gray-700" : "border-t border-white/30"}`}>
-          <button
-            onClick={handleLogout}
-            className={`
-              flex items-center w-full rounded-xl cursor-pointer
-              transition-all duration-300 ease-in-out
-              text-sm font-medium shadow-lg hover:shadow-xl
-              hover:scale-105 active:scale-95
-              ${theme === "dark"
-                ? "bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white"
-                : "bg-gradient-to-r from-[#c62828] to-[#d32f2f] hover:from-[#b71c1c] hover:to-[#c62828] text-white"}
-              ${(isOpen || (!isMobile && !isTablet)) ? 'p-3 justify-start' : 'p-3 justify-center'}
-            `}
-            title={(!isOpen && (isMobile || isTablet)) ? t('sidebar.logout') : "Cerrar Sesión"}
-            aria-label={t('sidebar.logout')}
-          >
-            <div className={`${(isOpen || (!isMobile && !isTablet)) ? 'mr-3' : ''}`}>
-              <FaSignOutAlt />
-            </div>
-            {(isOpen || (!isMobile && !isTablet)) && (
-              <span className={`transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                {t('sidebar.logout')}
-              </span>
-            )}
+          <button onClick={handleLogout} className={`flex items-center w-full rounded-xl cursor-pointer transition-all duration-300 ease-in-out text-sm font-medium shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 ${theme === "dark" ? "bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white" : "bg-gradient-to-r from-[#c62828] to-[#d32f2f] hover:from-[#b71c1c] hover:to-[#c62828] text-white"} ${(isOpen || (!isMobile && !isTablet)) ? 'p-3 justify-start' : 'p-3 justify-center'}`} title={(!isOpen && (isMobile || isTablet)) ? t('sidebar.logout') : "Cerrar Sesión"} aria-label={t('sidebar.logout')} >
+            <div className={`${(isOpen || (!isMobile && !isTablet)) ? 'mr-3' : ''}`}><FaSignOutAlt /></div>
+            {(isOpen || (!isMobile && !isTablet)) && (<span className={`transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>{t('sidebar.logout')}</span>)}
           </button>
         </div>
       </aside>
