@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import QRWithInstall from '../components/QRWithInstall';
+import React, { useState, useEffect } from 'react';
 import { Smartphone, CheckCircle, Globe, Download } from 'lucide-react';
 
 const MobileDownload = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  // Definir la URL de la aplicación
+  const appUrl = window.location.origin;
 
   useEffect(() => {
     // Detectar si es dispositivo móvil
@@ -21,7 +22,6 @@ const MobileDownload = () => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallButton(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);

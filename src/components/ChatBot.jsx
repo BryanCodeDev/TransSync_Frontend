@@ -102,7 +102,7 @@ const ChatBot = ({
     if (isOpen && connectionStatus === 'unknown') {
       verificarConexion();
     }
-  }, [isOpen, connectionStatus, messages.length, initialMessage, t]);
+  }, [isOpen, connectionStatus, messages.length, initialMessage, t, verificarConexion]);
 
   // Manejar notificaciones en tiempo real
   const handleRealTimeNotification = useCallback((notification) => {
@@ -213,7 +213,7 @@ const ChatBot = ({
         setConnectionStatus('disconnected');
       }
     }
-  }, [isOpen]); // Removido userContext de las dependencias para evitar reconexiones innecesarias
+  }, [isOpen, handleRealTimeNotification, userContext]);
 
   // Efecto separado para manejar cambios en el contexto del usuario
   useEffect(() => {
