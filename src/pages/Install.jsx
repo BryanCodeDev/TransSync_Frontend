@@ -6,7 +6,68 @@ const Install = () => {
   const [isInstalling, setIsInstalling] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
+<<<<<<< HEAD
+  useEffect(() => {
+    // Detectar si es dispositivo móvil
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    // Escuchar el evento beforeinstallprompt
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+
+      // Si encontramos el evento, intentar instalar automáticamente después de un breve delay
+      setTimeout(() => {
+        handleInstallClick();
+      }, 800);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // También intentar mostrar el botón después de un delay si no se detectó el evento
+    const fallbackTimer = setTimeout(() => {
+      if (!deferredPrompt) {
+        // Crear un evento simulado para navegadores que no soportan beforeinstallprompt
+        setDeferredPrompt({
+          prompt: async () => {
+            // Para navegadores que no soportan instalación automática
+            if (window.navigator && window.navigator.getInstalledRelatedApps) {
+              try {
+                const relatedApps = await window.navigator.getInstalledRelatedApps();
+                if (relatedApps.length === 0) {
+                  // Simular instalación exitosa
+                  return { outcome: 'accepted' };
+                }
+              } catch (error) {
+                console.log('getInstalledRelatedApps no disponible');
+              }
+            }
+            return { outcome: 'dismissed' };
+          }
+        });
+        setTimeout(() => {
+          handleInstallClick();
+        }, 300);
+      }
+    }, 1200);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      clearTimeout(fallbackTimer);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+=======
   const handleInstallClick = useCallback(async () => {
+>>>>>>> cd9e24341af8aaafb1d4a435ef5dcea0c2562fc4
     if (isInstalling) return;
 
     setIsInstalling(true);

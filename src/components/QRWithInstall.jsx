@@ -1,9 +1,8 @@
 import React from 'react';
-import QRCode from './QRCode';
+import InstallQR from './InstallQR';
 import PWAButton from './PWAButton';
 
 const QRWithInstall = ({
-  url,
   size = 200,
   qrClassName = '',
   showInstallButton = true,
@@ -17,8 +16,7 @@ const QRWithInstall = ({
           {title}
         </h2>
         <div className="flex justify-center">
-          <QRCode
-            url={url}
+          <InstallQR
             size={size}
             className={`mb-4 ${qrClassName}`}
           />
@@ -28,7 +26,7 @@ const QRWithInstall = ({
         </p>
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
           <p className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
-            {url}
+            https://transync1.netlify.app/install
           </p>
         </div>
       </div>
