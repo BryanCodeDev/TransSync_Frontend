@@ -219,36 +219,36 @@ const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }
   // Variant floating (por defecto) - Mejorado
   return (
     <>
-      <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-6 max-w-sm animate-bounce-gentle">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                <Smartphone className="w-5 h-5 text-white" />
+      <div className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 ${className}`}>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 max-w-sm w-full animate-bounce-gentle">
+          <div className="flex items-start justify-between mb-3 sm:mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
-                  📱 Instalar TransSync
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 truncate">
+                  Instalar TransSync
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   Acceso rápido desde tu pantalla
                 </p>
               </div>
             </div>
             <button
               onClick={handleCloseInstallButton}
-              className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors p-1"
+              className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors p-1 flex-shrink-0 ml-2"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
 
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 leading-relaxed">
             Instala la aplicación para acceso rápido desde tu pantalla de inicio y funciones offline.
           </p>
 
-          <div className="flex items-center gap-2 mb-4">
-            <CheckCircle className="w-4 h-4 text-green-500" />
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
             <span className="text-xs text-gray-600 dark:text-gray-400">
               {isIOS ? 'Compatible con iOS' : isAndroid ? 'Compatible con Android' : 'Funciona sin conexión'}
             </span>
@@ -257,22 +257,22 @@ const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }
           <button
             onClick={handleInstallClick}
             disabled={isInstalling}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed text-sm sm:text-base"
           >
             {isInstalling ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Instalando...
+                <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="truncate">Instalando...</span>
               </>
             ) : (
               <>
-                <Download className="w-4 h-4" />
-                {isIOS ? 'Ver instrucciones' : 'Instalar aplicación'}
+                <Download className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="truncate">{isIOS ? 'Ver instrucciones' : 'Instalar aplicación'}</span>
               </>
             )}
           </button>
 
-          <div className="mt-3 text-center">
+          <div className="mt-2 sm:mt-3 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {isIOS ? 'Toca arriba para ver cómo instalar' : 'Se instalará automáticamente'}
             </p>

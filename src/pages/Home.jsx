@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target, Smartphone } from 'lucide-react';
+import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target, Smartphone, Bell, Palette, RefreshCw, HardDrive } from 'lucide-react';
 import PWAButton from '../components/PWAButton';
 import QRCode from '../components/QRCode';
 
@@ -489,44 +489,44 @@ const Home = () => {
       </section>
 
       {/* Sección Mejorada de Descarga Móvil */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-surface-light via-primary-50/30 to-secondary-50/30 dark:from-gray-900 dark:via-primary-900/20 dark:to-secondary-900/20 border-t border-border-light dark:border-gray-700">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#3949ab] to-[#5c6bc0] dark:from-primary-600 dark:to-secondary-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <Smartphone className="w-10 h-10 text-white" />
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-surface-light via-primary-50/30 to-secondary-50/30 dark:from-gray-900 dark:via-primary-900/20 dark:to-secondary-900/20 border-t border-border-light dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6">
+          <div className="text-center mb-8 sm:mb-10 md:mb-12">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#3949ab] to-[#5c6bc0] dark:from-primary-600 dark:to-secondary-600 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-xl">
+              <Smartphone className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-primary-800 to-primary-600 dark:from-primary-300 dark:to-secondary-300 bg-clip-text text-transparent">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-primary-800 to-primary-600 dark:from-primary-300 dark:to-secondary-300 bg-clip-text text-transparent">
               {t('mobileDownload.title')}
             </h2>
-            <p className="text-xl text-text-secondary-light dark:text-gray-300 mb-8 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-text-secondary-light dark:text-gray-300 mb-6 sm:mb-8 leading-relaxed max-w-3xl mx-auto px-4">
               {t('mobileDownload.subtitle')}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 xl:gap-12 items-center">
             {/* Código QR y acceso directo */}
             <div className="order-2 lg:order-1">
-              <div className="bg-background-light dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-border-light dark:border-gray-600 text-center">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
-                  📱 {t('mobileDownload.qrSection.title')}
+              <div className="bg-background-light dark:bg-gray-800 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-2xl border border-border-light dark:border-gray-600 text-center">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 sm:mb-6">
+                  Código QR de instalación
                 </h3>
 
-                <div className="flex justify-center mb-6">
-                  <div className="bg-white dark:bg-gray-700 p-4 rounded-2xl shadow-xl border-2 border-gray-200 dark:border-gray-600">
+                <div className="flex justify-center mb-4 sm:mb-6">
+                  <div className="bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xl border-2 border-gray-200 dark:border-gray-600">
                     <QRCode
                       url={t('mobileDownload.url')}
-                      size={180}
+                      size={window.innerWidth < 640 ? 150 : 180}
                     />
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-surface-light to-primary-50/50 dark:from-gray-800 dark:to-gray-700/50 rounded-xl p-4 border border-border-light dark:border-gray-600 shadow-lg">
-                  <p className="text-sm font-mono text-text-primary-light dark:text-gray-200 break-all">
+                <div className="bg-gradient-to-r from-surface-light to-primary-50/50 dark:from-gray-800 dark:to-gray-700/50 rounded-xl p-3 sm:p-4 border border-border-light dark:border-gray-600 shadow-lg">
+                  <p className="text-xs sm:text-sm font-mono text-text-primary-light dark:text-gray-200 break-all">
                     {t('mobileDownload.url')}
                   </p>
                 </div>
 
-                <p className="text-sm text-text-secondary-light dark:text-gray-400 mt-4 font-medium">
+                <p className="text-xs sm:text-sm text-text-secondary-light dark:text-gray-400 mt-3 sm:mt-4 font-medium">
                   {t('mobileDownload.directAccess')}
                 </p>
               </div>
@@ -534,23 +534,23 @@ const Home = () => {
 
             {/* Beneficios y características */}
             <div className="order-1 lg:order-2">
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                    🚀 {t('mobileDownload.features.title')}
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3 sm:mb-4">
+                    Beneficios de la aplicación
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     {[
-                      { icon: "⚡", text: t('mobileDownload.features.list.0') },
-                      { icon: "📱", text: t('mobileDownload.features.list.1') },
-                      { icon: "🔔", text: t('mobileDownload.features.list.2') },
-                      { icon: "🎨", text: t('mobileDownload.features.list.3') },
-                      { icon: "🔄", text: t('mobileDownload.features.list.4') },
-                      { icon: "💾", text: "Funciona sin conexión" }
+                      { icon: Zap, text: t('mobileDownload.features.list.0') },
+                      { icon: Smartphone, text: t('mobileDownload.features.list.1') },
+                      { icon: Bell, text: t('mobileDownload.features.list.2') },
+                      { icon: Palette, text: t('mobileDownload.features.list.3') },
+                      { icon: RefreshCw, text: t('mobileDownload.features.list.4') },
+                      { icon: HardDrive, text: "Funciona sin conexión" }
                     ].map((feature, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <span className="text-lg">{feature.icon}</span>
-                        <span className="text-sm font-medium text-green-800 dark:text-green-300">
+                      <div key={index} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                        <span className="text-xs sm:text-sm font-medium text-green-800 dark:text-green-300">
                           {feature.text}
                         </span>
                       </div>
@@ -559,13 +559,13 @@ const Home = () => {
                 </div>
 
                 {/* Botón de instalación directa */}
-                <div className="text-center p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-800">
-                  <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-3">
+                <div className="text-center p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl sm:rounded-2xl border border-blue-200 dark:border-blue-800">
+                  <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-3 text-sm sm:text-base">
                     ¿Prefieres instalación directa?
                   </h4>
                   <PWAButton
                     variant="inline"
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-sm sm:text-base"
                     forceMobile={true}
                   />
                 </div>
@@ -574,27 +574,27 @@ const Home = () => {
           </div>
 
           {/* Instrucciones adicionales */}
-          <div className="mt-12 text-center">
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-6 border border-yellow-200 dark:border-yellow-800 max-w-4xl mx-auto">
-              <h4 className="font-bold text-yellow-800 dark:text-yellow-300 mb-3">
-                💡 {t('mobileDownload.instructions.title')}
+          <div className="mt-8 sm:mt-10 md:mt-12 text-center">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-yellow-200 dark:border-yellow-800 max-w-4xl mx-auto">
+              <h4 className="font-bold text-yellow-800 dark:text-yellow-300 mb-3 sm:mb-4 text-sm sm:text-base">
+                Cómo instalar la aplicación
               </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                  <span className="text-yellow-700 dark:text-yellow-300">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+                  <span className="text-yellow-700 dark:text-yellow-300 text-left">
                     Abre la cámara de tu móvil
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
-                  <span className="text-yellow-700 dark:text-yellow-300">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+                  <span className="text-yellow-700 dark:text-yellow-300 text-left">
                     Escanea el código QR
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
-                  <span className="text-yellow-700 dark:text-yellow-300">
+                <div className="flex items-center gap-2 sm:gap-3 sm:col-span-2 md:col-span-1">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
+                  <span className="text-yellow-700 dark:text-yellow-300 text-left">
                     Sigue las instrucciones de instalación
                   </span>
                 </div>
