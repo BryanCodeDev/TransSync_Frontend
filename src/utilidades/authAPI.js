@@ -379,7 +379,7 @@ const authAPI = {
               id: parsed.id || parsed.userId || parsed._id,
               name: parsed.name || parsed.userName || parsed.fullName || 'Usuario',
               email: parsed.email || parsed.userEmail,
-              role: parsed.role || parsed.userRole || parsed.type || 'USER'
+              role: parsed.role || parsed.userRole || parsed.type || 'CONDUCTOR'
             };
           }
         } catch (parseError) {
@@ -398,7 +398,7 @@ const authAPI = {
           id: userId || 'unknown',
           name: userName || 'Usuario',
           email: userEmail || 'user@example.com',
-          role: userRole || 'USER'
+          role: userRole || 'CONDUCTOR'
         };
       }
 
@@ -442,7 +442,7 @@ const authAPI = {
 
   // Verificar si es administrador (mantiene compatibilidad)
   isAdmin: () => {
-    return authAPI.hasRole('ADMINISTRADOR') || authAPI.hasRole('SUPERADMIN') || authAPI.hasRole('GESTOR');
+    return authAPI.hasRole('SUPERADMIN') || authAPI.hasRole('GESTOR');
   },
 
   // ================================
@@ -488,7 +488,7 @@ const authAPI = {
             id: userData.id || userData.userId || userData._id,
             name: userData.name || userData.userName || userData.fullName || userData.displayName,
             email: userData.email || userData.userEmail,
-            role: userData.role || userData.userRole || userData.type || 'USER'
+            role: userData.role || userData.userRole || userData.type || 'CONDUCTOR'
           };
 
           // Validar que al menos tengamos id y email
@@ -507,7 +507,7 @@ const authAPI = {
               id: finalUserData.id || 'unknown',
               name: finalUserData.name || 'Usuario',
               email: finalUserData.email || 'user@example.com',
-              role: finalUserData.role || 'USER'
+              role: finalUserData.role || 'CONDUCTOR'
             };
 
             localStorage.setItem('userData', JSON.stringify(minimalUserData));
@@ -525,7 +525,7 @@ const authAPI = {
             id: 'fallback',
             name: 'Usuario',
             email: 'user@example.com',
-            role: 'USER'
+            role: 'CONDUCTOR'
           };
 
           localStorage.setItem('userData', JSON.stringify(fallbackUserData));

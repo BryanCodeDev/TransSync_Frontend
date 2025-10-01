@@ -108,10 +108,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   const formatUserRole = (role) => {
     const roles = {
       'SUPERADMIN': 'Super Administrador',
-      'ADMINISTRADOR': 'Administrador',
-      'CONDUCTOR': 'Conductor',
-      'USER': 'Usuario',
-      'PENDIENTE': 'Usuario Pendiente'
+      'GESTOR': 'Gestor',
+      'CONDUCTOR': 'Conductor'
     };
     return roles[role] || role || 'Usuario';
   };
@@ -143,14 +141,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     switch (userRole) {
       case 'SUPERADMIN':
         return 'from-purple-500 to-purple-700';
-      case 'ADMINISTRADOR':
+      case 'GESTOR':
         return 'from-[#3949ab] to-[#1a237e]';
       case 'CONDUCTOR':
         return 'from-green-500 to-green-700';
-      case 'USER':
-        return 'from-[#283593] to-[#1a237e]';
-      case 'PENDIENTE':
-        return 'from-yellow-500 to-orange-600';
       default:
         return 'from-[#3949ab] to-[#283593]';
     }
@@ -160,7 +154,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     switch (userRole) {
       case 'SUPERADMIN':
         return <FaUserShield size={20} className="text-white" />;
-      case 'ADMINISTRADOR':
+      case 'GESTOR':
         return <FaCogs size={20} className="text-white" />;
       case 'CONDUCTOR':
         return <FaUserTie size={20} className="text-white" />;
@@ -180,6 +174,8 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         '/rutas',
         '/vehiculos',
         '/horarios',
+        '/informes',
+        '/profile'
       ],
       'GESTOR': [
         '/dashboard',
@@ -187,10 +183,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         '/rutas',
         '/vehiculos',
         '/horarios',
+        '/informes',
+        '/profile'
       ],
-      'CONDUCTOR': [
-        '/rutas',
-      ],
+      'CONDUCTOR': [],
       'USER': [],
       'PENDIENTE': []
     };

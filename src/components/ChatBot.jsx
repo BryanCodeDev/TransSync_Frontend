@@ -102,7 +102,7 @@ const ChatBot = ({
     if (isOpen && connectionStatus === 'unknown') {
       verificarConexion();
     }
-  }, [isOpen, connectionStatus, messages.length, initialMessage, t]);
+  }, [isOpen, connectionStatus, messages.length, initialMessage, t, verificarConexion]);
 
   // Manejar notificaciones en tiempo real
   const handleRealTimeNotification = useCallback((notification) => {
@@ -135,74 +135,149 @@ const ChatBot = ({
     }, 100);
   }, [quietMode, t]);
 
-  // Configurar WebSocket para notificaciones en tiempo real
+  // Configurar WebSocket para notificaciones en tiempo real con mejor sincronización
   useEffect(() => {
-    if (userContext && isOpen) {
-      // Conectar al servicio WebSocket
-      realTimeService.connect(userContext);
-      setWsConnected(true);
+    if (isOpen) {
+      // Solo conectar si tenemos contexto válido
+      if (userContext && userContext.esUsuarioAutenticado) {
+        console.log('🔗 Conectando WebSocket con contexto válido:', userContext);
 
-      // Configurar listeners para notificaciones
-      const setupRealTimeListeners = () => {
-        // Nuevo conductor
-        realTimeService.on('notification:new_conductor', (notification) => {
-          handleRealTimeNotification(notification);
-        });
+        // Conectar al servicio WebSocket
+        realTimeService.connect(userContext);
+        setWsConnected(true);
 
-        // Nuevo vehículo
-        realTimeService.on('notification:new_vehicle', (notification) => {
-          handleRealTimeNotification(notification);
-        });
+        // Configurar listeners para notificaciones
+        const setupRealTimeListeners = () => {
+          // Nuevo conductor
+          realTimeService.on('notification:new_conductor', (notification) => {
+            handleRealTimeNotification(notification);
+          });
 
-        // Nuevo viaje
-        realTimeService.on('notification:new_trip', (notification) => {
-          handleRealTimeNotification(notification);
-        });
+          // Nuevo vehículo
+          realTimeService.on('notification:new_vehicle', (notification) => {
+            handleRealTimeNotification(notification);
+          });
 
-        // Alertas de vencimiento
-        realTimeService.on('notification:expiration_alert', (notification) => {
-          handleRealTimeNotification(notification);
-        });
+          // Nuevo viaje
+          realTimeService.on('notification:new_trip', (notification) => {
+            handleRealTimeNotification(notification);
+          });
 
-        // Conexión WebSocket
-        realTimeService.on('connection:established', (data) => {
-          console.log('🔗 WebSocket conectado para notificaciones en tiempo real');
-          setWsConnected(true);
-        });
+          // Alertas de vencimiento
+          realTimeService.on('notification:expiration_alert', (notification) => {
+            handleRealTimeNotification(notification);
+          });
 
-        // Desconexión WebSocket
-        realTimeService.on('connection:error', (error) => {
-          console.log('🔌 WebSocket desconectado:', error);
+          // Conexión WebSocket
+          realTimeService.on('connection:established', (data) => {
+            console.log('🔗 WebSocket conectado para notificaciones en tiempo real');
+            setWsConnected(true);
+            setConnectionStatus('connected');
+          });
+
+          // Desconexión WebSocket
+          realTimeService.on('connection:error', (error) => {
+            console.log('🔌 WebSocket desconectado:', error);
+            setWsConnected(false);
+            setConnectionStatus('disconnected');
+          });
+
+          // Error de conexión no recuperable
+          realTimeService.on('connection:failed', (error) => {
+            console.error('❌ WebSocket conexión fallida:', error);
+            setWsConnected(false);
+            setConnectionStatus('disconnected');
+          });
+
+          // Cambio de contexto de usuario
+          realTimeService.on('auth:context_changed', (newContext) => {
+            console.log('🔄 Contexto de usuario cambiado:', newContext);
+            setUserContext(newContext);
+          });
+        };
+
+        setupRealTimeListeners();
+
+        // Solicitar permisos para notificaciones del navegador
+        realTimeService.requestNotificationPermission();
+
+        // Cleanup function
+        return () => {
+          console.log('🔌 Desconectando WebSocket del chatbot');
+          realTimeService.disconnect();
           setWsConnected(false);
-        });
-      };
-
-      setupRealTimeListeners();
-
-      // Solicitar permisos para notificaciones del navegador
-      realTimeService.requestNotificationPermission();
-
-      // Cleanup function
-      return () => {
-        realTimeService.disconnect();
+        };
+      } else {
+        console.log('⏳ Esperando contexto de usuario válido para conectar WebSocket');
         setWsConnected(false);
-      };
+        setConnectionStatus('disconnected');
+      }
     }
-  }, [userContext, isOpen, handleRealTimeNotification]);
+  }, [isOpen, handleRealTimeNotification, userContext]);
+
+  // Efecto separado para manejar cambios en el contexto del usuario
+  useEffect(() => {
+    if (userContext && userContext.esUsuarioAutenticado && isOpen) {
+      console.log('🔄 Actualizando contexto de usuario en WebSocket:', userContext);
+
+      // Actualizar contexto en el servicio de tiempo real
+      realTimeService.updateUserContext(userContext);
+    }
+  }, [userContext, isOpen]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Verificar conexión con el servicio de chatbot
-  const verificarConexion = async () => {
+  // Verificar conexión con el servicio de chatbot con recuperación automática
+  const verificarConexion = async (retryCount = 0) => {
+    const maxRetries = 3;
+    const retryDelay = 2000;
+
     try {
+      console.log(`🔍 Verificando conexión con chatbot (intento ${retryCount + 1}/${maxRetries + 1})`);
       const resultado = await chatbotAPI.verificarEstado();
-      setConnectionStatus(resultado.success ? 'connected' : 'disconnected');
+
+      if (resultado.success) {
+        setConnectionStatus('connected');
+        console.log('✅ Conexión con chatbot verificada');
+        return true;
+      } else {
+        throw new Error('Estado del servicio indica error');
+      }
     } catch (error) {
-      setConnectionStatus('disconnected');
+      console.error(`❌ Error verificando conexión:`, error);
+
+      if (retryCount < maxRetries) {
+        console.log(`🔄 Reintentando en ${retryDelay / 1000} segundos...`);
+        setTimeout(() => {
+          verificarConexion(retryCount + 1);
+        }, retryDelay);
+      } else {
+        setConnectionStatus('disconnected');
+        console.error('❌ Falló verificación de conexión después de múltiples intentos');
+        return false;
+      }
     }
   };
+
+  // Función de recuperación automática de conexión
+  const recuperarConexion = useCallback(async () => {
+    console.log('🔄 Iniciando recuperación automática de conexión...');
+
+    setConnectionStatus('unknown');
+
+    // Paso 1: Verificar conexión API
+    const apiConnected = await verificarConexion();
+
+    if (apiConnected && userContext?.esUsuarioAutenticado) {
+      // Paso 2: Reconectar WebSocket si es necesario
+      if (!realTimeService.isConnected()) {
+        console.log('🔗 Reconectando WebSocket...');
+        realTimeService.reconnectWithContext(userContext);
+      }
+    }
+  }, [verificarConexion, userContext]);
 
   // Animaciones CSS mejoradas con modo oscuro
   useEffect(() => {
@@ -950,27 +1025,56 @@ const ChatBot = ({
                   </div>
                 )}
 
-                {/* Indicador de estado de conexión */}
+                {/* Indicador de estado de conexión mejorado */}
                 {connectionStatus === 'disconnected' && (
-                  <div className={`mt-3 p-2 rounded-lg flex items-center gap-2 ${
-                    appTheme === "dark"
-                      ? 'bg-red-900/50 border border-red-700/50'
-                      : 'bg-red-50 border border-red-200'
+                  <div className={`mt-3 p-2 rounded-lg ${
+                    appTheme === "dark" ? 'bg-red-900/50 border border-red-700/50' : 'bg-red-50 border border-red-200'
                   }`}>
-                    <span className="text-red-500">⚠️</span>
-                    <span className={`text-xs ${appTheme === "dark" ? 'text-red-300' : 'text-red-700'}`}>
-                      {t('chatbot.connectionError')}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-red-500">⚠️</span>
+                        <span className={`text-sm font-medium ${appTheme === "dark" ? 'text-red-300' : 'text-red-700'}`}>
+                          {t('chatbot.connectionError')}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={verificarConexion}
+                          className={`text-xs px-2 py-1 rounded transition-colors ${
+                            appTheme === "dark"
+                              ? 'bg-red-800 hover:bg-red-700 text-red-200'
+                              : 'bg-red-600 hover:bg-red-700 text-white'
+                          }`}
+                        >
+                          {t('chatbot.retry')}
+                        </button>
+                        <button
+                          onClick={recuperarConexion}
+                          className={`text-xs px-2 py-1 rounded transition-colors ${
+                            appTheme === "dark"
+                              ? 'bg-blue-800 hover:bg-blue-700 text-blue-200'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          }`}
+                        >
+                          🔄 Recuperar
+                        </button>
+                      </div>
+                    </div>
+                    <div className={`text-xs ${appTheme === "dark" ? 'text-red-400' : 'text-red-600'}`}>
+                      {t('chatbot.connectionHelp')}
+                    </div>
+                  </div>
+                )}
+
+                {/* Indicador de conexión WebSocket */}
+                {connectionStatus === 'connected' && !wsConnected && (
+                  <div className={`mt-3 p-2 rounded-lg flex items-center gap-2 ${
+                    appTheme === "dark" ? 'bg-yellow-900/50 border border-yellow-700/50' : 'bg-yellow-50 border border-yellow-200'
+                  }`}>
+                    <span className="text-yellow-500">🔄</span>
+                    <span className={`text-xs ${appTheme === "dark" ? 'text-yellow-300' : 'text-yellow-700'}`}>
+                      Conectando notificaciones en tiempo real...
                     </span>
-                    <button
-                      onClick={verificarConexion}
-                      className={`text-xs underline transition-colors ${
-                        appTheme === "dark"
-                          ? 'text-red-400 hover:text-red-300'
-                          : 'text-red-600 hover:text-red-800'
-                      }`}
-                    >
-                      {t('chatbot.retry')}
-                    </button>
                   </div>
                 )}
 
