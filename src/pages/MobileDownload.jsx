@@ -6,7 +6,6 @@ const MobileDownload = () => {
   const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
     // Detectar si es dispositivo móvil
