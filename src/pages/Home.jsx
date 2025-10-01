@@ -488,40 +488,125 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Código QR para descarga móvil */}
+      {/* Sección Mejorada de Descarga Móvil */}
       <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-surface-light via-primary-50/30 to-secondary-50/30 dark:from-gray-900 dark:via-primary-900/20 dark:to-secondary-900/20 border-t border-border-light dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <div className="mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#3949ab] to-[#5c6bc0] dark:from-primary-600 dark:to-secondary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Smartphone className="w-8 h-8 text-white" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <div className="w-20 h-20 bg-gradient-to-br from-[#3949ab] to-[#5c6bc0] dark:from-primary-600 dark:to-secondary-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+              <Smartphone className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 bg-gradient-to-r from-primary-800 to-primary-600 dark:from-primary-300 dark:to-secondary-300 bg-clip-text text-transparent">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-primary-800 to-primary-600 dark:from-primary-300 dark:to-secondary-300 bg-clip-text text-transparent">
               {t('mobileDownload.title')}
             </h2>
-            <p className="text-lg text-text-secondary-light dark:text-gray-300 mb-8 leading-relaxed">
-              {t('mobileDownload.qrCodeDescription')}
+            <p className="text-xl text-text-secondary-light dark:text-gray-300 mb-8 leading-relaxed max-w-3xl mx-auto">
+              {t('mobileDownload.subtitle')}
             </p>
           </div>
 
-          <div className="flex justify-center mb-6">
-            <div className="bg-background-light dark:bg-gray-800 p-4 rounded-2xl shadow-xl border border-border-light dark:border-gray-600">
-              <QRCode
-                url={t('mobileDownload.url')}
-                size={200}
-                className="mb-4"
-              />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Código QR y acceso directo */}
+            <div className="order-2 lg:order-1">
+              <div className="bg-background-light dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-border-light dark:border-gray-600 text-center">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
+                  📱 {t('mobileDownload.qrSection.title')}
+                </h3>
+
+                <div className="flex justify-center mb-6">
+                  <div className="bg-white dark:bg-gray-700 p-4 rounded-2xl shadow-xl border-2 border-gray-200 dark:border-gray-600">
+                    <QRCode
+                      url={t('mobileDownload.url')}
+                      size={180}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-surface-light to-primary-50/50 dark:from-gray-800 dark:to-gray-700/50 rounded-xl p-4 border border-border-light dark:border-gray-600 shadow-lg">
+                  <p className="text-sm font-mono text-text-primary-light dark:text-gray-200 break-all">
+                    {t('mobileDownload.url')}
+                  </p>
+                </div>
+
+                <p className="text-sm text-text-secondary-light dark:text-gray-400 mt-4 font-medium">
+                  {t('mobileDownload.directAccess')}
+                </p>
+              </div>
+            </div>
+
+            {/* Beneficios y características */}
+            <div className="order-1 lg:order-2">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                    🚀 {t('mobileDownload.features.title')}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { icon: "⚡", text: t('mobileDownload.features.list.0') },
+                      { icon: "📱", text: t('mobileDownload.features.list.1') },
+                      { icon: "🔔", text: t('mobileDownload.features.list.2') },
+                      { icon: "🎨", text: t('mobileDownload.features.list.3') },
+                      { icon: "🔄", text: t('mobileDownload.features.list.4') },
+                      { icon: "💾", text: "Funciona sin conexión" }
+                    ].map((feature, index) => (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <span className="text-lg">{feature.icon}</span>
+                        <span className="text-sm font-medium text-green-800 dark:text-green-300">
+                          {feature.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Botón de instalación directa */}
+                <div className="text-center p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-800">
+                  <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-3">
+                    ¿Prefieres instalación directa?
+                  </h4>
+                  <PWAButton
+                    variant="inline"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    forceMobile={true}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-surface-light to-primary-50/50 dark:from-gray-800 dark:to-gray-700/50 rounded-xl p-4 max-w-md mx-auto border border-border-light dark:border-gray-600 shadow-lg">
-            <p className="text-sm font-mono text-text-primary-light dark:text-gray-200 break-all">
-              {t('mobileDownload.url')}
-            </p>
+          {/* Instrucciones adicionales */}
+          <div className="mt-12 text-center">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-6 border border-yellow-200 dark:border-yellow-800 max-w-4xl mx-auto">
+              <h4 className="font-bold text-yellow-800 dark:text-yellow-300 mb-3">
+                💡 {t('mobileDownload.instructions.title')}
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                  <span className="text-yellow-700 dark:text-yellow-300">
+                    Abre la cámara de tu móvil
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                  <span className="text-yellow-700 dark:text-yellow-300">
+                    Escanea el código QR
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                  <span className="text-yellow-700 dark:text-yellow-300">
+                    Sigue las instrucciones de instalación
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <p className="text-sm text-text-secondary-light dark:text-gray-400 mt-4 font-medium">
-            {t('mobileDownload.directAccess')}
-          </p>
+          <div className="text-center mt-8">
+            <p className="text-sm text-text-secondary-light dark:text-gray-400">
+              {t('mobileDownload.footer')}
+            </p>
+          </div>
         </div>
       </section>
     </div>
