@@ -4,8 +4,7 @@ import { Smartphone, CheckCircle, Globe, Download } from 'lucide-react';
 const MobileDownload = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallButton, setShowInstallButton] = useState(true);
-
+  const [showInstallButton, setShowInstallButton] = useState(false);
 
   useEffect(() => {
     // Detectar si es dispositivo móvil
@@ -17,11 +16,40 @@ const MobileDownload = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
+    // Verificar si el navegador soporta instalación PWA
+    const checkInstallSupport = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isAndroid = /Android/.test(navigator.userAgent);
+      const isChrome = /Chrome/.test(navigator.userAgent);
+
+      // Si ya está instalado como PWA
+      if (isStandalone) {
+        setCanInstall(false);
+        return;
+      }
+
+      // Si es iOS, siempre mostrar opción (aunque no use beforeinstallprompt)
+      if (isIOS) {
+        setCanInstall(true);
+        return;
+      }
+
+      // Para otros navegadores que soporten beforeinstallprompt
+      if (isAndroid && isChrome) {
+        setCanInstall(false); // Se activará cuando llegue el evento
+      } else {
+        setCanInstall(false);
+      }
+    };
+
+    checkInstallSupport();
+
     // Escuchar el evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallButton(true);
+      setCanInstall(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -33,13 +61,30 @@ const MobileDownload = () => {
   }, []);
 
   const handleInstallClick = async () => {
+    // Detectar si es iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+    if (isStandalone) {
+      alert('La aplicación ya está instalada');
+      return;
+    }
+
+    if (isIOS) {
+      // Para iOS, mostrar instrucciones específicas
+      alert('Para instalar en iOS: Toca el botón de compartir y selecciona "Agregar a pantalla de inicio"');
+      return;
+    }
+
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         setDeferredPrompt(null);
-        setShowInstallButton(false);
+        setCanInstall(false);
       }
+    } else {
+      alert('La instalación no está disponible en este navegador. Prueba con Chrome o Edge en Android.');
     }
   };
   const instructions = [
@@ -83,21 +128,16 @@ const MobileDownload = () => {
                   Instalar TransSync Móvil
                 </h2>
                 <div className="mb-6">
-                  {showInstallButton && deferredPrompt && (
-                    <button
-                      onClick={handleInstallClick}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105"
-                    >
-                      <Download className="w-6 h-6" />
-                      Instalar aplicación móvil
-                    </button>
-                  )}
+                  <button
+                    onClick={handleInstallClick}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105"
+                  >
+                    <Download className="w-6 h-6" />
+                    Instalar aplicación móvil
+                  </button>
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  {showInstallButton && deferredPrompt
-                    ? "Haz clic para instalar la aplicación directamente"
-                    : "Usa el código QR arriba para instalar la aplicación en tu dispositivo móvil"
-                  }
+                  Haz clic para instalar la aplicación directamente
                 </p>
               </div>
             </div>
@@ -146,6 +186,28 @@ const MobileDownload = () => {
             </div>
           </div>
         </div>
+
+        {/* Instrucciones específicas para iOS */}
+        {isMobile && /iPad|iPhone|iPod/.test(navigator.userAgent) && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl shadow-xl p-6 text-center border-2 border-blue-200 dark:border-blue-800">
+            <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-4">
+              📱 Instrucciones para iOS
+            </h3>
+            <p className="text-blue-700 dark:text-blue-300 mb-4">
+              En Safari: Toca el botón de compartir <span className="font-bold">⬜</span> y selecciona "Agregar a pantalla de inicio"
+            </p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-left">
+              <div className="flex items-center space-x-3 mb-2">
+                <span className="text-2xl">⬜</span>
+                <span className="font-semibold text-gray-800 dark:text-gray-200">Botón compartir</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">📱</span>
+                <span className="font-semibold text-gray-800 dark:text-gray-200">Agregar a pantalla de inicio</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Alternative Download - Solo para desktop */}
         {!isMobile && (
