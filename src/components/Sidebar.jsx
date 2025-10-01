@@ -234,7 +234,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         aria-label="Navegación principal"
       >
         {/* Header del sidebar */}
-        <div className={`relative p-3 sm:p-4 border-b min-h-[60px] sm:min-h-[70px] flex items-center justify-between backdrop-blur-sm
+        <div className={`relative p-2 sm:p-3 md:p-4 border-b min-h-[56px] sm:min-h-[60px] md:min-h-[70px] flex items-center justify-between backdrop-blur-sm
           ${theme === "dark" ? "border-border-dark" : "border-white/30"}`}>
           <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
             <div className="relative">
@@ -284,7 +284,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         </div>
 
         {/* Perfil de usuario */}
-        <div className={`p-3 sm:p-4 border-b backdrop-blur-sm ${theme === "dark" ? "border-gray-700" : "border-white/30"}`}>
+        <div className={`p-2 sm:p-3 md:p-4 border-b backdrop-blur-sm ${theme === "dark" ? "border-gray-700" : "border-white/30"}`}>
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative">
               <div
@@ -335,7 +335,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         </div>
 
         {/* Menú de navegación */}
-        <nav className="flex-1 py-3 sm:py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+        <nav className="flex-1 py-2 sm:py-3 md:py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {menuItems.length > 0 ? (
             <div className="px-2 sm:px-3 space-y-1">
               {menuItems.map(({ path, icon, label, superAdminOnly }) => {
@@ -394,7 +394,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         </nav>
 
         {/* Footer del sidebar */}
-        <div className={`p-3 sm:p-4 mt-auto backdrop-blur-sm space-y-2 sm:space-y-3 ${theme === "dark" ? "border-t border-gray-700" : "border-t border-white/30"}`}>
+        <div className={`p-2 sm:p-3 md:p-4 mt-auto backdrop-blur-sm space-y-2 sm:space-y-3 ${theme === "dark" ? "border-t border-gray-700" : "border-t border-white/30"}`}>
           {/* Botón modo oscuro */}
           {/* <button
             onClick={() => setDark(!dark)}
@@ -421,30 +421,59 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
           </button> */}
 
           {/* Botón logout */}
-          <button
-            onClick={handleLogout}
-            className={`
-              flex items-center w-full rounded-xl cursor-pointer
-              transition-all duration-300 ease-in-out
-              text-sm font-medium shadow-lg hover:shadow-xl
-              hover:scale-105 active:scale-95
-              ${theme === "dark"
-                ? "bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white"
-                : "bg-gradient-to-r from-[#c62828] to-[#d32f2f] hover:from-[#b71c1c] hover:to-[#c62828] text-white"}
-              ${(isOpen || (!isMobile && !isTablet)) ? 'p-3 justify-start' : 'p-3 justify-center'}
-            `}
-            title={(!isOpen && (isMobile || isTablet)) ? t('sidebar.logout') : "Cerrar Sesión"}
-            aria-label={t('sidebar.logout')}
-          >
-            <div className={`${(isOpen || (!isMobile && !isTablet)) ? 'mr-3' : ''}`}>
-              <FaSignOutAlt />
-            </div>
-            {(isOpen || (!isMobile && !isTablet)) && (
-              <span className={`transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="relative group">
+            <button
+              onClick={handleLogout}
+              className={`
+                flex items-center w-full rounded-xl cursor-pointer
+                transition-all duration-300 ease-in-out
+                text-sm font-medium shadow-lg hover:shadow-xl
+                hover:scale-105 active:scale-95
+                ${theme === "dark"
+                  ? "bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white"
+                  : "bg-gradient-to-r from-[#c62828] to-[#d32f2f] hover:from-[#b71c1c] hover:to-[#c62828] text-white"}
+                ${isMobile || isTablet
+                  ? 'p-2 sm:p-3 justify-center min-h-[44px] sm:min-h-[48px]'
+                  : (isOpen ? 'p-3 justify-start' : 'p-3 justify-center min-h-[48px]')
+                }
+              `}
+              title={t('sidebar.logout')}
+              aria-label={t('sidebar.logout')}
+            >
+              <div className={`flex items-center justify-center
+                ${isMobile || isTablet
+                  ? 'w-5 h-5 sm:w-6 sm:h-6'
+                  : (isOpen ? 'w-5 sm:w-6 mr-3 sm:mr-4' : 'w-5 sm:w-6')
+                }
+              `}>
+                <FaSignOutAlt className={`
+                  ${isMobile || isTablet ? 'text-base sm:text-lg' : 'text-base sm:text-lg'}
+                `} />
+              </div>
+
+              {/* Mostrar texto del botón de logout */}
+              {((isOpen && (!isMobile && !isTablet)) || (!isMobile && !isTablet)) && (
+                <span className={`transition-all duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+                  {t('sidebar.logout')}
+                </span>
+              )}
+
+              {/* Mostrar texto en móvil/tablet cuando está cerrado */}
+              {(isMobile || isTablet) && !isOpen && (
+                <span className="text-xs font-medium truncate ml-1 sm:ml-2 max-w-[80px] sm:max-w-[100px]">
+                  {t('sidebar.logout')}
+                </span>
+              )}
+            </button>
+
+            {/* Tooltip para móvil cuando está cerrado */}
+            {(!isOpen && (isMobile || isTablet)) && (
+              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap shadow-lg">
                 {t('sidebar.logout')}
-              </span>
+                <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+              </div>
             )}
-          </button>
+          </div>
         </div>
       </aside>
     </>
