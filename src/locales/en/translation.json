@@ -310,6 +310,69 @@
         "expert": "Talk to an Expert"
       },
       "features": ["30-day implementation", "24/7 support included", "Results guarantee"]
+    },
+    "testimonials": {
+      "items": [
+        {
+          "texto": "As a pilot city, TranSync has allowed us to test technologies that previously seemed impossible. The initial results are promising and we see great potential for scaling.",
+          "autor": "Carlos Rodríguez",
+          "cargo": "Operations Director",
+          "empresa": "TransUrbe Bogotá - Pilot City",
+          "beneficio": "Promising Results"
+        },
+        {
+          "texto": "The implementation was very smooth and the support team accompanied us every step of the way. We already see improvements in operational efficiency and our drivers are adapting quickly.",
+          "autor": "Ana Martínez",
+          "cargo": "Fleet Manager",
+          "empresa": "Metroplús Medellín - Pilot Program",
+          "beneficio": "Successful Implementation"
+        },
+        {
+          "texto": "The platform gives us real-time visibility of our fleet for the first time. It's a significant change in how we operate and we're excited about the future possibilities.",
+          "autor": "Luis Fernández",
+          "cargo": "Operations Chief",
+          "empresa": "MIO Cali - Pilot Project",
+          "beneficio": "Real-time Visibility"
+        },
+        {
+          "texto": "As a medium-sized transportation company, this technology puts us at the forefront. The interface is intuitive and the growth potential is evident from the first few weeks.",
+          "autor": "María González",
+          "cargo": "Technology Director",
+          "empresa": "Transportes del Valle - Initial Partner",
+          "beneficio": "Cutting-edge Technology"
+        }
+      ]
+    },
+    "awards": {
+      "items": [
+        {
+          "titulo": "Innovative Startup 2024",
+          "organizacion": "TechHub Colombia"
+        },
+        {
+          "titulo": "Special AI Mention",
+          "organizacion": "Innovation Summit"
+        },
+        {
+          "titulo": "Smart Transportation Finalist",
+          "organizacion": "Smart Mobility Awards"
+        },
+        {
+          "titulo": "Security Certification",
+          "organizacion": "CyberSecurity Standards"
+        }
+      ]
+    },
+    "mobileDownload": {
+      "qrCodeTitle": "Installation QR Code",
+      "appBenefits": "App Benefits",
+      "offlineFunctionality": "Works offline",
+      "directInstallQuestion": "Prefer direct installation?",
+      "installationInstructions": "How to install the application",
+      "openCamera": "Open your mobile camera",
+      "scanQR": "Scan the QR code",
+      "followInstructions": "Follow the installation instructions",
+      "iosGuide": "iOS Installation Guide"
     }
   },
   "navbar": {

@@ -310,6 +310,69 @@
         "expert": "Contacto"
       },
       "features": ["Solución Personalizada", "Tecnología Avanzada", "Resultados Comprobados"]
+    },
+    "testimonials": {
+      "items": [
+        {
+          "texto": "Como ciudad piloto, TranSync nos ha permitido probar tecnologías que antes parecían imposibles. Los resultados iniciales son prometedores y vemos un gran potencial para escalar.",
+          "autor": "Carlos Rodríguez",
+          "cargo": "Director de Operaciones",
+          "empresa": "TransUrbe Bogotá - Ciudad Piloto",
+          "beneficio": "Resultados prometedores"
+        },
+        {
+          "texto": "La implementación fue muy suave y el equipo de soporte nos acompañó en cada paso. Ya vemos mejoras en la eficiencia operativa y nuestros conductores están adaptándose rápidamente.",
+          "autor": "Ana Martínez",
+          "cargo": "Gerente de Flota",
+          "empresa": "Metroplús Medellín - Programa Piloto",
+          "beneficio": "Implementación exitosa"
+        },
+        {
+          "texto": "La plataforma nos da visibilidad en tiempo real de nuestra flota por primera vez. Es un cambio significativo en cómo operamos y estamos emocionados con las posibilidades futuras.",
+          "autor": "Luis Fernández",
+          "cargo": "Jefe de Operaciones",
+          "empresa": "MIO Cali - Proyecto Piloto",
+          "beneficio": "Visibilidad en tiempo real"
+        },
+        {
+          "texto": "Como empresa de transporte mediano, esta tecnología nos pone a la vanguardia. La interfaz es intuitiva y el potencial de crecimiento es evidente desde las primeras semanas.",
+          "autor": "María González",
+          "cargo": "Directora de Tecnología",
+          "empresa": "Transportes del Valle - Partner Inicial",
+          "beneficio": "Tecnología de vanguardia"
+        }
+      ]
+    },
+    "awards": {
+      "items": [
+        {
+          "titulo": "Startup Innovadora 2024",
+          "organizacion": "TechHub Colombia"
+        },
+        {
+          "titulo": "Mención Especial IA",
+          "organizacion": "Innovation Summit"
+        },
+        {
+          "titulo": "Finalista Transporte Inteligente",
+          "organizacion": "Smart Mobility Awards"
+        },
+        {
+          "titulo": "Certificación de Seguridad",
+          "organizacion": "CyberSecurity Standards"
+        }
+      ]
+    },
+    "mobileDownload": {
+      "qrCodeTitle": "Código QR de instalación",
+      "appBenefits": "Beneficios de la aplicación",
+      "offlineFunctionality": "Funciona sin conexión",
+      "directInstallQuestion": "¿Prefieres instalación directa?",
+      "installationInstructions": "Cómo instalar la aplicación",
+      "openCamera": "Abre la cámara de tu móvil",
+      "scanQR": "Escanea el código QR",
+      "followInstructions": "Sigue las instrucciones de instalación",
+      "iosGuide": "Guía de instalación para iOS"
     }
   },
   "navbar": {

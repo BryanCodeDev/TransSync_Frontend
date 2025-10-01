@@ -210,7 +210,7 @@ const MobileDownload = () => {
               <Smartphone className="w-6 h-6 text-white" />
             </div>
             <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-              iOS Installation Guide
+              {t('mobileDownload.iosGuide')}
             </h3>
             <p className="text-slate-700 dark:text-slate-300 mb-4">
               In Safari: Tap the share button <Share2 className="inline w-5 h-5 mx-1" /> and select "Add to Home Screen"

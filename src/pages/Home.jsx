@@ -87,42 +87,42 @@ const Home = () => {
   const testimonios = [
     {
       id: 1,
-      texto: "Como ciudad piloto, TranSync nos ha permitido probar tecnologías que antes parecían imposibles. Los resultados iniciales son prometedores y vemos un gran potencial para escalar.",
-      autor: "Carlos Rodríguez",
-      cargo: "Director de Operaciones",
-      empresa: "TransUrbe Bogotá - Ciudad Piloto",
+      texto: t('homePage.testimonials.items.0.texto'),
+      autor: t('homePage.testimonials.items.0.autor'),
+      cargo: t('homePage.testimonials.items.0.cargo'),
+      empresa: t('homePage.testimonials.items.0.empresa'),
       rating: 5,
-      beneficio: "Resultados prometedores",
+      beneficio: t('homePage.testimonials.items.0.beneficio'),
       imagen: "/api/placeholder/80/80"
     },
     {
       id: 2,
-      texto: "La implementación fue muy suave y el equipo de soporte nos acompañó en cada paso. Ya vemos mejoras en la eficiencia operativa y nuestros conductores están adaptándose rápidamente.",
-      autor: "Ana Martínez",
-      cargo: "Gerente de Flota",
-      empresa: "Metroplús Medellín - Programa Piloto",
+      texto: t('homePage.testimonials.items.1.texto'),
+      autor: t('homePage.testimonials.items.1.autor'),
+      cargo: t('homePage.testimonials.items.1.cargo'),
+      empresa: t('homePage.testimonials.items.1.empresa'),
       rating: 5,
-      beneficio: "Implementación exitosa",
+      beneficio: t('homePage.testimonials.items.1.beneficio'),
       imagen: "/api/placeholder/80/80"
     },
     {
       id: 3,
-      texto: "La plataforma nos da visibilidad en tiempo real de nuestra flota por primera vez. Es un cambio significativo en cómo operamos y estamos emocionados con las posibilidades futuras.",
-      autor: "Luis Fernández",
-      cargo: "Jefe de Operaciones",
-      empresa: "MIO Cali - Proyecto Piloto",
+      texto: t('homePage.testimonials.items.2.texto'),
+      autor: t('homePage.testimonials.items.2.autor'),
+      cargo: t('homePage.testimonials.items.2.cargo'),
+      empresa: t('homePage.testimonials.items.2.empresa'),
       rating: 5,
-      beneficio: "Visibilidad en tiempo real",
+      beneficio: t('homePage.testimonials.items.2.beneficio'),
       imagen: "/api/placeholder/80/80"
     },
     {
       id: 4,
-      texto: "Como empresa de transporte mediano, esta tecnología nos pone a la vanguardia. La interfaz es intuitiva y el potencial de crecimiento es evidente desde las primeras semanas.",
-      autor: "María González",
-      cargo: "Directora de Tecnología",
-      empresa: "Transportes del Valle - Partner Inicial",
+      texto: t('homePage.testimonials.items.3.texto'),
+      autor: t('homePage.testimonials.items.3.autor'),
+      cargo: t('homePage.testimonials.items.3.cargo'),
+      empresa: t('homePage.testimonials.items.3.empresa'),
       rating: 5,
-      beneficio: "Tecnología de vanguardia",
+      beneficio: t('homePage.testimonials.items.3.beneficio'),
       imagen: "/api/placeholder/80/80"
     }
   ];
@@ -135,10 +135,10 @@ const Home = () => {
   ];
 
   const premios = [
-    { titulo: "Startup Innovadora 2024", año: "2024", organizacion: "TechHub Colombia", icono: Award },
-    { titulo: "Mención Especial IA", año: "2024", organizacion: "Innovation Summit", icono: Star },
-    { titulo: "Finalista Transporte Inteligente", año: "2024", organizacion: "Smart Mobility Awards", icono: Target },
-    { titulo: "Certificación de Seguridad", año: "2024", organizacion: "CyberSecurity Standards", icono: Shield }
+    { titulo: t('homePage.awards.items.0.titulo'), año: "2024", organizacion: t('homePage.awards.items.0.organizacion'), icono: Award },
+    { titulo: t('homePage.awards.items.1.titulo'), año: "2024", organizacion: t('homePage.awards.items.1.organizacion'), icono: Star },
+    { titulo: t('homePage.awards.items.2.titulo'), año: "2024", organizacion: t('homePage.awards.items.2.organizacion'), icono: Target },
+    { titulo: t('homePage.awards.items.3.titulo'), año: "2024", organizacion: t('homePage.awards.items.3.organizacion'), icono: Shield }
   ];
 
   const ciudades = [
@@ -477,7 +477,7 @@ const Home = () => {
             <div className="order-2 lg:order-1">
               <div className="bg-background-light dark:bg-gray-800 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-2xl border border-border-light dark:border-gray-600 text-center">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 sm:mb-6">
-                  Código QR de instalación
+                  {t('homePage.mobileDownload.qrCodeTitle')}
                 </h3>
 
                 <div className="flex justify-center mb-4 sm:mb-6">
@@ -506,7 +506,7 @@ const Home = () => {
               <div className="space-y-4 sm:space-y-6">
                 <div>
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3 sm:mb-4">
-                    Beneficios de la aplicación
+                    {t('homePage.mobileDownload.appBenefits')}
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     {[
@@ -515,7 +515,7 @@ const Home = () => {
                       { icon: Bell, text: t('mobileDownload.features.list.2') },
                       { icon: Palette, text: t('mobileDownload.features.list.3') },
                       { icon: RefreshCw, text: t('mobileDownload.features.list.4') },
-                      { icon: HardDrive, text: "Funciona sin conexión" }
+                      { icon: HardDrive, text: t('homePage.mobileDownload.offlineFunctionality') }
                     ].map((feature, index) => (
                       <div key={index} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                         <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
@@ -530,7 +530,7 @@ const Home = () => {
                 {/* Botón de instalación directa */}
                 <div className="text-center p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl sm:rounded-2xl border border-blue-200 dark:border-blue-800">
                   <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-3 text-sm sm:text-base">
-                    ¿Prefieres instalación directa?
+                    {t('homePage.mobileDownload.directInstallQuestion')}
                   </h4>
                 </div>
               </div>
@@ -541,25 +541,25 @@ const Home = () => {
           <div className="mt-8 sm:mt-10 md:mt-12 text-center">
             <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-yellow-200 dark:border-yellow-800 max-w-4xl mx-auto">
               <h4 className="font-bold text-yellow-800 dark:text-yellow-300 mb-3 sm:mb-4 text-sm sm:text-base">
-                Cómo instalar la aplicación
+                {t('homePage.mobileDownload.installationInstructions')}
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
                   <span className="text-yellow-700 dark:text-yellow-300 text-left">
-                    Abre la cámara de tu móvil
+                    {t('homePage.mobileDownload.openCamera')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
                   <span className="text-yellow-700 dark:text-yellow-300 text-left">
-                    Escanea el código QR
+                    {t('homePage.mobileDownload.scanQR')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 sm:col-span-2 md:col-span-1">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
                   <span className="text-yellow-700 dark:text-yellow-300 text-left">
-                    Sigue las instrucciones de instalación
+                    {t('homePage.mobileDownload.followInstructions')}
                   </span>
                 </div>
               </div>
