@@ -379,7 +379,7 @@ const authAPI = {
               id: parsed.id || parsed.userId || parsed._id,
               name: parsed.name || parsed.userName || parsed.fullName || 'Usuario',
               email: parsed.email || parsed.userEmail,
-              role: parsed.role || parsed.userRole || parsed.type || 'USER'
+              role: parsed.role || parsed.userRole || parsed.type || 'CONDUCTOR'
             };
           }
         } catch (parseError) {
@@ -507,7 +507,7 @@ const authAPI = {
               id: finalUserData.id || 'unknown',
               name: finalUserData.name || 'Usuario',
               email: finalUserData.email || 'user@example.com',
-              role: finalUserData.role || 'USER'
+              role: finalUserData.role || 'CONDUCTOR'
             };
 
             localStorage.setItem('userData', JSON.stringify(minimalUserData));

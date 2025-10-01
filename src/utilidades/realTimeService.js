@@ -44,7 +44,7 @@ class RealTimeService {
           token: localStorage.getItem('authToken'),
           userId: userContext?.idUsuario,
           empresaId: userContext?.idEmpresa,
-          rol: userContext?.rol || 'USER'
+          rol: userContext?.rol || 'CONDUCTOR'
         }
       });
 
@@ -273,7 +273,7 @@ class RealTimeService {
     console.log('🏠 Unido a salas:', {
       empresa: this.userContext.idEmpresa,
       usuario: this.userContext.idUsuario,
-      rol: this.userContext.rol || 'USER'
+      rol: this.userContext.rol || 'CONDUCTOR'
     });
   }
 
@@ -732,7 +732,7 @@ class RealTimeService {
       activeRooms: this.userContext ? [
         `empresa_${this.userContext.idEmpresa}`,
         `usuario_${this.userContext.idUsuario}`,
-        `rol_${this.userContext.rol || 'USER'}`
+        `rol_${this.userContext.rol || 'CONDUCTOR'}`
       ] : []
     };
   }
