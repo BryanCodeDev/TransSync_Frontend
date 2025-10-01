@@ -66,14 +66,14 @@ class RealTimeService {
         randomizationFactor: 0.5,
         auth: {
           token: token,
-          userId: userContext.idUsuario || userContext.userId,
-          empresaId: userContext.idEmpresa || userContext.empresaId,
-          rol: userContext.rol || 'SUPERADMIN'
+          userId: userContext.idUsuario || userContext.userId || userContext.id,
+          empresaId: userContext.idEmpresa || userContext.empresaId || userContext.empresa_id || userContext.id,
+          rol: userContext.rol || userContext.userRole || userContext.role || 'CONDUCTOR'
         },
         query: {
-          userId: userContext.idUsuario || userContext.userId,
-          empresaId: userContext.idEmpresa || userContext.empresaId,
-          rol: userContext.rol || 'SUPERADMIN'
+          userId: userContext.idUsuario || userContext.userId || userContext.id,
+          empresaId: userContext.idEmpresa || userContext.empresaId || userContext.empresa_id || userContext.id,
+          rol: userContext.rol || userContext.userRole || userContext.role || 'CONDUCTOR'
         }
       });
 
@@ -84,9 +84,9 @@ class RealTimeService {
       this.setUpdateMode(false, 60); // 60 minutos = 1 hora
 
       console.log('🔗 Conectando a WebSocket en modo horario...', {
-        userId: userContext.idUsuario,
-        empresaId: userContext.idEmpresa,
-        rol: userContext.rol
+        userId: userContext.idUsuario || userContext.userId || userContext.id,
+        empresaId: userContext.idEmpresa || userContext.empresaId || userContext.empresa_id || userContext.id,
+        rol: userContext.rol || userContext.userRole || userContext.role || 'CONDUCTOR'
       });
 
     } catch (error) {
@@ -104,41 +104,63 @@ class RealTimeService {
   }
 
   /**
-   * Validar contexto del usuario antes de conectar
-   */
-  validateUserContext(userContext) {
-    if (!userContext) {
-      console.warn('⚠️ Contexto de usuario es null o undefined');
-      return false;
-    }
+    * Validar contexto del usuario antes de conectar
+    */
+   validateUserContext(userContext) {
+     if (!userContext) {
+       console.warn('⚠️ Contexto de usuario es null o undefined');
+       return false;
+     }
 
-    // Validar campos requeridos con logging detallado
-    const hasUserId = !!(userContext.idUsuario || userContext.userId);
-    const hasEmpresaId = !!(userContext.idEmpresa || userContext.empresaId);
+     // Validar campos requeridos con logging detallado y múltiples formatos
+     const userId = userContext.idUsuario || userContext.userId || userContext.id;
+     const empresaId = userContext.idEmpresa || userContext.empresaId || userContext.empresa_id || userContext.id;
+     const rol = userContext.rol || userContext.userRole || userContext.role || 'CONDUCTOR';
 
-    console.log('🔍 Validando contexto de usuario:', {
-      idUsuario: userContext.idUsuario,
-      userId: userContext.userId,
-      idEmpresa: userContext.idEmpresa,
-      empresaId: userContext.empresaId,
-      rol: userContext.rol,
-      hasUserId,
-      hasEmpresaId
-    });
+     const hasUserId = !!userId;
+     const hasEmpresaId = !!empresaId;
 
-    if (!hasUserId || !hasEmpresaId) {
-      console.warn('⚠️ Contexto de usuario incompleto:', {
-        idUsuario: userContext.idUsuario,
-        userId: userContext.userId,
-        idEmpresa: userContext.idEmpresa,
-        empresaId: userContext.empresaId,
-        rol: userContext.rol
-      });
-      return false;
-    }
+     console.log('🔍 Validando contexto de usuario:', {
+       idUsuario: userContext.idUsuario,
+       userId: userContext.userId,
+       id: userContext.id,
+       idEmpresa: userContext.idEmpresa,
+       empresaId: userContext.empresaId,
+       empresa_id: userContext.empresa_id,
+       rol: userContext.rol,
+       userRole: userContext.userRole,
+       role: userContext.role,
+       resolvedUserId: userId,
+       resolvedEmpresaId: empresaId,
+       resolvedRol: rol,
+       hasUserId,
+       hasEmpresaId
+     });
 
-    return true;
-  }
+     if (!hasUserId || !hasEmpresaId) {
+       console.warn('⚠️ Contexto de usuario incompleto:', {
+         resolvedUserId: userId,
+         resolvedEmpresaId: empresaId,
+         resolvedRol: rol,
+         hasUserId,
+         hasEmpresaId
+       });
+       return false;
+     }
+
+     // Actualizar el contexto con valores resueltos si es necesario
+     if (userContext.idUsuario !== userId || userContext.idEmpresa !== empresaId || userContext.rol !== rol) {
+       userContext.idUsuario = userId;
+       userContext.userId = userId;
+       userContext.idEmpresa = empresaId;
+       userContext.empresaId = empresaId;
+       userContext.rol = rol;
+       userContext.userRole = rol;
+       console.log('✅ Contexto de usuario actualizado con valores resueltos');
+     }
+
+     return true;
+   }
 
   /**
    * Configurar listeners de eventos
@@ -157,16 +179,16 @@ class RealTimeService {
 
       // Notificar conexión exitosa
       this.emit('connection:established', {
-        userId: this.userContext?.idUsuario || this.userContext?.userId,
-        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId,
+        userId: this.userContext?.idUsuario || this.userContext?.userId || this.userContext?.id,
+        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId || this.userContext?.empresa_id || this.userContext?.id,
         timestamp: new Date()
       });
 
       // Emitir evento de dashboard conectado (compatibilidad con socketService)
       this.emit('dashboard:connected', {
         timestamp: new Date().toISOString(),
-        userId: this.userContext?.idUsuario || this.userContext?.userId || null,
-        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId || null
+        userId: this.userContext?.idUsuario || this.userContext?.userId || this.userContext?.id || null,
+        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId || this.userContext?.empresa_id || this.userContext?.id || null
       });
     });
 
@@ -336,24 +358,24 @@ class RealTimeService {
 
       // Unirse a sala de empresa
       this.socket.emit('join:empresa', {
-        empresaId: this.userContext.idEmpresa || this.userContext.empresaId
+        empresaId: this.userContext.idEmpresa || this.userContext.empresaId || this.userContext.empresa_id || this.userContext.id
       });
 
       // Unirse a sala de usuario
       this.socket.emit('join:usuario', {
-        userId: this.userContext.idUsuario || this.userContext.userId
+        userId: this.userContext.idUsuario || this.userContext.userId || this.userContext.id
       });
 
       // Unirse a sala de rol
       this.socket.emit('join:rol', {
-        rol: this.userContext.rol || 'SUPERADMIN'
+        rol: this.userContext.rol || this.userContext.userRole || this.userContext.role || 'CONDUCTOR'
       });
 
       // Actualizar salas actuales
       this.currentRooms = {
-        empresa: this.userContext.idEmpresa || this.userContext.empresaId,
-        usuario: this.userContext.idUsuario || this.userContext.userId,
-        rol: this.userContext.rol || 'SUPERADMIN'
+        empresa: this.userContext.idEmpresa || this.userContext.empresaId || this.userContext.empresa_id || this.userContext.id,
+        usuario: this.userContext.idUsuario || this.userContext.userId || this.userContext.id,
+        rol: this.userContext.rol || this.userContext.userRole || this.userContext.role || 'CONDUCTOR'
       };
 
       console.log('🏠 Unido a salas:', this.currentRooms);
@@ -594,7 +616,7 @@ class RealTimeService {
     if (this.socket && this.isConnected) {
       this.socket.emit('dashboard:request_update', {
         timestamp: new Date(),
-        userId: this.userContext?.idUsuario || this.userContext?.userId
+        userId: this.userContext?.idUsuario || this.userContext?.userId || this.userContext?.id
       });
     }
   }
@@ -885,8 +907,8 @@ class RealTimeService {
         message,
         data,
         priority,
-        userId: this.userContext?.idUsuario || this.userContext?.userId,
-        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId,
+        userId: this.userContext?.idUsuario || this.userContext?.userId || this.userContext?.id,
+        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId || this.userContext?.empresa_id || this.userContext?.id,
         timestamp: new Date()
       });
     }
@@ -902,9 +924,9 @@ class RealTimeService {
       lastConnectionTime: this.socket?.connected ? new Date() : null,
       userContext: this.userContext,
       activeRooms: this.userContext ? [
-        `empresa_${this.userContext.idEmpresa || this.userContext.empresaId}`,
-        `usuario_${this.userContext.idUsuario || this.userContext.userId}`,
-        `rol_${this.userContext.rol || 'CONDUCTOR'}`
+        `empresa_${this.userContext.idEmpresa || this.userContext.empresaId || this.userContext.empresa_id || this.userContext.id}`,
+        `usuario_${this.userContext.idUsuario || this.userContext.userId || this.userContext.id}`,
+        `rol_${this.userContext.rol || this.userContext.userRole || this.userContext.role || 'CONDUCTOR'}`
       ] : []
     };
   }

@@ -35,6 +35,7 @@ import {
 import { dashboardAPI } from '../utilidades/dashboardAPI';
 import realTimeService from '../utilidades/realTimeService';
 import { useNotification } from '../utilidades/notificationService';
+import authAPI from '../utilidades/authAPI';
 import DashboardSkeleton from '../components/DashboardSkeleton';
 import BreadcrumbNav from '../components/BreadcrumbNav';
 import Tooltip from '../components/Tooltip';
@@ -194,8 +195,11 @@ const Dashboard = () => {
         // Conectar WebSocket con contexto de usuario
         const userContext = {
           idUsuario: user?.id,
-          idEmpresa: user?.empresaId,
-          rol: userRole
+          userId: user?.id, // Compatibilidad con diferentes formatos
+          idEmpresa: user?.empresaId || user?.idEmpresa || user?.empresa_id,
+          empresaId: user?.empresaId || user?.idEmpresa || user?.empresa_id, // Compatibilidad con diferentes formatos
+          rol: userRole,
+          userRole: userRole // Compatibilidad con diferentes formatos
         };
         realTimeService.connect(userContext);
 
@@ -205,6 +209,48 @@ const Dashboard = () => {
         console.log('✅ Servicios mejorados inicializados en modo horario');
       } catch (error) {
         console.error('❌ Error inicializando servicios mejorados:', error);
+
+        // Si el error está relacionado con el contexto del usuario, intentar recuperar
+        if (error.message && error.message.includes('contexto')) {
+          console.log('🔄 Intentando recuperar contexto del usuario...');
+
+          // Intentar obtener datos del usuario desde la API
+          try {
+            const profileResponse = await authAPI.getProfile();
+            if (profileResponse && profileResponse.user) {
+              const recoveredUser = {
+                id: profileResponse.user.id,
+                name: profileResponse.user.name,
+                email: profileResponse.user.email,
+                role: profileResponse.user.role,
+                empresaId: profileResponse.user.empresaId || profileResponse.user.idEmpresa || profileResponse.user.empresa_id || profileResponse.user.id
+              };
+
+              // Actualizar localStorage con datos recuperados
+              localStorage.setItem('userData', JSON.stringify(recoveredUser));
+              localStorage.setItem('userName', recoveredUser.name || '');
+              localStorage.setItem('userRole', recoveredUser.role || '');
+              localStorage.setItem('userEmail', recoveredUser.email || '');
+              localStorage.setItem('userId', recoveredUser.id || '');
+
+              console.log('✅ Datos del usuario recuperados exitosamente:', recoveredUser);
+
+              // Reintentar conexión con datos recuperados
+              const recoveredContext = {
+                idUsuario: recoveredUser.id,
+                userId: recoveredUser.id,
+                idEmpresa: recoveredUser.empresaId,
+                empresaId: recoveredUser.empresaId,
+                rol: recoveredUser.role,
+                userRole: recoveredUser.role
+              };
+
+              realTimeService.connect(recoveredContext);
+            }
+          } catch (recoveryError) {
+            console.error('❌ Error recuperando datos del usuario:', recoveryError);
+          }
+        }
       }
     };
 
