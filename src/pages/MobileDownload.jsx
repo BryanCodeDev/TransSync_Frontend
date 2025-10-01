@@ -3,7 +3,7 @@ import QRWithInstall from '../components/QRWithInstall';
 import { Smartphone, CheckCircle, Globe } from 'lucide-react';
 
 const MobileDownload = () => {
-  const appUrl = 'https://transync1.netlify.app/home';
+  const appUrl = 'https://transync1.netlify.app/install';
   const [isMobile, setIsMobile] = useState(false);
 
   React.useEffect(() => {
