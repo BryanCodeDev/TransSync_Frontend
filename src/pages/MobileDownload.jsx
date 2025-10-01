@@ -1,11 +1,52 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import QRCode from '../components/QRCode';
-import ThemeSwitcher from '../components/ThemeSwitcher';
-import LanguageSwitcher from '../components/LanguageSwitcher';
-import { Smartphone, Download, CheckCircle, Globe } from 'lucide-react';
+import { Smartphone, Download, CheckCircle, Globe, X } from 'lucide-react';
 
 const MobileDownload = () => {
   const appUrl = 'https://transync1.netlify.app/home';
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Detectar si es dispositivo móvil
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    // Escuchar el evento beforeinstallprompt
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setShowInstallButton(false);
+      }
+    }
+  };
+
+  const handleCloseInstallButton = () => {
+    setShowInstallButton(false);
+  };
   const instructions = [
     {
       icon: <Smartphone className="w-6 h-6" />,
@@ -29,10 +70,6 @@ const MobileDownload = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex justify-center items-center gap-4 mb-6">
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-          </div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             📱 Descarga TransSync Móvil
           </h1>
@@ -43,7 +80,7 @@ const MobileDownload = () => {
 
         {/* Main Content */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'} gap-8 items-center`}>
             {/* QR Code Section */}
             <div className="text-center">
               <div className="mb-6">
@@ -53,7 +90,7 @@ const MobileDownload = () => {
                 <div className="flex justify-center">
                   <QRCode
                     url={appUrl}
-                    size={200}
+                    size={isMobile ? 180 : 200}
                     className="mb-4"
                   />
                 </div>
@@ -113,22 +150,24 @@ const MobileDownload = () => {
           </div>
         </div>
 
-        {/* Alternative Download */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            ¿Prefieres acceso directo?
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            También puedes acceder directamente desde tu navegador móvil
-          </p>
-          <a
-            href={appUrl}
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Globe className="w-5 h-5 mr-2" />
-            Abrir TransSync
-          </a>
-        </div>
+        {/* Alternative Download - Solo para desktop */}
+        {!isMobile && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 text-center">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              ¿Prefieres acceso directo?
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              También puedes acceder directamente desde tu navegador móvil
+            </p>
+            <a
+              href={appUrl}
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Globe className="w-5 h-5 mr-2" />
+              Abrir TransSync
+            </a>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500 dark:text-gray-400">
@@ -137,6 +176,35 @@ const MobileDownload = () => {
           </p>
         </div>
       </div>
+
+      {/* Botón flotante de instalación para móviles */}
+      {showInstallButton && isMobile && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4 max-w-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                Instalar TransSync
+              </h3>
+              <button
+                onClick={handleCloseInstallButton}
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">
+              Instala la aplicación para acceso rápido desde tu pantalla de inicio
+            </p>
+            <button
+              onClick={handleInstallClick}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-200"
+            >
+              <Download className="w-4 h-4" />
+              Instalar aplicación
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
