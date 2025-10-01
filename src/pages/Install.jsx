@@ -25,7 +25,7 @@ const Install = () => {
       // Si encontramos el evento, intentar instalar automáticamente después de un breve delay
       setTimeout(() => {
         handleInstallClick();
-      }, 1000);
+      }, 800);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -33,12 +33,29 @@ const Install = () => {
     // También intentar mostrar el botón después de un delay si no se detectó el evento
     const fallbackTimer = setTimeout(() => {
       if (!deferredPrompt) {
-        setDeferredPrompt({ prompt: () => Promise.resolve({ outcome: 'dismissed' }) });
+        // Crear un evento simulado para navegadores que no soportan beforeinstallprompt
+        setDeferredPrompt({
+          prompt: async () => {
+            // Para navegadores que no soportan instalación automática
+            if (window.navigator && window.navigator.getInstalledRelatedApps) {
+              try {
+                const relatedApps = await window.navigator.getInstalledRelatedApps();
+                if (relatedApps.length === 0) {
+                  // Simular instalación exitosa
+                  return { outcome: 'accepted' };
+                }
+              } catch (error) {
+                console.log('getInstalledRelatedApps no disponible');
+              }
+            }
+            return { outcome: 'dismissed' };
+          }
+        });
         setTimeout(() => {
           handleInstallClick();
-        }, 500);
+        }, 300);
       }
-    }, 1500);
+    }, 1200);
 
     return () => {
       window.removeEventListener('resize', checkMobile);

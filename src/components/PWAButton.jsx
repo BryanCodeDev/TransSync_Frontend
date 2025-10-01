@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
 
-const PWAButton = ({ className = '', variant = 'floating' }) => {
+const PWAButton = ({ className = '', variant = 'floating', forceMobile = false }) => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -25,28 +25,27 @@ const PWAButton = ({ className = '', variant = 'floating' }) => {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // También mostrar el botón después de un pequeño delay si es móvil
-    // Esto ayuda cuando alguien llega directamente desde un QR
+    // Mostrar el botón después de un delay si es móvil o si se fuerza
     const showButtonForMobile = () => {
-      if (isMobile && !deferredPrompt) {
-        // Pequeño delay para dar tiempo a que se registre el evento beforeinstallprompt
+      const shouldShow = (isMobile || forceMobile) && !deferredPrompt;
+      if (shouldShow) {
         setTimeout(() => {
           if (!deferredPrompt) {
             setShowInstallButton(true);
           }
-        }, 2000);
+        }, 1000);
       }
     };
 
     // Ejecutar después de un delay inicial
-    const initialTimer = setTimeout(showButtonForMobile, 1000);
+    const initialTimer = setTimeout(showButtonForMobile, 500);
 
     return () => {
       window.removeEventListener('resize', checkMobile);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       clearTimeout(initialTimer);
     };
-  }, [isMobile, deferredPrompt]);
+  }, [isMobile, deferredPrompt, forceMobile]);
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
