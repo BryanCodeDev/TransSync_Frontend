@@ -4,7 +4,7 @@ import { Smartphone, CheckCircle, Globe, Download } from 'lucide-react';
 const MobileDownload = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
     // Detectar si es dispositivo móvil

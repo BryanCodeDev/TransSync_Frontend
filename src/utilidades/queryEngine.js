@@ -1,5 +1,6 @@
 // src/utilidades/queryEngine.js - Motor de generación de consultas SQL para chatbot
-const pool = require('../config/db');
+// Nota: Este archivo genera consultas SQL pero NO las ejecuta directamente.
+// La ejecución debe hacerse a través de la API del backend.
 
 class QueryEngine {
     constructor() {
@@ -122,22 +123,30 @@ class QueryEngine {
     }
 
     /**
-     * Ejecutar consulta generada
-     */
-    async executeQuery(queryData, userContext) {
-        try {
-            if (!queryData.sql) {
-                return null;
-            }
+      * Preparar consulta para ejecución por la API
+      * Nota: En el frontend solo generamos la consulta, no la ejecutamos directamente
+      */
+     prepareQueryForAPI(queryData, userContext) {
+         try {
+             if (!queryData.sql) {
+                 return null;
+             }
 
-            const [rows] = await pool.query(queryData.sql, queryData.params);
-            return rows;
+             // Devolver datos de consulta listos para enviar a la API
+             return {
+                 sql: queryData.sql,
+                 params: queryData.params,
+                 complexity: queryData.complexity,
+                 explanation: queryData.explanation,
+                 empresaId: userContext?.idEmpresa || userContext?.empresaId,
+                 usuarioId: userContext?.idUsuario || userContext?.id
+             };
 
-        } catch (error) {
-            console.error('Error ejecutando consulta generada:', error);
-            throw error;
-        }
-    }
+         } catch (error) {
+             console.error('Error preparando consulta para API:', error);
+             return null;
+         }
+     }
 
     /**
      * Obtener intenciones disponibles
@@ -162,4 +171,5 @@ class QueryEngine {
     }
 }
 
-module.exports = new QueryEngine();
+const queryEngineInstance = new QueryEngine();
+export default queryEngineInstance;

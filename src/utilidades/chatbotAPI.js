@@ -1,7 +1,6 @@
 // src/utilidades/chatbotAPI.js - Servicio para el sistema de chatbot
 import { apiClient, apiUtils } from '../api/baseAPI';
 import conversationMemory from './conversationMemory';
-import queryEngine from './queryEngine';
 
 const chatbotAPI = {
   // ================================

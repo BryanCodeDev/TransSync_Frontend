@@ -94,4 +94,5 @@ class ConversationMemory {
     }
 }
 
-module.exports = new ConversationMemory();
+const conversationMemoryInstance = new ConversationMemory();
+export default conversationMemoryInstance;

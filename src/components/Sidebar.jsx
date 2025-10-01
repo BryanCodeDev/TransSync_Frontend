@@ -1,5 +1,4 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from '../hooks/useAuth';
 import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,7 +12,6 @@ import { useTheme } from '../context/ThemeContext';
 
 const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp }) => {
   const { t } = useTranslation();
-    const { authData } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
