@@ -57,7 +57,7 @@ const Horarios = () => {
     }
   };
 
-  const getField = (obj, candidates = []) => {
+  const getField = useCallback((obj, candidates = []) => {
     for (const c of candidates) {
       if (c.includes(".")) {
         const v = getNested(obj, c);
@@ -67,7 +67,7 @@ const Horarios = () => {
       }
     }
     return null;
-  };
+  }, []);
 
   const parseDateForDisplay = (s) => {
     if (!s && s !== 0) return "";
@@ -187,7 +187,7 @@ const Horarios = () => {
   // ============================
   // Funciones de carga de datos
   // ============================
-  const showMessage = (message, type = "info") => {
+  const showMessage = useCallback((message, type = "info") => {
     if (type === "error") {
       setError(message);
       setSuccess("");
@@ -195,25 +195,51 @@ const Horarios = () => {
       setSuccess(message);
       setError("");
     }
-    
+
     setTimeout(() => {
       setError("");
       setSuccess("");
     }, 5000);
-  };
+  }, []);
+
+  // Función para limpiar duplicados existentes
+  const cleanDuplicateData = useCallback(() => {
+    setViajes(prevViajes => {
+      if (!Array.isArray(prevViajes) || prevViajes.length === 0) return prevViajes;
+
+      const unique = prevViajes.filter((item, index, self) => {
+        const id = getField(item, ["idViaje", "id_viaje", "id"]);
+        return id && self.findIndex(v => getField(v, ["idViaje", "id_viaje", "id"]) === id) === index;
+      });
+
+      if (unique.length !== prevViajes.length) {
+        showMessage(`Se eliminaron ${prevViajes.length - unique.length} registros duplicados`, "success");
+        return unique;
+      }
+
+      return prevViajes;
+    });
+  }, [getField, showMessage]);
 
   const fetchViajes = useCallback(async () => {
     try {
       const res = await apiClient.get("/api/viajes");
       const data = Array.isArray(res.data) ? res.data : (res.data?.viajes ?? res.data);
-      setViajes(data || []);
-      return data || [];
+
+      // Eliminar posibles duplicados basados en ID único
+      const uniqueData = data ? data.filter((item, index, self) => {
+        const id = getField(item, ["idViaje", "id_viaje", "id"]);
+        return id && self.findIndex(v => getField(v, ["idViaje", "id_viaje", "id"]) === id) === index;
+      }) : [];
+
+      setViajes(uniqueData);
+      return uniqueData;
     } catch (err) {
       console.error("Error cargando viajes", err);
       setViajes([]);
       throw err;
     }
-  }, []);
+  }, [getField]);
 
   const fetchVehiculos = useCallback(async () => {
     try {
@@ -251,7 +277,7 @@ const Horarios = () => {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setError("");
-    
+
     try {
       await Promise.all([
         fetchViajes(),
@@ -265,11 +291,11 @@ const Horarios = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchViajes, fetchVehiculos, fetchConductores, fetchRutas]);
+  }, [fetchViajes, fetchVehiculos, fetchConductores, fetchRutas, showMessage]);
 
   useEffect(() => {
     fetchAll();
-  }, [fetchAll]);
+  }, [fetchAll]); // Solo ejecutar una vez al montar el componente
 
   // ============================
   // CRUD de viajes
@@ -317,11 +343,13 @@ const Horarios = () => {
 
   const onDelete = async (id) => {
     if (!window.confirm("¿Seguro que deseas eliminar este viaje?")) return;
-    
+
     try {
       setLoading(true);
       await apiClient.delete(`/api/viajes/${id}`);
-      await fetchViajes();
+
+      // Recargar todos los datos para mantener consistencia
+      await fetchAll();
       showMessage("Viaje eliminado exitosamente", "success");
     } catch (err) {
       console.error("Error eliminando viaje", err);
@@ -361,17 +389,17 @@ const Horarios = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
       showMessage(validationErrors.join(". "), "error");
       return;
     }
-    
+
     setSubmitting(true);
     setError("");
     setSuccess("");
-    
+
     const payload = {
       idVehiculo: parseInt(formData.idVehiculo),
       idConductor: parseInt(formData.idConductor),
@@ -390,10 +418,12 @@ const Horarios = () => {
         await apiClient.post("/api/viajes", payload);
         showMessage("Viaje creado exitosamente", "success");
       }
-      
+
       setShowModal(false);
       resetForm();
-      await fetchViajes();
+
+      // Recargar datos y limpiar posibles duplicados
+      await fetchAll();
     } catch (err) {
       console.error("Error guardando viaje", err);
       const message = err.response?.data?.message || "Error guardando el viaje";
@@ -480,7 +510,11 @@ const Horarios = () => {
         </h2>
         <div className="flex gap-2 sm:gap-3 w-full sm:w-auto min-w-0 flex-shrink-0">
           <button
-            onClick={fetchAll}
+            onClick={() => {
+              fetchAll();
+              // También limpiar duplicados por si acaso
+              setTimeout(cleanDuplicateData, 1000);
+            }}
             disabled={loading}
             className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 bg-surface-light dark:bg-gray-700 text-text-primary-light dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 min-h-[40px] sm:min-h-[44px] md:min-h-[48px] text-sm sm:text-base flex-shrink-0"
           >
@@ -552,7 +586,7 @@ const Horarios = () => {
             const llegada = getField(v, ["fecHorLleViaje", "fec_hor_lle_viaje", "fecLle"]) || "";
 
             return (
-              <div key={id || i} className="bg-background-light dark:bg-gray-800 rounded-xl shadow-sm border border-border-light dark:border-gray-700 p-3 sm:p-4 min-w-0">
+              <div key={`viaje-${id || i}-${status}`} className="bg-background-light dark:bg-gray-800 rounded-xl shadow-sm border border-border-light dark:border-gray-700 p-3 sm:p-4 min-w-0">
                 <div className="flex justify-between items-start mb-3 sm:mb-4 min-w-0">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-text-primary-light dark:text-gray-100 text-sm sm:text-base truncate min-w-0">
@@ -646,7 +680,7 @@ const Horarios = () => {
                 const llegada = getField(v, ["fecHorLleViaje", "fec_hor_lle_viaje", "fecLle"]) || "";
 
                 return (
-                  <tr key={id || i} className={`border-b border-border-light dark:border-gray-700 ${i % 2 === 0 ? "bg-background-light dark:bg-slate-900 hover:bg-surface-light dark:hover:bg-gray-800" : "bg-surface-light dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
+                  <tr key={`viaje-desktop-${id || i}-${status}`} className={`border-b border-border-light dark:border-gray-700 ${i % 2 === 0 ? "bg-background-light dark:bg-slate-900 hover:bg-surface-light dark:hover:bg-gray-800" : "bg-surface-light dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
                     <td className="p-2 sm:p-3 md:p-4 min-w-0">
                       <div className="font-medium text-text-primary-light dark:text-gray-100 truncate">{getRutaLabel(v)}</div>
                       <div className="sm:hidden text-xs text-text-secondary-light dark:text-gray-400 mt-1 truncate">
