@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import QRCode from '../components/QRCode';
-import { Smartphone, Download, CheckCircle, Globe, X } from 'lucide-react';
+import React, { useState } from 'react';
+import QRWithInstall from '../components/QRWithInstall';
+import { Smartphone, CheckCircle, Globe } from 'lucide-react';
 
 const MobileDownload = () => {
   const appUrl = 'https://transync1.netlify.app/home';
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallButton, setShowInstallButton] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Detectar si es dispositivo móvil
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
@@ -18,35 +16,10 @@ const MobileDownload = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
-    // Escuchar el evento beforeinstallprompt
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallButton(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
     return () => {
       window.removeEventListener('resize', checkMobile);
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setDeferredPrompt(null);
-        setShowInstallButton(false);
-      }
-    }
-  };
-
-  const handleCloseInstallButton = () => {
-    setShowInstallButton(false);
-  };
   const instructions = [
     {
       icon: <Smartphone className="w-6 h-6" />,
@@ -82,28 +55,12 @@ const MobileDownload = () => {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'} gap-8 items-center`}>
             {/* QR Code Section */}
-            <div className="text-center">
-              <div className="mb-6">
-                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                  Escanea este código QR
-                </h2>
-                <div className="flex justify-center">
-                  <QRCode
-                    url={appUrl}
-                    size={isMobile ? 180 : 200}
-                    className="mb-4"
-                  />
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  Código QR para instalación móvil
-                </p>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <p className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
-                    {appUrl}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <QRWithInstall
+              url={appUrl}
+              size={isMobile ? 180 : 200}
+              title="Escanea este código QR"
+              description="Código QR para instalación móvil"
+            />
 
             {/* Instructions Section */}
             <div className="space-y-6">
@@ -177,34 +134,6 @@ const MobileDownload = () => {
         </div>
       </div>
 
-      {/* Botón flotante de instalación para móviles */}
-      {showInstallButton && isMobile && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4 max-w-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                Instalar TransSync
-              </h3>
-              <button
-                onClick={handleCloseInstallButton}
-                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">
-              Instala la aplicación para acceso rápido desde tu pantalla de inicio
-            </p>
-            <button
-              onClick={handleInstallClick}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-200"
-            >
-              <Download className="w-4 h-4" />
-              Instalar aplicación
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

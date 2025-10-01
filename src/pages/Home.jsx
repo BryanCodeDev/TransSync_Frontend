@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target } from 'lucide-react';
+import PWAButton from '../components/PWAButton';
 
 const Home = () => {
   const { t } = useTranslation();
@@ -227,6 +228,7 @@ const Home = () => {
 
           {/* CTA Buttons */}
           <div className={`flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center items-center transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            <PWAButton variant="inline" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800" />
           </div>
         </div>
       </header>
