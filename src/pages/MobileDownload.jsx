@@ -54,13 +54,26 @@ const MobileDownload = () => {
         {/* Main Content */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'} gap-8 items-center`}>
-            {/* QR Code Section */}
-            <QRWithInstall
-              url={appUrl}
-              size={isMobile ? 180 : 200}
-              title="Escanea este código QR"
-              description="Código QR para instalación móvil"
-            />
+            {/* Botón de Instalación */}
+            <div className="text-center">
+              <div className="mb-6">
+                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                  Instalar TransSync Móvil
+                </h2>
+                <div className="mb-6">
+                  <button
+                    onClick={() => window.location.href = 'https://transync1.netlify.app/install'}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105"
+                  >
+                    <Download className="w-6 h-6" />
+                    Instalar aplicación móvil
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  Haz clic para instalar la aplicación directamente
+                </p>
+              </div>
+            </div>
 
             {/* Instructions Section */}
             <div className="space-y-6">

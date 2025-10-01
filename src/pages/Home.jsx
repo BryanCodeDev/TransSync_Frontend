@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target } from 'lucide-react';
-import PWAButton from '../components/PWAButton';
+import { Bus, Clock, Shield, Map, BarChart, CalendarClock, Check, Award, TrendingUp, Users, Zap, Star, ArrowRight, Play, Globe, Target, Download } from 'lucide-react';
 
 const Home = () => {
   const { t } = useTranslation();
@@ -484,6 +483,41 @@ const Home = () => {
               <span>{t('homePage.cta.features.2')}</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Código QR para descarga móvil */}
+      <section className="py-12 sm:py-16 md:py-20 bg-background-light dark:bg-gray-800 border-t border-border-light dark:border-gray-700">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <div className="mb-8">
+            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Smartphone className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+              📱 Descarga TransSync Móvil
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
+              Escanea este código QR para acceder a la página de descarga móvil
+            </p>
+          </div>
+
+          <div className="flex justify-center mb-6">
+            <QRCode
+              url="https://transync1.netlify.app/mobile-download"
+              size={200}
+              className="mb-4"
+            />
+          </div>
+
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 max-w-md mx-auto">
+            <p className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
+              https://transync1.netlify.app/mobile-download
+            </p>
+          </div>
+
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+            También puedes acceder directamente desde tu navegador móvil
+          </p>
         </div>
       </section>
     </div>
