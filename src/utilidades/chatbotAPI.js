@@ -317,19 +317,53 @@ const chatbotAPI = {
         throw new Error('El mensaje es requerido');
       }
 
-      // Obtener contexto del usuario
-      const contextoUsuario = options.contextoUsuario || this.obtenerContextoUsuario();
+      // Obtener contexto del usuario con validación
+      let contextoUsuario = options.contextoUsuario;
+      if (!contextoUsuario) {
+        contextoUsuario = this.obtenerContextoUsuario();
+      }
+
+      // Validar que el contexto tenga valores seguros
+      if (!contextoUsuario || !contextoUsuario.idUsuario || !contextoUsuario.idEmpresa) {
+        console.warn('⚠️ Contexto de usuario inválido, usando contexto seguro');
+        contextoUsuario = {
+          esUsuarioAutenticado: false,
+          idUsuario: 1,
+          nombreUsuario: 'Usuario',
+          idEmpresa: 1,
+          empresa: 'TransSync',
+          rol: 'guest',
+          permisos: []
+        };
+      }
 
       // Verificar estado del servicio primero
-      const estadoServicio = await this.verificarEstado();
+      let estadoServicio;
+      try {
+        estadoServicio = await this.verificarEstado();
+      } catch (estadoError) {
+        console.warn('⚠️ Error verificando estado del servicio:', estadoError);
+        estadoServicio = { mode: 'offline' };
+      }
 
       // Si estamos en modo offline, proporcionar respuestas básicas
       if (estadoServicio.mode === 'offline') {
         return this.generarRespuestaOffline(mensaje, contextoUsuario);
       }
 
-      // Procesar mensaje con el backend
-      const response = await this.sendMessage(mensaje, contextoUsuario.idEmpresa, contextoUsuario.idUsuario);
+      // Procesar mensaje con el backend con manejo de errores mejorado
+      let response;
+      try {
+        response = await this.sendMessage(mensaje, contextoUsuario.idEmpresa, contextoUsuario.idUsuario);
+      } catch (sendError) {
+        console.warn('❌ Error enviando mensaje, usando modo offline:', sendError.message);
+        return this.generarRespuestaOffline(mensaje, contextoUsuario);
+      }
+
+      // Validar respuesta del backend
+      if (!response) {
+        throw new Error('No se recibió respuesta del servidor');
+      }
 
       // Agregar metadata si se solicita
       if (options.incluirMetadata) {
@@ -346,8 +380,22 @@ const chatbotAPI = {
       // Si hay error de conexión, intentar modo offline
       console.warn('❌ Error procesando consulta, intentando modo offline:', error.message);
 
-      const contextoUsuario = options.contextoUsuario || this.obtenerContextoUsuario();
-      return this.generarRespuestaOffline(mensaje, contextoUsuario);
+      try {
+        const contextoUsuario = options.contextoUsuario || this.obtenerContextoUsuario();
+        return this.generarRespuestaOffline(mensaje, contextoUsuario);
+      } catch (fallbackError) {
+        console.error('❌ Error incluso en modo offline:', fallbackError);
+        // Respuesta de emergencia
+        return {
+          respuesta: 'Lo siento, estoy teniendo problemas técnicos en este momento. Por favor intenta de nuevo más tarde.',
+          intencion: 'error',
+          confianza: 0,
+          tiempoProcesamiento: 0,
+          success: false,
+          mode: 'error',
+          timestamp: new Date().toISOString()
+        };
+      }
     }
   },
 

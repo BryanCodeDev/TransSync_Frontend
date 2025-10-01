@@ -83,6 +83,14 @@ const ChatBot = ({
 
     try {
       console.log(`🔍 Verificando conexión con chatbot (intento ${retryCount + 1}/${maxRetries + 1})`);
+
+      // Verificar contexto del usuario primero
+      const contextoUsuario = chatbotAPI.obtenerContextoUsuario();
+      if (!contextoUsuario || !contextoUsuario.idUsuario || !contextoUsuario.idEmpresa) {
+        console.warn('⚠️ Contexto de usuario inválido, usando valores por defecto');
+        // No bloquear la conexión por contexto inválido, usar valores seguros
+      }
+
       const resultado = await chatbotAPI.verificarEstado();
 
       // El método verificarEstado NUNCA debe lanzar errores, siempre devuelve un objeto
@@ -135,14 +143,29 @@ const ChatBot = ({
   }, []);
 
   useEffect(() => {
-    // Obtener contexto del usuario al inicializar
-    const context = chatbotAPI.obtenerContextoUsuario();
+    // Obtener contexto del usuario al inicializar con fallback seguro
+    let context = chatbotAPI.obtenerContextoUsuario();
+
+    // Asegurar que el contexto tenga valores seguros
+    if (!context || !context.idUsuario || !context.idEmpresa) {
+      console.warn('⚠️ Contexto de usuario inválido, usando contexto seguro por defecto');
+      context = {
+        esUsuarioAutenticado: false,
+        idUsuario: 1,
+        nombreUsuario: 'Usuario',
+        idEmpresa: 1,
+        empresa: 'TransSync',
+        rol: 'guest',
+        permisos: []
+      };
+    }
+
     setUserContext(context);
 
-    // Mensaje inicial personalizado
+    // Mensaje inicial personalizado con manejo seguro
     if (messages.length === 0) {
       const mensajeInicial = context.esUsuarioAutenticado
-        ? `Hola ${context.nombreUsuario}! Soy el asistente de ${context.empresa}. Tengo acceso a datos actuales del sistema y puedo ayudarte con información sobre conductores, vehículos, rutas, horarios y más. ¿Qué necesitas consultar?`
+        ? `Hola ${context.nombreUsuario || 'Usuario'}! Soy el asistente de ${context.empresa || 'TransSync'}. Tengo acceso a datos actuales del sistema y puedo ayudarte con información sobre conductores, vehículos, rutas, horarios y más. ¿Qué necesitas consultar?`
         : t('chatbot.initialMessage');
 
       setMessages([
@@ -199,82 +222,116 @@ const ChatBot = ({
   // Configurar WebSocket para notificaciones en tiempo real con mejor sincronización
   useEffect(() => {
     if (isOpen) {
-      // Solo conectar si tenemos contexto válido
-      if (userContext && userContext.esUsuarioAutenticado) {
-        console.log('🔗 Conectando WebSocket con contexto válido:', userContext);
-
-        // Conectar al servicio WebSocket
-        realTimeService.connect(userContext);
-        setWsConnected(true);
-
-        // Configurar listeners para notificaciones
-        const setupRealTimeListeners = () => {
-          // Nuevo conductor
-          realTimeService.on('notification:new_conductor', (notification) => {
-            handleRealTimeNotification(notification);
-          });
-
-          // Nuevo vehículo
-          realTimeService.on('notification:new_vehicle', (notification) => {
-            handleRealTimeNotification(notification);
-          });
-
-          // Nuevo viaje
-          realTimeService.on('notification:new_trip', (notification) => {
-            handleRealTimeNotification(notification);
-          });
-
-          // Alertas de vencimiento
-          realTimeService.on('notification:expiration_alert', (notification) => {
-            handleRealTimeNotification(notification);
-          });
-
-          // Conexión WebSocket
-          realTimeService.on('connection:established', (data) => {
-            console.log('🔗 WebSocket conectado para notificaciones en tiempo real');
-            setWsConnected(true);
-            setConnectionStatus('connected');
-          });
-
-          // Desconexión WebSocket
-          realTimeService.on('connection:error', (error) => {
-            console.log('🔌 WebSocket desconectado:', error);
-            setWsConnected(false);
-            setConnectionStatus('disconnected');
-          });
-
-          // Error de conexión no recuperable
-          realTimeService.on('connection:failed', (error) => {
-            console.error('❌ WebSocket conexión fallida:', error);
-            setWsConnected(false);
-            setConnectionStatus('disconnected');
-          });
-
-          // Cambio de contexto de usuario
-          realTimeService.on('auth:context_changed', (newContext) => {
-            console.log('🔄 Contexto de usuario cambiado:', newContext);
-            setUserContext(newContext);
-          });
+      // Validar contexto del usuario antes de conectar
+      const contextoValido = chatbotAPI.obtenerContextoUsuario();
+      if (!contextoValido || !contextoValido.idUsuario || !contextoValido.idEmpresa) {
+        console.warn('⚠️ Contexto de usuario inválido para WebSocket, usando contexto seguro');
+        // Crear contexto seguro con valores por defecto
+        contextoValido = {
+          esUsuarioAutenticado: false,
+          idUsuario: 1,
+          nombreUsuario: 'Usuario Anónimo',
+          idEmpresa: 1,
+          empresa: 'TransSync',
+          rol: 'guest',
+          permisos: []
         };
+      }
 
-        setupRealTimeListeners();
+      if (contextoValido) {
+        console.log('🔗 Conectando WebSocket con contexto validado:', contextoValido);
 
-        // Solicitar permisos para notificaciones del navegador
-        realTimeService.requestNotificationPermission();
+        try {
+          // Conectar al servicio WebSocket con contexto validado
+          realTimeService.connect(contextoValido);
+          setWsConnected(true);
 
-        // Cleanup function
-        return () => {
-          console.log('🔌 Desconectando WebSocket del chatbot');
-          realTimeService.disconnect();
+          // Configurar listeners para notificaciones con manejo de errores
+          const setupRealTimeListeners = () => {
+            try {
+              // Nuevo conductor
+              realTimeService.on('notification:new_conductor', (notification) => {
+                if (notification) handleRealTimeNotification(notification);
+              });
+
+              // Nuevo vehículo
+              realTimeService.on('notification:new_vehicle', (notification) => {
+                if (notification) handleRealTimeNotification(notification);
+              });
+
+              // Nuevo viaje
+              realTimeService.on('notification:new_trip', (notification) => {
+                if (notification) handleRealTimeNotification(notification);
+              });
+
+              // Alertas de vencimiento
+              realTimeService.on('notification:expiration_alert', (notification) => {
+                if (notification) handleRealTimeNotification(notification);
+              });
+
+              // Conexión WebSocket
+              realTimeService.on('connection:established', (data) => {
+                console.log('🔗 WebSocket conectado para notificaciones en tiempo real');
+                setWsConnected(true);
+                setConnectionStatus('connected');
+              });
+
+              // Desconexión WebSocket
+              realTimeService.on('connection:error', (error) => {
+                console.log('🔌 WebSocket desconectado:', error);
+                setWsConnected(false);
+                // No cambiar connectionStatus aquí para evitar conflictos
+              });
+
+              // Error de conexión no recuperable
+              realTimeService.on('connection:failed', (error) => {
+                console.error('❌ WebSocket conexión fallida:', error);
+                setWsConnected(false);
+                setConnectionStatus('disconnected');
+              });
+
+              // Cambio de contexto de usuario
+              realTimeService.on('auth:context_changed', (newContext) => {
+                console.log('🔄 Contexto de usuario cambiado:', newContext);
+                if (newContext) setUserContext(newContext);
+              });
+            } catch (listenerError) {
+              console.error('❌ Error configurando listeners de WebSocket:', listenerError);
+            }
+          };
+
+          setupRealTimeListeners();
+
+          // Solicitar permisos para notificaciones del navegador (con manejo de errores)
+          try {
+            realTimeService.requestNotificationPermission();
+          } catch (permissionError) {
+            console.warn('⚠️ Error solicitando permisos de notificación:', permissionError);
+          }
+
+        } catch (connectionError) {
+          console.error('❌ Error conectando WebSocket:', connectionError);
           setWsConnected(false);
+          setConnectionStatus('disconnected');
+        }
+
+        // Cleanup function mejorado
+        return () => {
+          try {
+            console.log('🔌 Desconectando WebSocket del chatbot');
+            realTimeService.disconnect();
+            setWsConnected(false);
+          } catch (disconnectError) {
+            console.error('❌ Error desconectando WebSocket:', disconnectError);
+          }
         };
       } else {
-        console.log('⏳ Esperando contexto de usuario válido para conectar WebSocket');
+        console.log('⏳ No se pudo obtener contexto válido para WebSocket');
         setWsConnected(false);
         setConnectionStatus('disconnected');
       }
     }
-  }, [isOpen, handleRealTimeNotification, userContext]);
+  }, [isOpen, handleRealTimeNotification]);
 
   // Efecto separado para manejar cambios en el contexto del usuario
   useEffect(() => {
@@ -535,55 +592,82 @@ const ChatBot = ({
     setIsTyping(true);
 
     try {
-      // Usar procesamiento inteligente avanzado
-      const respuesta = await chatbotAPI.procesarConsultaInteligente(mensajeUsuario, {
-        incluirMetadata: true,
-        contextoUsuario: userContext
-      });
+       // Verificar contexto del usuario antes de procesar
+       if (!userContext || !userContext.idUsuario || !userContext.idEmpresa) {
+         console.warn('⚠️ Contexto de usuario inválido, intentando obtener contexto válido...');
+         const contextoValido = chatbotAPI.obtenerContextoUsuario();
+         if (contextoValido && contextoValido.idUsuario && contextoValido.idEmpresa) {
+           setUserContext(contextoValido);
+         }
+       }
 
-      setTimeout(() => {
-        const botMessage = {
-          id: Date.now() + 1,
-          text: respuesta.respuesta,
-          sender: 'bot',
-          timestamp: new Date(),
-          intencion: respuesta.intencion,
-          confianza: respuesta.confianza,
-          entidades: respuesta.entidades,
-          tiempoProcesamiento: respuesta.tiempoProcesamiento,
-          sugerencias: respuesta.sugerencias,
-          success: respuesta.success,
-          formatted: true,
-          metadata: respuesta.metadata
-        };
+       // Usar procesamiento inteligente avanzado con manejo de errores mejorado
+       const respuesta = await chatbotAPI.procesarConsultaInteligente(mensajeUsuario, {
+         incluirMetadata: true,
+         contextoUsuario: userContext
+       });
 
-        setMessages(prev => [...prev, botMessage]);
-        setIsTyping(false);
+       if (!respuesta) {
+         throw new Error('No se recibió respuesta del chatbot');
+       }
 
-        // Actualizar sugerencias dinámicas basadas en la respuesta
-        if (respuesta.sugerencias && respuesta.sugerencias.length > 0) {
-          setTimeout(() => {
-            // Las sugerencias se mostrarán automáticamente en el componente
-          }, 1000);
-        }
+       setTimeout(() => {
+         const botMessage = {
+           id: Date.now() + 1,
+           text: respuesta.respuesta || 'Lo siento, no pude procesar tu consulta.',
+           sender: 'bot',
+           timestamp: new Date(),
+           intencion: respuesta.intencion || 'unknown',
+           confianza: respuesta.confianza || 0.5,
+           entidades: respuesta.entidades || [],
+           tiempoProcesamiento: respuesta.tiempoProcesamiento || 0,
+           sugerencias: respuesta.sugerencias || [],
+           success: respuesta.success !== false, // Por defecto true
+           formatted: true,
+           metadata: respuesta.metadata || {}
+         };
 
-      }, Math.max(500, respuesta.tiempoProcesamiento || 0));
+         setMessages(prev => [...prev, botMessage]);
+         setIsTyping(false);
 
-    } catch (error) {
-      console.error('Error procesando mensaje inteligente:', error);
+         // Actualizar sugerencias dinámicas basadas en la respuesta
+         if (respuesta.sugerencias && respuesta.sugerencias.length > 0) {
+           setTimeout(() => {
+             // Las sugerencias se mostrarán automáticamente en el componente
+           }, 1000);
+         }
 
-      const errorMessage = {
-        id: Date.now() + 1,
-        text: t('chatbot.processingError'),
-        sender: 'bot',
-        timestamp: new Date(),
-        isError: true
-      };
+       }, Math.max(500, respuesta.tiempoProcesamiento || 0));
 
-      setMessages(prev => [...prev, errorMessage]);
-      setIsTyping(false);
-      setConnectionStatus('disconnected');
-    }
+     } catch (error) {
+       console.error('Error procesando mensaje inteligente:', error);
+
+       // Crear mensaje de error más informativo
+       let errorText = t('chatbot.processingError');
+       if (error.message && error.message.includes('contexto')) {
+         errorText = 'Error con el contexto de usuario. Intentando recuperar...';
+       } else if (error.message && error.message.includes('network')) {
+         errorText = 'Error de conexión. Verificando estado del servidor...';
+         // Intentar verificar conexión automáticamente
+         setTimeout(() => verificarConexion(), 2000);
+       }
+
+       const errorMessage = {
+         id: Date.now() + 1,
+         text: errorText,
+         sender: 'bot',
+         timestamp: new Date(),
+         isError: true
+       };
+
+       setMessages(prev => [...prev, errorMessage]);
+       setIsTyping(false);
+
+       // No cambiar el estado de conexión a menos que sea un error crítico
+       if (error.message && error.message.includes('network')) {
+         setConnectionStatus('disconnected');
+       }
+     }
   };
 
   const handleKeyPress = (e) => {
