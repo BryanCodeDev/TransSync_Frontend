@@ -1,4 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from '../hooks/useAuth';
 import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import {
@@ -12,11 +13,12 @@ import { useTheme } from '../context/ThemeContext';
 
 const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp }) => {
   const { t } = useTranslation();
+   const { authData } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState('');
-  const { theme } = useTheme(); // 👈 Usar ThemeContext
+  const { theme } = useTheme(); 
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -179,14 +181,16 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
         '/vehiculos',
         '/horarios',
       ],
-      'ADMINISTRADOR': [
+      'GESTOR': [
         '/dashboard',
         '/drivers',
         '/rutas',
         '/vehiculos',
         '/horarios',
       ],
-      'CONDUCTOR': [],
+      'CONDUCTOR': [
+        '/rutas',
+      ],
       'USER': [],
       'PENDIENTE': []
     };
@@ -196,7 +200,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
 
   const allMenuItems = [
     { path: "/dashboard", icon: <FaChartLine />, label: t('sidebar.dashboard'), description: "Panel principal" },
-    { path: "/admin/dashboard", icon: <FaCogs />, label: "Admin Dashboard", description: "Panel de administración", superAdminOnly: true },
+    { path: "/admin/dashboard", icon: <FaCogs />, label: "Admin Dashboard", description: "Panel de administración",},
     { path: "/drivers", icon: <FaUserTie />, label: t('sidebar.drivers'), description: "Gestión de conductores" },
     { path: "/rutas", icon: <FaRoute />, label: t('sidebar.routes'), description: "Gestión de rutas" },
     { path: "/vehiculos", icon: <FaBus />, label: t('sidebar.vehicles'), description: "Gestión de vehículos" },
