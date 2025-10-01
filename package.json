@@ -10,6 +10,9 @@
     "react"
   ],
   "dependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "autoprefixer": "^10.4.20",
     "ajv": "^8.12.0",
     "ajv-keywords": "^5.1.0",
     "axios": "^1.11.0",
@@ -19,6 +22,7 @@
     "i18next-browser-languagedetector": "^8.2.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.479.0",
+    "postcss": "^8.5.0",
     "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.3.0",
@@ -32,6 +36,7 @@
     "react-scripts": "^5.0.1",
     "recharts": "^2.15.1",
     "socket.io-client": "^4.8.1",
+    "tailwindcss": "^3.4.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
