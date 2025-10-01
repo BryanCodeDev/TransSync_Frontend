@@ -44,13 +44,18 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     if (!token) {
       return null;
     }
+
+    // Obtener datos adicionales del localStorage si no están en el objeto user
+    const userId = user?.id || localStorage.getItem('userId');
+    const empresaId = user?.empresaId || user?.companyId || 'default-company'; // Valor por defecto si no hay empresa
+
     return {
       token,
-      userId: user?.id || null,
-      empresaId: user?.empresaId || null,
+      userId: userId || null,
+      empresaId: empresaId || null,
       rol: userRole || null
     };
-  }, [user?.id, user?.empresaId, userRole]);
+  }, [user?.id, user?.empresaId, user?.companyId, userRole]);
 
   // Memoizar solo los valores que cambian
   const authData = useMemo(() => getAuthData(), [getAuthData]);
