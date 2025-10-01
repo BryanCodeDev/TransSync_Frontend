@@ -398,28 +398,6 @@ export const useTutorial = () => {
     return -1; // No hay más pasos disponibles
   }, [tutorialSteps, location.pathname, elementExists]);
 
-  // Función mejorada para verificar elementos con reintentos
-  const waitForElement = useCallback((selector, maxAttempts = 10, interval = 500) => {
-    return new Promise((resolve) => {
-      let attempts = 0;
-
-      const checkElement = () => {
-        attempts++;
-        const element = document.querySelector(selector);
-
-        if (element) {
-          resolve(element);
-        } else if (attempts < maxAttempts) {
-          setTimeout(checkElement, interval);
-        } else {
-          console.warn(`Elemento no encontrado después de ${maxAttempts} intentos: ${selector}`);
-          resolve(null);
-        }
-      };
-
-      checkElement();
-    });
-  }, []);
 
   // Verificar si el usuario ya completó o saltó el tutorial
   useEffect(() => {

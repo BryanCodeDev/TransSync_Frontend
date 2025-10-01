@@ -74,9 +74,40 @@ const ChatBot = ({
     return saved ? JSON.parse(saved) : false;
   });
   const messagesEndRef = useRef(null);
-  
-  
-  useEffect(() => {
+
+   // Verificar conexión con el servicio de chatbot con recuperación automática
+   const verificarConexion = useCallback(async (retryCount = 0) => {
+     const maxRetries = 3;
+     const retryDelay = 2000;
+
+     try {
+       console.log(`🔍 Verificando conexión con chatbot (intento ${retryCount + 1}/${maxRetries + 1})`);
+       const resultado = await chatbotAPI.verificarEstado();
+
+       if (resultado.success) {
+         setConnectionStatus('connected');
+         console.log('✅ Conexión con chatbot verificada');
+         return true;
+       } else {
+         throw new Error('Estado del servicio indica error');
+       }
+     } catch (error) {
+       console.error(`❌ Error verificando conexión:`, error);
+
+       if (retryCount < maxRetries) {
+         console.log(`🔄 Reintentando en ${retryDelay / 1000} segundos...`);
+         setTimeout(() => {
+           verificarConexion(retryCount + 1);
+         }, retryDelay);
+       } else {
+         setConnectionStatus('disconnected');
+         console.error('❌ Falló verificación de conexión después de múltiples intentos');
+         return false;
+       }
+     }
+   }, []);
+
+   useEffect(() => {
     // Obtener contexto del usuario al inicializar
     const context = chatbotAPI.obtenerContextoUsuario();
     setUserContext(context);
@@ -102,7 +133,7 @@ const ChatBot = ({
     if (isOpen && connectionStatus === 'unknown') {
       verificarConexion();
     }
-  }, [isOpen, connectionStatus, messages.length, initialMessage, t]);
+  }, [isOpen, connectionStatus, messages.length, initialMessage, t, verificarConexion]);
 
   // Manejar notificaciones en tiempo real
   const handleRealTimeNotification = useCallback((notification) => {
@@ -213,7 +244,7 @@ const ChatBot = ({
         setConnectionStatus('disconnected');
       }
     }
-  }, [isOpen]); // Removido userContext de las dependencias para evitar reconexiones innecesarias
+  }, [isOpen, handleRealTimeNotification, userContext]);
 
   // Efecto separado para manejar cambios en el contexto del usuario
   useEffect(() => {
@@ -228,38 +259,6 @@ const ChatBot = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // Verificar conexión con el servicio de chatbot con recuperación automática
-  const verificarConexion = async (retryCount = 0) => {
-    const maxRetries = 3;
-    const retryDelay = 2000;
-
-    try {
-      console.log(`🔍 Verificando conexión con chatbot (intento ${retryCount + 1}/${maxRetries + 1})`);
-      const resultado = await chatbotAPI.verificarEstado();
-
-      if (resultado.success) {
-        setConnectionStatus('connected');
-        console.log('✅ Conexión con chatbot verificada');
-        return true;
-      } else {
-        throw new Error('Estado del servicio indica error');
-      }
-    } catch (error) {
-      console.error(`❌ Error verificando conexión:`, error);
-
-      if (retryCount < maxRetries) {
-        console.log(`🔄 Reintentando en ${retryDelay / 1000} segundos...`);
-        setTimeout(() => {
-          verificarConexion(retryCount + 1);
-        }, retryDelay);
-      } else {
-        setConnectionStatus('disconnected');
-        console.error('❌ Falló verificación de conexión después de múltiples intentos');
-        return false;
-      }
-    }
-  };
 
   // Función de recuperación automática de conexión
   const recuperarConexion = async () => {
