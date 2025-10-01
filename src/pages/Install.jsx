@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Download, CheckCircle, Smartphone } from 'lucide-react';
 
 const Install = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstalling, setIsInstalling] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
+<<<<<<< HEAD
   useEffect(() => {
     // Detectar si es dispositivo móvil
     const checkMobile = () => {
@@ -65,6 +65,9 @@ const Install = () => {
   }, []);
 
   const handleInstallClick = async () => {
+=======
+  const handleInstallClick = useCallback(async () => {
+>>>>>>> cd9e24341af8aaafb1d4a435ef5dcea0c2562fc4
     if (isInstalling) return;
 
     setIsInstalling(true);
@@ -94,7 +97,37 @@ const Install = () => {
     } finally {
       setIsInstalling(false);
     }
-  };
+  }, [isInstalling, deferredPrompt]);
+
+  useEffect(() => {
+    // Escuchar el evento beforeinstallprompt
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+
+      // Si encontramos el evento, intentar instalar automáticamente después de un breve delay
+      setTimeout(() => {
+        handleInstallClick();
+      }, 1000);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // También intentar mostrar el botón después de un delay si no se detectó el evento
+    const fallbackTimer = setTimeout(() => {
+      if (!deferredPrompt) {
+        setDeferredPrompt({ prompt: () => Promise.resolve({ outcome: 'dismissed' }) });
+        setTimeout(() => {
+          handleInstallClick();
+        }, 500);
+      }
+    }, 1500);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      clearTimeout(fallbackTimer);
+    };
+  }, [deferredPrompt, handleInstallClick]);
 
   if (isInstalled) {
     return (
