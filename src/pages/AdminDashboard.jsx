@@ -88,7 +88,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const role = getUserRole();
-    if (role === 'SUPERADMIN' || role === 'GESTOR') {
+    if (role === 'SUPERADMIN') {
       loadUsers();
     } else {
       setLoading(false);

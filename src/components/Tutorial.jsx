@@ -99,22 +99,22 @@ const Tutorial = () => {
       // Por simplicidad, usaremos las traducciones directamente
       const translations = {
         'SUPERADMIN': {
-          title: '¡Bienvenido SuperAdministrador!',
-          description: 'Como SuperAdministrador, tienes acceso completo al sistema. Te guiaremos paso a paso por las funciones avanzadas de gestión de usuarios, empresas y configuración global del sistema. Aprenderás a administrar toda la plataforma de manera eficiente y segura.'
+          title: '¡Bienvenido SuperAdmin!',
+          description: 'Como SuperAdministrador, tienes acceso completo al sistema. Te guiaremos por las funciones de gestión de usuarios, empresas y configuración global del sistema.'
         },
         'GESTOR': {
-          title: '¡Bienvenido Gestor Empresarial!',
-          description: 'Como Gestor, tienes el control total de tu empresa. Te mostraremos cómo administrar eficientemente conductores, vehículos, rutas y horarios. Conocerás herramientas avanzadas para optimizar la operación diaria y maximizar la productividad de tu flota.'
+          title: '¡Bienvenido Gestor!',
+          description: 'Como Gestor, tienes el control total de tu empresa. Te mostraremos cómo administrar conductores, vehículos, rutas y horarios de manera eficiente.'
         },
         'CONDUCTOR': {
           title: '¡Bienvenido Conductor!',
-          description: 'Como Conductor, podrás consultar tus horarios, rutas asignadas y gestionar tu perfil personal. Te guiaremos por las funciones específicas para tu rol, incluyendo cómo revisar tu programación diaria, consultar detalles de rutas y mantener tu información actualizada.'
+          description: 'Como Conductor, podrás ver tus horarios, rutas asignadas y gestionar tu perfil personal. Te guiaremos por las funciones específicas para tu rol.'
         }
       };
 
       return translations[userRole] || {
         title: '¡Bienvenido a TransSync!',
-        description: 'Te guiaremos por las funcionalidades disponibles en tu cuenta. Comenzaremos explorando las opciones principales del sistema para que puedas aprovechar al máximo todas las herramientas disponibles.'
+        description: 'Te guiaremos por las funcionalidades disponibles en tu cuenta. Comenzaremos explorando las opciones principales del sistema.'
       };
     };
 
@@ -159,81 +159,77 @@ const Tutorial = () => {
   // Efecto para resaltar elementos del tutorial
   useEffect(() => {
     if (currentStepData?.target && !showWelcome) {
-      // Agregar delay para permitir que los elementos se rendericen completamente
-      const timer = setTimeout(() => {
-        const element = document.querySelector(currentStepData.target);
-        if (element) {
-          // Para el menú de usuario, abrirlo automáticamente si está cerrado
-          if (currentStepData.target === '[data-tutorial="user-menu"]') {
-            const userMenuButton = element;
-            const isMenuOpen = document.querySelector('[data-tutorial="profile-menu-item"]') !== null;
-            if (!isMenuOpen) {
-              // Simular clic para abrir el menú
-              userMenuButton.click();
-              // Esperar un poco para que se renderice el menú
-              setTimeout(() => {
-                const profileItem = document.querySelector('[data-tutorial="profile-menu-item"]');
-                if (profileItem) {
-                  profileItem.classList.add('tutorial-highlight');
-                  setHighlightedElement(profileItem);
-                  setShowArrow(currentStepData.isNavigation || false);
+      const element = document.querySelector(currentStepData.target);
+      if (element) {
+        // Para el menú de usuario, abrirlo automáticamente si está cerrado
+        if (currentStepData.target === '[data-tutorial="user-menu"]') {
+          const userMenuButton = element;
+          const isMenuOpen = document.querySelector('[data-tutorial="profile-menu-item"]') !== null;
+          if (!isMenuOpen) {
+            // Simular clic para abrir el menú
+            userMenuButton.click();
+            // Esperar un poco para que se renderice el menú
+            setTimeout(() => {
+              const profileItem = document.querySelector('[data-tutorial="profile-menu-item"]');
+              if (profileItem) {
+                profileItem.classList.add('tutorial-highlight');
+                setHighlightedElement(profileItem);
+                setShowArrow(currentStepData.isNavigation || false);
 
-                  // Calcular posición de la flecha
-                  const rect = profileItem.getBoundingClientRect();
-                  const arrowTop = rect.top + rect.height / 2 - 16;
-                  const arrowLeft = rect.left - 40;
-                  setArrowPosition({ top: arrowTop, left: arrowLeft });
+                // Calcular posición de la flecha
+                const rect = profileItem.getBoundingClientRect();
+                const arrowTop = rect.top + rect.height / 2 - 16;
+                const arrowLeft = rect.left - 40;
+                setArrowPosition({ top: arrowTop, left: arrowLeft });
 
-                  // Función para manejar clics
-                  const handleElementClick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    nextStep();
-                  };
+                // Función para manejar clics
+                const handleElementClick = (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  nextStep();
+                };
 
-                  profileItem.addEventListener('click', handleElementClick);
+                profileItem.addEventListener('click', handleElementClick);
 
-                  return () => {
-                    profileItem.classList.remove('tutorial-highlight');
-                    profileItem.removeEventListener('click', handleElementClick);
-                    setHighlightedElement(null);
-                    setShowArrow(false);
-                  };
-                }
-              }, 100);
-              return;
-            }
+                return () => {
+                  profileItem.classList.remove('tutorial-highlight');
+                  profileItem.removeEventListener('click', handleElementClick);
+                  setHighlightedElement(null);
+                  setShowArrow(false);
+                };
+              }
+            }, 100);
+            return;
           }
-
-          // Añadir clase de resaltado
-          element.classList.add('tutorial-highlight');
-          setHighlightedElement(element);
-          setShowArrow(currentStepData.isNavigation || false);
-
-          // Calcular posición de la flecha
-          const rect = element.getBoundingClientRect();
-          const arrowTop = rect.top + rect.height / 2 - 16; // Centrar verticalmente
-          const arrowLeft = rect.left - 40; // A la izquierda del elemento
-          setArrowPosition({ top: arrowTop, left: arrowLeft });
-
-          // Función para manejar clics en elementos resaltados
-          const handleElementClick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            nextStep();
-          };
-
-          element.addEventListener('click', handleElementClick);
-
-          return () => {
-            element.classList.remove('tutorial-highlight');
-            element.removeEventListener('click', handleElementClick);
-            setHighlightedElement(null);
-            setShowArrow(false);
-            clearTimeout(timer);
-          };
         }
-      }, 100);
+
+        // Añadir clase de resaltado
+        element.classList.add('tutorial-highlight');
+        setHighlightedElement(element);
+        setShowArrow(currentStepData.isNavigation || false);
+
+        // Calcular posición de la flecha
+        const rect = element.getBoundingClientRect();
+        const arrowTop = rect.top + rect.height / 2 - 16; // Centrar verticalmente
+        const arrowLeft = rect.left - 40; // A la izquierda del elemento
+        setArrowPosition({ top: arrowTop, left: arrowLeft });
+
+        // Función para manejar clics en elementos resaltados
+        const handleElementClick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          nextStep();
+        };
+
+        element.addEventListener('click', handleElementClick);
+
+        return () => {
+          element.classList.remove('tutorial-highlight');
+          element.removeEventListener('click', handleElementClick);
+          setHighlightedElement(null);
+          setShowArrow(false);
+        };
+      }
     }
   }, [currentStepData, showWelcome, nextStep]);
 

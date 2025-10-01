@@ -389,6 +389,96 @@
       "noPermission": "You don't have permission to view this page."
     }
   },
+  "dashboard": {
+    "title": "TransSync Control Panel",
+    "stats": {
+      "busesInService": "Buses in service",
+      "activeDrivers": "Active drivers",
+      "activeRoutes": "Active routes",
+      "tripsInProgress": "Trips in progress",
+      "criticalAlerts": "Critical alerts"
+    },
+    "charts": {
+      "tripFrequency": "Trip Frequency",
+      "routeDistribution": "Distribution by Routes",
+      "periods": {
+        "week": "Week",
+        "month": "Month",
+        "year": "Year"
+      },
+      "periodTooltips": {
+        "week": "Shows data from the last 7 days",
+        "month": "Shows data from the last month",
+        "year": "Shows data from the last year"
+      }
+    },
+    "fleetStatus": {
+      "title": "Fleet Status",
+      "available": "Available",
+      "inRoute": "In route",
+      "maintenance": "In maintenance"
+    },
+    "alerts": {
+      "title": "System Alerts",
+      "active": "active",
+      "noAlerts": "No active alerts",
+      "systemOk": "System working correctly"
+    },
+    "realtime": {
+      "realTime": "Real Time",
+      "hourly": "Every Hour",
+      "connecting": "Connecting...",
+      "disconnected": "Disconnected",
+      "switchToHourly": "Click to switch to hourly updates",
+      "switchToRealtime": "Click to switch to real-time updates"
+    },
+    "controls": {
+      "disableNotifications": "Disable notifications",
+      "enableNotifications": "Enable notifications",
+      "forceUpdate": "Force data update",
+      "clearCache": "Clear dashboard cache",
+      "showPerformance": "Show performance metrics"
+    },
+    "performance": {
+      "title": "Performance Metrics",
+      "connectionStatus": "Connection Status",
+      "systemPerformance": "System Performance",
+      "updates": "Updates",
+      "cache": "Cache",
+      "notifications": "Notifications",
+      "systemInfo": "System Information",
+      "status": {
+        "connected": "Connected",
+        "connecting": "Connecting...",
+        "disconnected": "Disconnected",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "metrics": {
+        "responseTime": "Response time",
+        "queriesPerSecond": "Queries/second",
+        "cpu": "CPU",
+        "memory": "Memory",
+        "totalUpdates": "Total updates",
+        "lastUpdate": "Last update",
+        "cacheHits": "Hits",
+        "cacheMisses": "Misses",
+        "hitRate": "Hit rate",
+        "sent": "Sent",
+        "pending": "Pending",
+        "errors": "Errors",
+        "uptime": "Uptime",
+        "version": "Version",
+        "environment": "Environment"
+      },
+      "close": "Close"
+    },
+    "errors": {
+      "loadError": "Error loading dashboard",
+      "retry": "Retry",
+      "dataLoadError": "Error loading data. Check your connection."
+    }
+  },
   "drivers": {
     "title": "Driver Management",
     "stats": {
@@ -423,7 +513,7 @@
       "licenseType": "License Type",
       "licenseExpiration": "License Expiration",
       "status": "Status",
-      "assignedVehicle": "Assigned Vehicle",
+      "assignedVehicle": "Assigned Driver",
       "noVehicleAssigned": "No driver assigned",
       "current": "(Current)",
       "documentNumber": "Document Number",
@@ -432,7 +522,7 @@
       "save": "Save",
       "saving": "Saving...",
       "createDriver": "Create",
-      "updateDriver": "Update Driver"
+      "updateDriver": "Update Vehicle"
     },
     "table": {
       "name": "Name",
@@ -798,112 +888,33 @@
       "explore_feature": "Explore this feature"
     }
   },
-  "forgotPassword": {
-    "title": "Forgot Password",
-    "subtitle": "Recover access to your account",
-    "brand": {
-      "description": "Modern transportation management system",
-      "features": {
-        "security": "Secure password recovery",
-        "admin": "Administrator management",
-        "dashboard": "Advanced control panel"
-      }
-    },
-    "form": {
-      "email": "Email",
-      "emailPlaceholder": "Enter your email",
-      "submitButton": "Send Recovery Link",
-      "sending": "Sending...",
-      "backToLogin": "Back to Login",
-      "rememberPassword": "Remember your password?"
-    },
-    "messages": {
-      "emailRequired": "Please enter your email",
-      "emailInvalid": "Please enter a valid email",
-      "success": "A recovery link has been sent to your email!",
-      "error": "Error sending recovery email. Please verify the email is registered.",
-      "checkEmail": "Check your inbox and spam folder"
-    },
-    "theme": {
-      "activateLight": "Activate light mode",
-      "activateDark": "Activate dark mode"
-    }
-  },
-  "resetPassword": {
-    "title": "Reset Password",
-    "subtitle": "Create a new secure password",
-    "brand": {
-      "description": "Modern transportation management system",
-      "features": {
-        "security": "Secure password reset",
-        "admin": "Administrator management",
-        "dashboard": "Advanced control panel"
-      }
-    },
-    "form": {
-      "newPassword": "New Password",
-      "confirmPassword": "Confirm New Password",
-      "newPasswordPlaceholder": "Enter your new password",
-      "confirmPasswordPlaceholder": "Confirm your new password",
-      "submitButton": "Reset Password",
-      "resetting": "Resetting...",
-      "backToLogin": "Back to Login",
-      "rememberPassword": "Remember your password?"
-    },
-    "messages": {
-      "passwordRequired": "Please enter your new password",
-      "passwordInvalid": "Password must be at least 6 characters",
-      "confirmPasswordRequired": "Please confirm your new password",
-      "passwordsNotMatch": "Passwords do not match",
-      "tokenRequired": "Reset token required. Please request a new link.",
-      "success": "Password reset successfully! Redirecting to login...",
-      "error": "Error resetting password. The link may have expired.",
-      "tryAgain": "Please request a new recovery link"
-    },
-    "theme": {
-      "activateLight": "Activate light mode",
-      "activateDark": "Activate dark mode"
-    }
-  },
-  "mobileDownload": {
-    "title": "Download TransSync Mobile",
-    "subtitle": "Install our mobile application to quickly access all TransSync features from your mobile device.",
-    "qrSection": {
-      "title": "Scan this QR code",
-      "description": "QR code for mobile installation"
-    },
-    "instructions": {
-      "title": "How to install the application?",
-      "steps": [
-        {
-          "title": "Open the camera",
-          "description": "On your mobile device, open the camera application"
-        },
-        {
-          "title": "Scan the code",
-          "description": "Point the camera at the QR code that appears above"
-        },
-        {
-          "title": "Install the app",
-          "description": "Tap the banner that appears and select 'Install' or 'Add to Home Screen'"
-        }
-      ]
-    },
-    "features": {
-      "title": "Benefits of the mobile application",
-      "list": [
-        "Quick access from your home screen",
-        "Works without internet connection",
-        "Real-time push notifications",
-        "Mobile-optimized interface",
-        "Automatic updates"
-      ]
-    },
-    "alternative": {
-      "title": "Prefer direct access?",
-      "description": "You can also access directly from your mobile browser",
-      "button": "Open TransSync"
-    },
-    "footer": "TransSync is a progressive web application (PWA) that can be installed on any mobile device"
+  "chatbot": {
+    "title": "TransSync Assistant",
+    "initialMessage": "Hi! I'm the TransSync virtual assistant. I can help you with current information about drivers, vehicles, routes and much more. How can I help you today?",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "verifying": "Verifying...",
+    "typing": "Typing...",
+    "quietMode": "Quiet mode",
+    "quietModeActivated": "Quiet mode activated",
+    "activateQuietMode": "Activate quiet mode",
+    "deactivateQuietMode": "Deactivate quiet mode",
+    "minimize": "Minimize",
+    "expand": "Expand",
+    "close": "Close chat",
+    "openChat": "Open chat assistance",
+    "send": "Send",
+    "placeholder": "Ask me about drivers, vehicles, routes... (Enter to send)",
+    "connectionError": "No server connection. Check your internet and try again.",
+    "retry": "Retry",
+    "notifications": "notification(s) in real time",
+    "viewAll": "View all",
+    "clear": "Clear",
+    "lastNotification": "Last:",
+    "connectedAs": "Connected as",
+    "realTimeNotification": "Real Time Notification",
+    "allNotifications": "All Notifications",
+    "error": "Error",
+    "processingError": "Sorry, there was an error processing your query. Please check your connection and try again."
   }
 }

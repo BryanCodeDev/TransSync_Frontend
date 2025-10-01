@@ -44,18 +44,13 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     if (!token) {
       return null;
     }
-
-    // Obtener datos adicionales del localStorage si no están en el objeto user
-    const userId = user?.id || localStorage.getItem('userId');
-    const empresaId = user?.empresaId || user?.companyId || 'default-company'; // Valor por defecto si no hay empresa
-
     return {
       token,
-      userId: userId || null,
-      empresaId: empresaId || null,
+      userId: user?.id || null,
+      empresaId: user?.empresaId || null,
       rol: userRole || null
     };
-  }, [user?.id, user?.empresaId, user?.companyId, userRole]);
+  }, [user?.id, user?.empresaId, userRole]);
 
   // Memoizar solo los valores que cambian
   const authData = useMemo(() => getAuthData(), [getAuthData]);
@@ -260,21 +255,13 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     setIsUserMenuOpen(false); // Cerrar menú de usuario si está abierto
   };
 
-  // Función para navegar al dashboard con manejo de errores mejorado
+  // Función para navegar al dashboard
   const goToDashboard = () => {
-    try {
-      const userRole = getUserRole();
-      console.log('🔗 Navegando al dashboard, rol del usuario:', userRole);
-
-      if (userRole === "SUPERADMIN" || userRole === "GESTOR") {
-        navigate("/admin/dashboard", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
-    } catch (error) {
-      console.error('❌ Error navegando al dashboard:', error);
-      // Fallback: navegación directa
-      window.location.href = '/dashboard';
+    const userRole = getUserRole();
+    if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
+      navigate("/admin/dashboard", { replace: true });
+    } else {
+      navigate("/dashboard", { replace: true });
     }
   };
 
@@ -420,8 +407,9 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const formatUserRole = (role) => {
     const roles = {
       'SUPERADMIN': 'Super Administrador',
-      'GESTOR': 'Gestor',
-      'CONDUCTOR': 'Conductor'
+      'ADMINISTRADOR': 'Administrador',
+      'USER': 'Usuario',
+      'PENDIENTE': 'Usuario Pendiente'
     };
     return roles[role] || role || 'Usuario';
   };
@@ -430,10 +418,12 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return 'from-purple-500 to-purple-700';
-      case 'GESTOR':
+      case 'ADMINISTRADOR':
         return 'from-[#3949ab] to-[#1a237e]';
-      case 'CONDUCTOR':
+      case 'USER':
         return 'from-[#283593] to-[#1a237e]';
+      case 'PENDIENTE':
+        return 'from-yellow-500 to-orange-600';
       default:
         return 'from-[#3949ab] to-[#283593]';
     }
@@ -443,10 +433,8 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return <FaUserShield size={14} className="text-white" />;
-      case 'GESTOR':
+      case 'ADMINISTRADOR':
         return <FaCogs size={14} className="text-white" />;
-      case 'CONDUCTOR':
-        return <FaUser size={14} className="text-white" />;
       default:
         return <FaUser size={14} className="text-white" />;
     }
@@ -456,10 +444,12 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'GESTOR':
+      case 'ADMINISTRADOR':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'CONDUCTOR':
+      case 'USER':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'PENDIENTE':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }

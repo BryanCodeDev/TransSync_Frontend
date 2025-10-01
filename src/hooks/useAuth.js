@@ -18,8 +18,8 @@ export const useAuth = () => {
     try {
       setError(null);
 
-      // Validar y limpiar datos de autenticación primero
-      const isValidAuth = authAPI.validateAndCleanAuthData();
+      // Limpiar datos corruptos primero
+      clearCorruptedData();
 
       const authenticated = isAuthenticated();
 

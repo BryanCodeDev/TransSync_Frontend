@@ -1,5 +1,5 @@
 // src/App.jsx
-import { useAuth } from './hooks/useAuth';
+
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
@@ -11,6 +11,7 @@ import { UserProvider } from './context/UserContext';
 // Componentes principales (no lazy para mejor UX)
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
+import ChatBot from "./components/ChatBot";
 import Tutorial from "./components/Tutorial";
 import "./i18n";
 
@@ -54,22 +55,10 @@ const useSidebar = () => {
   return { sidebarOpen, isMobile, toggleSidebar, closeSidebar };
 };
 
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { authData } = useAuth();
-  const userRole = authData?.user?.role || authData?.user?.rol;
-    // 1. Verifica si el usuario está autenticado
+const ProtectedRoute = ({ children }) => {
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
-
-   // 2. Verifica si el rol del usuario está en la lista de roles permitidos
-  // Si la ruta tiene 'allowedRoles' y el rol del usuario no está incluido, lo redirige.
-  if (allowedRoles && !allowedRoles.includes(userRole)) {
-    // Redirige al dashboard principal si no tiene permiso
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  // Si pasa ambas verificaciones, muestra el contenido de la ruta
   return children;
 };
 
@@ -95,6 +84,7 @@ const ProtectedLayout = ({ children }) => {
             {children}
         </div>
       </main>
+      <ChatBot className="fixed bottom-6 right-6 z-50" data-tutorial="chatbot" />
       <Tutorial />
     </div>
   );
@@ -142,14 +132,14 @@ function App() {
               <Route path="/mobile-download" element={<PublicLayout><MobileDownload /></PublicLayout>} />
 
               {/* Rutas protegidas usando tu ProtectedLayout y ProtectedRoute */}
-              <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['superadmin', 'gestor', 'conductor']}><ProtectedLayout><Dashboard /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><ProtectedLayout><AdminDashboard /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/drivers" element={<ProtectedRoute allowedRoles={['superadmin', 'gestor']}><ProtectedLayout><Drivers /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/rutas" element={<ProtectedRoute allowedRoles={['superadmin', 'gestor']}><ProtectedLayout><Rutas /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/vehiculos" element={<ProtectedRoute allowedRoles={['superadmin', 'gestor']}><ProtectedLayout><Vehiculos /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/horarios" element={<ProtectedRoute allowedRoles={['superadmin', 'gestor']}><ProtectedLayout><Horarios /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/informes" element={<ProtectedRoute allowedRoles={['superadmin', 'gestor']}><ProtectedLayout><Informes /></ProtectedLayout></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute allowedRoles={['superadmin', 'gestor', 'conductor']}><ProtectedLayout><Profile /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><ProtectedLayout><Dashboard /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/admin/dashboard" element={<ProtectedRoute><ProtectedLayout><AdminDashboard /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/drivers" element={<ProtectedRoute><ProtectedLayout><Drivers /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/rutas" element={<ProtectedRoute><ProtectedLayout><Rutas /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/vehiculos" element={<ProtectedRoute><ProtectedLayout><Vehiculos /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/horarios" element={<ProtectedRoute><ProtectedLayout><Horarios /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/informes" element={<ProtectedRoute><ProtectedLayout><Informes /></ProtectedLayout></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProtectedLayout><Profile /></ProtectedLayout></ProtectedRoute>} />
 
               {/* Catch-all */}
               <Route path="*" element={<Navigate to="/home" replace />} />

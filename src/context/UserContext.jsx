@@ -216,8 +216,8 @@ export const UserProvider = ({ children }) => {
   // Cambiar idioma del usuario
   const changeLanguage = useCallback(async (language) => {
     try {
-      // Cambiar idioma en i18n (no es async, pero lo mantenemos para consistencia)
-      i18n.changeLanguage(language);
+      // Cambiar idioma en i18n
+      await i18n.changeLanguage(language);
 
       // Actualizar preferencias locales inmediatamente
       setUserPreferences(prev => ({

@@ -7,7 +7,7 @@
 
 > **Sistema integral de gestión y optimización del transporte público moderno con IA integrada**
 
-TransSync es una plataforma integral diseñada para empresas de transporte que combina gestión operativa avanzada con inteligencia artificial, proporcionando una experiencia de usuario excepcional y eficiencia operativa máxima.
+TransSync es una plataforma integral diseñada para empresas de transporte que combina gestión operativa avanzada con un **chatbot inteligente** impulsado por IA, proporcionando una experiencia de usuario excepcional y eficiencia operativa máxima.
 
 ## 📋 Tabla de Contenidos
 
@@ -38,7 +38,9 @@ TransSync es una plataforma integral diseñada para empresas de transporte que c
 ## ✨ Características Principales
 
 ### 🤖 **Inteligencia Artificial**
-- **Procesamiento Inteligente** - Análisis avanzado de datos
+- **Chatbot Inteligente** - Procesamiento de lenguaje natural avanzado
+- **Memoria Conversacional** - Recuerda contexto y preferencias del usuario
+- **Respuestas Inteligentes** - Genera consultas SQL automáticamente
 - **Sistema de Cache** - Optimización automática de rendimiento
 - **Analytics Avanzados** - Métricas detalladas de uso y rendimiento
 

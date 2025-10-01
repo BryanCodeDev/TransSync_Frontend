@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import QRCodeLib from 'qrcode';
 
-const QRCode = ({ url, size = 256, className = '', onGenerated }) => {
+const QRCode = ({ url, size = 256, className = '' }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -13,15 +13,11 @@ const QRCode = ({ url, size = 256, className = '', onGenerated }) => {
           dark: '#1a237e',  // Color primario de TransSync
           light: '#FFFFFF'
         }
-      }).then(() => {
-        if (onGenerated) {
-          onGenerated();
-        }
       }).catch(err => {
         console.error('Error generando código QR:', err);
       });
     }
-  }, [url, size, onGenerated]);
+  }, [url, size]);
 
   return (
     <div className={`inline-block ${className}`}>

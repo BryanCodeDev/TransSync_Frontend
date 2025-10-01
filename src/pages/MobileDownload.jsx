@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Smartphone, CheckCircle, Globe, Download } from 'lucide-react';
+import QRCode from '../components/QRCode';
+import { Smartphone, Download, CheckCircle, Globe, X } from 'lucide-react';
 
 const MobileDownload = () => {
-  const { t } = useTranslation();
-  const [isMobile, setIsMobile] = useState(false);
+  const appUrl = 'https://transync1.netlify.app/home';
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     // Detectar si es dispositivo móvil
@@ -17,37 +18,11 @@ const MobileDownload = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
-    // Verificar si el navegador soporta instalación PWA
-    const checkInstallSupport = () => {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isAndroid = /Android/.test(navigator.userAgent);
-      const isChrome = /Chrome/.test(navigator.userAgent);
-
-      // Si ya está instalado como PWA
-      if (isStandalone) {
-        return;
-      }
-
-      // Si es iOS, siempre mostrar opción (aunque no use beforeinstallprompt)
-      if (isIOS) {
-        return;
-      }
-
-      // Para otros navegadores que soporten beforeinstallprompt
-      if (isAndroid && isChrome) {
-        // Se activará cuando llegue el evento
-      } else {
-        // No mostrar botón para navegadores no soportados
-      }
-    };
-
-    checkInstallSupport();
-
     // Escuchar el evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      setShowInstallButton(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -59,46 +34,34 @@ const MobileDownload = () => {
   }, []);
 
   const handleInstallClick = async () => {
-    // Detectar si es iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-
-    if (isStandalone) {
-      alert('La aplicación ya está instalada');
-      return;
-    }
-
-    if (isIOS) {
-      // Para iOS, mostrar instrucciones específicas
-      alert('Para instalar en iOS: Toca el botón de compartir y selecciona "Agregar a pantalla de inicio"');
-      return;
-    }
-
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         setDeferredPrompt(null);
+        setShowInstallButton(false);
       }
-    } else {
-      alert('La instalación no está disponible en este navegador. Prueba con Chrome o Edge en Android.');
     }
+  };
+
+  const handleCloseInstallButton = () => {
+    setShowInstallButton(false);
   };
   const instructions = [
     {
       icon: <Smartphone className="w-6 h-6" />,
-      title: t('mobileDownload.instructions.steps.0.title'),
-      description: t('mobileDownload.instructions.steps.0.description')
+      title: "Abre la cámara",
+      description: "En tu dispositivo móvil, abre la aplicación de cámara"
     },
     {
       icon: <Globe className="w-6 h-6" />,
-      title: t('mobileDownload.instructions.steps.1.title'),
-      description: t('mobileDownload.instructions.steps.1.description')
+      title: "Escanea el código",
+      description: "Apunta la cámara hacia el código QR que aparece arriba"
     },
     {
       icon: <Download className="w-6 h-6" />,
-      title: t('mobileDownload.instructions.steps.2.title'),
-      description: t('mobileDownload.instructions.steps.2.description')
+      title: "Instala la app",
+      description: "Toca el banner que aparece y selecciona 'Instalar' o 'Agregar a pantalla de inicio'"
     }
   ];
 
@@ -108,41 +71,44 @@ const MobileDownload = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            📱 {t('mobileDownload.title')}
+            📱 Descarga TransSync Móvil
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            {t('mobileDownload.subtitle')}
+            Instala nuestra aplicación móvil para acceder rápidamente a todas las funciones de TransSync desde tu dispositivo móvil.
           </p>
         </div>
 
         {/* Main Content */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
           <div className={`grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'} gap-8 items-center`}>
-            {/* Botón de Instalación */}
+            {/* QR Code Section */}
             <div className="text-center">
               <div className="mb-6">
                 <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                  {t('mobileDownload.instructions.title')}
+                  Escanea este código QR
                 </h2>
-                <div className="mb-6">
-                  <button
-                    onClick={handleInstallClick}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-lg flex items-center gap-2 mx-auto transition-all duration-200 hover:scale-105"
-                  >
-                    <Download className="w-6 h-6" />
-                    {t('mobileDownload.instructions.steps.2.title')}
-                  </button>
+                <div className="flex justify-center">
+                  <QRCode
+                    url={appUrl}
+                    size={isMobile ? 180 : 200}
+                    className="mb-4"
+                  />
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  {t('mobileDownload.subtitle')}
+                  Código QR para instalación móvil
                 </p>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                  <p className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
+                    {appUrl}
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Instructions Section */}
             <div className="space-y-6">
               <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                {t('mobileDownload.instructions.title')}
+                ¿Cómo instalar la aplicación?
               </h3>
 
               <div className="space-y-4">
@@ -170,57 +136,35 @@ const MobileDownload = () => {
               <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <h4 className="font-semibold text-green-800 dark:text-green-300 mb-3 flex items-center">
                   <CheckCircle className="w-5 h-5 mr-2" />
-                  {t('mobileDownload.features.title')}
+                  Beneficios de la aplicación móvil
                 </h4>
                 <ul className="space-y-2 text-sm text-green-700 dark:text-green-300">
-                  <li>• {t('mobileDownload.features.list.0')}</li>
-                  <li>• {t('mobileDownload.features.list.1')}</li>
-                  <li>• {t('mobileDownload.features.list.2')}</li>
-                  <li>• {t('mobileDownload.features.list.3')}</li>
-                  <li>• {t('mobileDownload.features.list.4')}</li>
+                  <li>• Acceso rápido desde tu pantalla de inicio</li>
+                  <li>• Funciona sin conexión a internet</li>
+                  <li>• Notificaciones push en tiempo real</li>
+                  <li>• Interfaz optimizada para móviles</li>
+                  <li>• Actualizaciones automáticas</li>
                 </ul>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Instrucciones específicas para iOS */}
-        {isMobile && /iPad|iPhone|iPod/.test(navigator.userAgent) && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl shadow-xl p-6 text-center border-2 border-blue-200 dark:border-blue-800">
-            <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-4">
-              📱 iOS Instructions
-            </h3>
-            <p className="text-blue-700 dark:text-blue-300 mb-4">
-              In Safari: Tap the share button <span className="font-bold">⬜</span> and select "Add to Home Screen"
-            </p>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-left">
-              <div className="flex items-center space-x-3 mb-2">
-                <span className="text-2xl">⬜</span>
-                <span className="font-semibold text-gray-800 dark:text-gray-200">Share button</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">📱</span>
-                <span className="font-semibold text-gray-800 dark:text-gray-200">Add to Home Screen</span>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Alternative Download - Solo para desktop */}
         {!isMobile && (
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 text-center">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              {t('mobileDownload.alternative.title')}
+              ¿Prefieres acceso directo?
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              {t('mobileDownload.alternative.description')}
+              También puedes acceder directamente desde tu navegador móvil
             </p>
             <a
-              href="https://transync1.netlify.app/home"
+              href={appUrl}
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Globe className="w-5 h-5 mr-2" />
-              {t('mobileDownload.alternative.button')}
+              Abrir TransSync
             </a>
           </div>
         )}
@@ -228,11 +172,39 @@ const MobileDownload = () => {
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500 dark:text-gray-400">
           <p className="text-sm">
-            {t('mobileDownload.footer')}
+            TransSync es una aplicación web progresiva (PWA) que se puede instalar en cualquier dispositivo móvil
           </p>
         </div>
       </div>
 
+      {/* Botón flotante de instalación para móviles */}
+      {showInstallButton && isMobile && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4 max-w-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                Instalar TransSync
+              </h3>
+              <button
+                onClick={handleCloseInstallButton}
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">
+              Instala la aplicación para acceso rápido desde tu pantalla de inicio
+            </p>
+            <button
+              onClick={handleInstallClick}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-200"
+            >
+              <Download className="w-4 h-4" />
+              Instalar aplicación
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -35,7 +35,6 @@ import {
 import { dashboardAPI } from '../utilidades/dashboardAPI';
 import realTimeService from '../utilidades/realTimeService';
 import { useNotification } from '../utilidades/notificationService';
-import authAPI from '../utilidades/authAPI';
 import DashboardSkeleton from '../components/DashboardSkeleton';
 import BreadcrumbNav from '../components/BreadcrumbNav';
 import Tooltip from '../components/Tooltip';
@@ -159,64 +158,27 @@ const Dashboard = () => {
       setIsLoading(true);
       setError(null);
 
-      // Obtener estadísticas generales con timeout
-      try {
-        const statsResponse = await Promise.race([
-          dashboardAPI.getGeneralStatistics(),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout')), 10000)
-          )
-        ]);
-        if (statsResponse && statsResponse.status === 'success') {
-          setStats(statsResponse.data || statsResponse.estadisticas || {});
-        }
-      } catch (statsError) {
-        console.warn('⚠️ Error obteniendo estadísticas generales:', statsError);
-        // Usar datos por defecto
-        setStats({
-          totalVehiculos: 0,
-          vehiculosDisponibles: 0,
-          vehiculosEnRuta: 0,
-          totalConductores: 0,
-          conductoresActivos: 0,
-          totalRutas: 0,
-          viajesEnCurso: 0
-        });
+      // Obtener estadísticas generales
+      const statsResponse = await dashboardAPI.getGeneralStatistics();
+      if (statsResponse.status === 'success') {
+        setStats(statsResponse.data);
       }
 
-      // Obtener alertas con timeout
-      try {
-        const alertsResponse = await Promise.race([
-          dashboardAPI.getActiveAlerts(),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout')), 5000)
-          )
-        ]);
-        if (alertsResponse && alertsResponse.status === 'success') {
-          setAlerts(alertsResponse.data || alertsResponse.alertas || []);
-        }
-      } catch (alertsError) {
-        console.warn('⚠️ Error obteniendo alertas:', alertsError);
-        setAlerts([]);
+      // Obtener alertas
+      const alertsResponse = await dashboardAPI.getActiveAlerts();
+      if (alertsResponse.status === 'success') {
+        setAlerts(alertsResponse.data || []);
       }
 
-      // Obtener datos de gráficos (no crítico)
-      try {
-        await fetchChartsData();
-      } catch (chartsError) {
-        console.warn('⚠️ Error obteniendo datos de gráficos:', chartsError);
-      }
+      // Obtener datos de gráficos
+      await fetchChartsData();
 
-      // Obtener datos en tiempo real (no crítico)
-      try {
-        await fetchRealTimeData();
-      } catch (realTimeError) {
-        console.warn('⚠️ Error obteniendo datos en tiempo real:', realTimeError);
-      }
+      // Obtener datos en tiempo real
+      await fetchRealTimeData();
 
     } catch (error) {
-      console.error("❌ Error crítico al cargar datos del dashboard:", error);
-      setError("Error al cargar los datos. Algunas funciones pueden no estar disponibles.");
+      console.error("Error al cargar datos del dashboard:", error);
+      setError("Error al cargar los datos. Verifique su conexión.");
     } finally {
       setIsLoading(false);
     }
@@ -232,11 +194,8 @@ const Dashboard = () => {
         // Conectar WebSocket con contexto de usuario
         const userContext = {
           idUsuario: user?.id,
-          userId: user?.id, // Compatibilidad con diferentes formatos
-          idEmpresa: user?.empresaId || user?.idEmpresa || user?.empresa_id,
-          empresaId: user?.empresaId || user?.idEmpresa || user?.empresa_id, // Compatibilidad con diferentes formatos
-          rol: userRole,
-          userRole: userRole // Compatibilidad con diferentes formatos
+          idEmpresa: user?.empresaId,
+          rol: userRole
         };
         realTimeService.connect(userContext);
 
@@ -246,48 +205,6 @@ const Dashboard = () => {
         console.log('✅ Servicios mejorados inicializados en modo horario');
       } catch (error) {
         console.error('❌ Error inicializando servicios mejorados:', error);
-
-        // Si el error está relacionado con el contexto del usuario, intentar recuperar
-        if (error.message && error.message.includes('contexto')) {
-          console.log('🔄 Intentando recuperar contexto del usuario...');
-
-          // Intentar obtener datos del usuario desde la API
-          try {
-            const profileResponse = await authAPI.getProfile();
-            if (profileResponse && profileResponse.user) {
-              const recoveredUser = {
-                id: profileResponse.user.id,
-                name: profileResponse.user.name,
-                email: profileResponse.user.email,
-                role: profileResponse.user.role,
-                empresaId: profileResponse.user.empresaId || profileResponse.user.idEmpresa || profileResponse.user.empresa_id || profileResponse.user.id
-              };
-
-              // Actualizar localStorage con datos recuperados
-              localStorage.setItem('userData', JSON.stringify(recoveredUser));
-              localStorage.setItem('userName', recoveredUser.name || '');
-              localStorage.setItem('userRole', recoveredUser.role || '');
-              localStorage.setItem('userEmail', recoveredUser.email || '');
-              localStorage.setItem('userId', recoveredUser.id || '');
-
-              console.log('✅ Datos del usuario recuperados exitosamente:', recoveredUser);
-
-              // Reintentar conexión con datos recuperados
-              const recoveredContext = {
-                idUsuario: recoveredUser.id,
-                userId: recoveredUser.id,
-                idEmpresa: recoveredUser.empresaId,
-                empresaId: recoveredUser.empresaId,
-                rol: recoveredUser.role,
-                userRole: recoveredUser.role
-              };
-
-              realTimeService.connect(recoveredContext);
-            }
-          } catch (recoveryError) {
-            console.error('❌ Error recuperando datos del usuario:', recoveryError);
-          }
-        }
       }
     };
 
@@ -343,6 +260,7 @@ const Dashboard = () => {
     realTimeService.on('notification:stats_update', handleStatsUpdate);
     realTimeService.on('notification:realtime_update', handleRealtimeUpdate);
     realTimeService.on('notification:alerts_update', handleAlertsUpdate);
+    realTimeService.on('notification:chatbot', handleNotification);
     realTimeService.on('connection:established', handleConnectionStatus);
     realTimeService.on('connection:error', (error) => {
       console.error('❌ Error de conexión:', error);
@@ -355,6 +273,7 @@ const Dashboard = () => {
       realTimeService.off('notification:stats_update', handleStatsUpdate);
       realTimeService.off('notification:realtime_update', handleRealtimeUpdate);
       realTimeService.off('notification:alerts_update', handleAlertsUpdate);
+      realTimeService.off('notification:chatbot', handleNotification);
       realTimeService.off('connection:established', handleConnectionStatus);
       realTimeService.off('connection:error');
     };
@@ -372,21 +291,13 @@ const Dashboard = () => {
 
   const prepareChartData = () => {
     const { viajes, rutas } = chartData;
-
-    // Datos por defecto para viajes
-    const defaultViajesLabels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    const defaultViajesData = [12, 19, 15, 25, 22, 18, 14];
-
-    // Datos por defecto para rutas
-    const defaultRutasLabels = ['Ruta Norte', 'Ruta Sur', 'Ruta Centro', 'Ruta Este', 'Ruta Oeste'];
-    const defaultRutasData = [45, 32, 28, 19, 15];
-
+    
     // Preparar datos de viajes por período
     const viajesData = {
-      labels: viajes.labels || defaultViajesLabels,
+      labels: viajes.labels || [],
       datasets: [{
         label: "Viajes realizados",
-        data: viajes.data?.map(item => item.totalViajes) || defaultViajesData,
+        data: viajes.data?.map(item => item.totalViajes) || [],
         backgroundColor: "rgba(255, 204, 0, 0.5)",
         borderColor: "#FFB800",
         borderWidth: 2,
@@ -396,10 +307,10 @@ const Dashboard = () => {
 
     // Preparar datos de distribución por rutas
     const rutasData = {
-      labels: rutas?.slice(0, 5).map(ruta => ruta.nomRuta) || defaultRutasLabels,
+      labels: rutas?.slice(0, 5).map(ruta => ruta.nomRuta) || [],
       datasets: [{
         label: "Viajes por ruta",
-        data: rutas?.slice(0, 5).map(ruta => ruta.totalViajes) || defaultRutasData,
+        data: rutas?.slice(0, 5).map(ruta => ruta.totalViajes) || [],
         backgroundColor: [
           "rgba(54, 162, 235, 0.7)",
           "rgba(75, 192, 192, 0.7)",
@@ -456,27 +367,15 @@ const Dashboard = () => {
         <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 text-center max-w-md min-w-0">
           <span className="truncate">{error}</span>
         </p>
-        <div className="flex gap-2 sm:gap-3 flex-wrap justify-center">
-          <button
-            onClick={() => {
-              setError(null);
-              fetchDashboardData();
-            }}
-            className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base min-h-[44px] sm:min-h-[48px] flex-shrink-0"
-          >
-            Reintentar
-          </button>
-          <button
-            onClick={() => {
-              setError(null);
-              // Solo recargar datos críticos
-              fetchDashboardData();
-            }}
-            className="bg-gray-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-gray-700 transition-colors text-sm sm:text-base min-h-[44px] sm:min-h-[48px] flex-shrink-0"
-          >
-            Cargar datos básicos
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            setError(null);
+            fetchDashboardData();
+          }}
+          className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base min-h-[44px] sm:min-h-[48px] flex-shrink-0"
+        >
+          Reintentar
+        </button>
       </div>
     );
   }

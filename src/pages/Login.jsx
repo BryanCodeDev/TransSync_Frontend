@@ -150,7 +150,7 @@ const Login = () => {
           }));
           console.log('✅ Login successful, user data verified:', userData);
         } else {
-          console.warn('⚠️ Login response missing user data, attempting recovery:', {
+          console.error('❌ Login response missing user data:', {
             hasToken: !!response.token,
             hasUser: !!response.user,
             hasUserData: !!response.userData,
@@ -158,30 +158,7 @@ const Login = () => {
             hasData: !!response.data,
             fullResponse: response
           });
-
-          // Intentar recuperar datos del usuario desde la API
-          try {
-            const profileResponse = await authAPI.getProfile();
-            if (profileResponse && profileResponse.user) {
-              const recoveredUser = {
-                id: profileResponse.user.id,
-                name: profileResponse.user.name,
-                email: profileResponse.user.email,
-                role: profileResponse.user.role || profileResponse.user.rol || 'CONDUCTOR'
-              };
-
-              // Usar datos recuperados
-              window.dispatchEvent(new CustomEvent('auth:login', {
-                detail: { user: recoveredUser, token: response.token }
-              }));
-              console.log('✅ User data recovered successfully:', recoveredUser);
-            } else {
-              throw new Error('No se pudieron recuperar los datos del usuario');
-            }
-          } catch (recoveryError) {
-            console.error('❌ Error recovering user data:', recoveryError);
-            throw new Error('No se pudieron obtener los datos del usuario después del login');
-          }
+          throw new Error('No user data received after login');
         }
       } else {
         console.error('❌ Login response missing token:', response);
@@ -205,7 +182,7 @@ const Login = () => {
         if (from && from !== '/login' && from !== '/register') {
           navigate(from, { replace: true });
         } else {
-          if (userRole === "SUPERADMIN" || userRole === "GESTOR") {
+          if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
             navigate("/admin/dashboard", { replace: true });
           } else {
             navigate("/dashboard", { replace: true });

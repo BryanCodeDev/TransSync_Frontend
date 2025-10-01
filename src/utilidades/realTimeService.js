@@ -11,7 +11,6 @@ class RealTimeService {
     this.reconnectDelay = 5000; // 5 segundos inicial
     this.maxReconnectDelay = 300000; // 5 minutos máximo
     this.userContext = null;
-    this.currentRooms = null; // Para rastrear salas actuales
 
     // Control de frecuencia de actualizaciones
     this.updateInterval = 60 * 60 * 1000; // 1 hora por defecto
@@ -22,14 +21,10 @@ class RealTimeService {
     // Throttling para eventos
     this.eventThrottleTimers = new Map();
     this.eventThrottleDelay = 5000; // 5 segundos entre eventos del mismo tipo
-
-    // Estado de conexión pendiente
-    this.pendingConnection = false;
-    this.connectionQueue = [];
   }
 
   /**
-   * Conectar al servidor WebSocket con validación mejorada
+   * Conectar al servidor WebSocket
    */
   connect(userContext = null) {
     if (this.socket?.connected) {
@@ -37,43 +32,19 @@ class RealTimeService {
       return;
     }
 
-    // Validar contexto del usuario antes de conectar
-    if (!this.validateUserContext(userContext)) {
-      console.warn('⚠️ Contexto de usuario inválido, esperando datos válidos...');
-      // No conectar hasta tener contexto válido
-      return;
-    }
-
     this.userContext = userContext;
 
     try {
-      // Obtener token de autenticación válido
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        console.warn('⚠️ No se encontró token de autenticación');
-        return;
-      }
-
-      // Conectar al servidor WebSocket con configuración mejorada
+      // Conectar al servidor WebSocket
       this.socket = io(process.env.REACT_APP_WS_URL || process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app', {
         transports: ['websocket', 'polling'],
-        timeout: 15000, // Aumentado a 15 segundos
-        forceNew: false, // Reutilizar conexión si es posible
-        reconnection: true,
-        reconnectionAttempts: this.maxReconnectAttempts,
-        reconnectionDelay: this.reconnectDelay,
-        reconnectionDelayMax: this.maxReconnectDelay,
-        randomizationFactor: 0.5,
+        timeout: 10000, // Aumentado
+        forceNew: true,
         auth: {
-          token: token,
-          userId: userContext.idUsuario || userContext.userId || userContext.id,
-          empresaId: userContext.idEmpresa || userContext.empresaId || userContext.empresa_id || userContext.id,
-          rol: userContext.rol || userContext.userRole || userContext.role || 'CONDUCTOR'
-        },
-        query: {
-          userId: userContext.idUsuario || userContext.userId || userContext.id,
-          empresaId: userContext.idEmpresa || userContext.empresaId || userContext.empresa_id || userContext.id,
-          rol: userContext.rol || userContext.userRole || userContext.role || 'CONDUCTOR'
+          token: localStorage.getItem('authToken'),
+          userId: userContext?.idUsuario,
+          empresaId: userContext?.idEmpresa,
+          rol: userContext?.rol || 'USER'
         }
       });
 
@@ -83,11 +54,7 @@ class RealTimeService {
       // Iniciar en modo horario por defecto (no tiempo real)
       this.setUpdateMode(false, 60); // 60 minutos = 1 hora
 
-      console.log('🔗 Conectando a WebSocket en modo horario...', {
-        userId: userContext.idUsuario || userContext.userId || userContext.id,
-        empresaId: userContext.idEmpresa || userContext.empresaId || userContext.empresa_id || userContext.id,
-        rol: userContext.rol || userContext.userRole || userContext.role || 'CONDUCTOR'
-      });
+      console.log('🔗 Conectando a WebSocket en modo horario...');
 
     } catch (error) {
       console.error('❌ Error conectando a WebSocket:', error);
@@ -102,65 +69,6 @@ class RealTimeService {
     this.eventThrottleDelay = delayMs;
     console.log(`⏱️ Throttling de eventos configurado a ${delayMs}ms`);
   }
-
-  /**
-    * Validar contexto del usuario antes de conectar
-    */
-   validateUserContext(userContext) {
-     if (!userContext) {
-       console.warn('⚠️ Contexto de usuario es null o undefined');
-       return false;
-     }
-
-     // Validar campos requeridos con logging detallado y múltiples formatos
-     const userId = userContext.idUsuario || userContext.userId || userContext.id;
-     const empresaId = userContext.idEmpresa || userContext.empresaId || userContext.empresa_id || userContext.id;
-     const rol = userContext.rol || userContext.userRole || userContext.role || 'CONDUCTOR';
-
-     const hasUserId = !!userId;
-     const hasEmpresaId = !!empresaId;
-
-     console.log('🔍 Validando contexto de usuario:', {
-       idUsuario: userContext.idUsuario,
-       userId: userContext.userId,
-       id: userContext.id,
-       idEmpresa: userContext.idEmpresa,
-       empresaId: userContext.empresaId,
-       empresa_id: userContext.empresa_id,
-       rol: userContext.rol,
-       userRole: userContext.userRole,
-       role: userContext.role,
-       resolvedUserId: userId,
-       resolvedEmpresaId: empresaId,
-       resolvedRol: rol,
-       hasUserId,
-       hasEmpresaId
-     });
-
-     if (!hasUserId || !hasEmpresaId) {
-       console.warn('⚠️ Contexto de usuario incompleto:', {
-         resolvedUserId: userId,
-         resolvedEmpresaId: empresaId,
-         resolvedRol: rol,
-         hasUserId,
-         hasEmpresaId
-       });
-       return false;
-     }
-
-     // Actualizar el contexto con valores resueltos si es necesario
-     if (userContext.idUsuario !== userId || userContext.idEmpresa !== empresaId || userContext.rol !== rol) {
-       userContext.idUsuario = userId;
-       userContext.userId = userId;
-       userContext.idEmpresa = empresaId;
-       userContext.empresaId = empresaId;
-       userContext.rol = rol;
-       userContext.userRole = rol;
-       console.log('✅ Contexto de usuario actualizado con valores resueltos');
-     }
-
-     return true;
-   }
 
   /**
    * Configurar listeners de eventos
@@ -179,16 +87,16 @@ class RealTimeService {
 
       // Notificar conexión exitosa
       this.emit('connection:established', {
-        userId: this.userContext?.idUsuario || this.userContext?.userId || this.userContext?.id,
-        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId || this.userContext?.empresa_id || this.userContext?.id,
+        userId: this.userContext?.idUsuario,
+        empresaId: this.userContext?.idEmpresa,
         timestamp: new Date()
       });
 
       // Emitir evento de dashboard conectado (compatibilidad con socketService)
       this.emit('dashboard:connected', {
         timestamp: new Date().toISOString(),
-        userId: this.userContext?.idUsuario || this.userContext?.userId || this.userContext?.id || null,
-        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId || this.userContext?.empresa_id || this.userContext?.id || null
+        userId: this.userContext?.idUsuario || null,
+        empresaId: this.userContext?.idEmpresa || null
       });
     });
 
@@ -285,6 +193,11 @@ class RealTimeService {
       this.handleSystemStatusChange(data);
     });
 
+    // Notificaciones del chatbot
+    this.socket.on('chatbot:notification', (data) => {
+      console.log('🤖 Notificación del chatbot:', data);
+      this.handleChatbotNotification(data);
+    });
   }
 
   /**
@@ -340,43 +253,28 @@ class RealTimeService {
    * Unirse a salas específicas del usuario
    */
   joinRooms() {
-    if (!this.socket || !this.userContext) {
-      console.warn('⚠️ No se puede unir a salas: socket o userContext inválido');
-      return;
-    }
+    if (!this.socket || !this.userContext) return;
 
-    try {
-      // Abandonar salas anteriores si existían
-      if (this.currentRooms) {
-        this.socket.emit('leave:rooms', this.currentRooms);
-      }
+    // Unirse a sala de empresa
+    this.socket.emit('join:empresa', {
+      empresaId: this.userContext.idEmpresa
+    });
 
-      // Unirse a sala de empresa
-      this.socket.emit('join:empresa', {
-        empresaId: this.userContext.idEmpresa || this.userContext.empresaId || this.userContext.empresa_id || this.userContext.id
-      });
+    // Unirse a sala de usuario
+    this.socket.emit('join:usuario', {
+      userId: this.userContext.idUsuario
+    });
 
-      // Unirse a sala de usuario
-      this.socket.emit('join:usuario', {
-        userId: this.userContext.idUsuario || this.userContext.userId || this.userContext.id
-      });
+    // Unirse a sala de rol
+    this.socket.emit('join:rol', {
+      rol: this.userContext.rol
+    });
 
-      // Unirse a sala de rol
-      this.socket.emit('join:rol', {
-        rol: this.userContext.rol || this.userContext.userRole || this.userContext.role || 'CONDUCTOR'
-      });
-
-      // Actualizar salas actuales
-      this.currentRooms = {
-        empresa: this.userContext.idEmpresa || this.userContext.empresaId || this.userContext.empresa_id || this.userContext.id,
-        usuario: this.userContext.idUsuario || this.userContext.userId || this.userContext.id,
-        rol: this.userContext.rol || this.userContext.userRole || this.userContext.role || 'CONDUCTOR'
-      };
-
-      console.log('🏠 Unido a salas:', this.currentRooms);
-    } catch (error) {
-      console.error('❌ Error uniéndose a salas:', error);
-    }
+    console.log('🏠 Unido a salas:', {
+      empresa: this.userContext.idEmpresa,
+      usuario: this.userContext.idUsuario,
+      rol: this.userContext.rol || 'USER'
+    });
   }
 
   /**
@@ -409,83 +307,39 @@ class RealTimeService {
   }
 
   /**
-   * Manejar errores de conexión con diagnóstico mejorado
+   * Manejar errores de conexión
    */
   handleConnectionError(error) {
     this.isConnected = false;
-    this.pendingConnection = false;
+    console.error('❌ Error de conexión WebSocket:', error);
 
-    // Análisis detallado del error
-    const errorInfo = {
-      message: error.message,
-      type: error.type || 'unknown',
-      code: error.code,
-      target: error.target,
-      timestamp: new Date(),
-      context: this.userContext,
-      reconnectAttempts: this.reconnectAttempts
-    };
+    this.emit('connection:error', {
+      error: error.message,
+      timestamp: new Date()
+    });
 
-    console.error('❌ Error de conexión WebSocket:', errorInfo);
-
-    this.emit('connection:error', errorInfo);
-
-    // Verificar si el error es recuperable
-    const isRecoverableError = this.isRecoverableError(error);
-
-    if (isRecoverableError && this.reconnectAttempts < this.maxReconnectAttempts) {
+    // Intentar reconectar si no se ha alcanzado el límite
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
 
       // Calcular delay con backoff exponencial pero limitado
-      const baseDelay = error.code === 'ECONNABORTED' ? 10000 : this.reconnectDelay;
       const delay = Math.min(
-        baseDelay * Math.pow(1.5, this.reconnectAttempts - 1),
+        this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
         this.maxReconnectDelay
       );
 
       console.log(`🔄 Reintentando conexión en ${delay / 1000} segundos (intento ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
       setTimeout(() => {
-        if (this.userContext) {
-          this.reconnect();
-        } else {
-          console.warn('⚠️ No se puede reconectar: contexto de usuario no disponible');
-        }
+        this.reconnect();
       }, delay);
     } else {
-      console.error('❌ Error no recuperable o máximo número de intentos alcanzado');
+      console.error('❌ Máximo número de intentos de reconexión alcanzado');
       this.emit('connection:failed', {
         attempts: this.reconnectAttempts,
-        error: errorInfo,
-        recoverable: isRecoverableError,
         timestamp: new Date()
       });
     }
-  }
-
-  /**
-   * Determinar si un error es recuperable
-   */
-  isRecoverableError(error) {
-    const recoverableCodes = [
-      'ECONNABORTED',
-      'ECONNREFUSED',
-      'ENOTFOUND',
-      'ETIMEDOUT',
-      'EPIPE',
-      'websocket error'
-    ];
-
-    const recoverableTypes = [
-      'TransportError',
-      'TimeoutError'
-    ];
-
-    return recoverableCodes.includes(error.code) ||
-           recoverableTypes.includes(error.type) ||
-           error.message?.includes('timeout') ||
-           error.message?.includes('connection') ||
-           error.message?.includes('network');
   }
 
   /**
@@ -496,49 +350,6 @@ class RealTimeService {
       console.log('🔄 Intentando reconectar...');
       this.socket.connect();
     }
-  }
-
-  /**
-   * Reconectar con contexto actualizado
-   */
-  reconnectWithContext(userContext) {
-    console.log('🔄 Reconectando con contexto actualizado...');
-
-    // Desconectar socket actual si existe
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-      this.isConnected = false;
-    }
-
-    // Conectar con nuevo contexto
-    this.connect(userContext);
-  }
-
-  /**
-   * Actualizar contexto del usuario y reconectar si es necesario
-   */
-  updateUserContext(userContext) {
-    if (!this.validateUserContext(userContext)) {
-      console.warn('⚠️ Contexto de usuario inválido, no se actualizará');
-      return false;
-    }
-
-    const contextChanged = JSON.stringify(this.userContext) !== JSON.stringify(userContext);
-
-    this.userContext = userContext;
-
-    if (contextChanged && this.isConnected) {
-      console.log('🔄 Contexto de usuario cambiado, reconectando...');
-      this.reconnectWithContext(userContext);
-      return true;
-    } else if (!this.isConnected && !this.pendingConnection) {
-      console.log('🔗 Conectando con nuevo contexto...');
-      this.connect(userContext);
-      return true;
-    }
-
-    return contextChanged;
   }
 
   /**
@@ -611,7 +422,7 @@ class RealTimeService {
     if (this.socket && this.isConnected) {
       this.socket.emit('dashboard:request_update', {
         timestamp: new Date(),
-        userId: this.userContext?.idUsuario || this.userContext?.userId || this.userContext?.id
+        userId: this.userContext?.idUsuario
       });
     }
   }
@@ -830,6 +641,25 @@ class RealTimeService {
     this.emit('notification:system_status', notification);
   }
 
+  /**
+   * Manejar notificaciones del chatbot
+   */
+  handleChatbotNotification(data) {
+    const notification = {
+      type: 'chatbot_notificacion',
+      title: '🤖 Notificación del Chatbot',
+      message: data.message,
+      data: data,
+      timestamp: new Date(),
+      priority: data.priority || 'medium'
+    };
+
+    this.emit('notification:chatbot', notification);
+
+    if (data.showBrowserNotification) {
+      this.showBrowserNotification(notification);
+    }
+  }
 
   /**
    * Mostrar notificación del navegador
@@ -883,8 +713,8 @@ class RealTimeService {
         message,
         data,
         priority,
-        userId: this.userContext?.idUsuario || this.userContext?.userId || this.userContext?.id,
-        empresaId: this.userContext?.idEmpresa || this.userContext?.empresaId || this.userContext?.empresa_id || this.userContext?.id,
+        userId: this.userContext?.idUsuario,
+        empresaId: this.userContext?.idEmpresa,
         timestamp: new Date()
       });
     }
@@ -900,9 +730,9 @@ class RealTimeService {
       lastConnectionTime: this.socket?.connected ? new Date() : null,
       userContext: this.userContext,
       activeRooms: this.userContext ? [
-        `empresa_${this.userContext.idEmpresa || this.userContext.empresaId || this.userContext.empresa_id || this.userContext.id}`,
-        `usuario_${this.userContext.idUsuario || this.userContext.userId || this.userContext.id}`,
-        `rol_${this.userContext.rol || this.userContext.userRole || this.userContext.role || 'CONDUCTOR'}`
+        `empresa_${this.userContext.idEmpresa}`,
+        `usuario_${this.userContext.idUsuario}`,
+        `rol_${this.userContext.rol || 'USER'}`
       ] : []
     };
   }

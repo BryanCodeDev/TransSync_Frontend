@@ -8,6 +8,7 @@ import viajesAPI from '../utilidades/viajesAPI';
 import informesAPI from '../utilidades/informesAPI';
 import emergencyAPI from '../utilidades/emergencyAPI';
 import dashboardAPI from '../utilidades/dashboardAPI';
+import chatbotAPI from '../utilidades/chatbotAPI';
 import { healthCheck, apiUtils } from './baseAPI';
 
 // Exportación principal con todos los servicios organizados

@@ -11,25 +11,11 @@ const API_BASE_URL = process.env.REACT_APP_API_URL ||
     ? "http://localhost:3001"
     : "https://transyncbackend-production.up.railway.app");
 
-const REQUEST_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT) || 25000; // Optimizado a 25 segundos
+const REQUEST_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000; // Aumentado a 30 segundos
 
-// Configuración de reintentos optimizada
+// Configuración de reintentos
 const MAX_RETRIES = parseInt(process.env.REACT_APP_MAX_RETRIES) || 3;
-const RETRY_DELAY = parseInt(process.env.REACT_APP_RETRY_DELAY) || 1500; // Aumentado para mejor estabilidad
-
-// Configuración específica por tipo de endpoint
-const ENDPOINT_CONFIG = {
-  realtime: {
-    timeout: 15000,
-    retries: 5,
-    retryDelay: 2000
-  },
-  default: {
-    timeout: REQUEST_TIMEOUT,
-    retries: MAX_RETRIES,
-    retryDelay: RETRY_DELAY
-  }
-};
+const RETRY_DELAY = parseInt(process.env.REACT_APP_RETRY_DELAY) || 1000;
 
 console.log('🚀 BaseAPI initialized with URL:', API_BASE_URL);
 console.log('🔧 Environment:', process.env.NODE_ENV);
@@ -45,11 +31,9 @@ export const apiClient = axios.create({
   },
 });
 
-// Función de reintento con backoff exponencial y configuración específica
-const retryRequest = async (error, endpointType = 'default') => {
+// Función de reintento con backoff exponencial
+const retryRequest = async (error, retries = MAX_RETRIES) => {
   const config = error.config;
-  const endpointConfig = ENDPOINT_CONFIG[endpointType] || ENDPOINT_CONFIG.default;
-  const retries = endpointConfig.retries;
 
   if (!config || !retries) {
     return Promise.reject(error);
@@ -63,21 +47,17 @@ const retryRequest = async (error, endpointType = 'default') => {
 
   config.retryCount += 1;
 
-  // Solo reintentar en errores recuperables
-  const isRecoverableError = error.code === 'ECONNABORTED' ||
-    error.response?.status === 429 ||
-    error.response?.status >= 500 ||
-    (error.response?.status >= 400 && error.response?.status < 500 && error.response?.status !== 401 && error.response?.status !== 403);
-
-  if (!isRecoverableError) {
+  // Solo reintentar en errores de red o servidor
+  if (error.code !== 'ECONNABORTED' &&
+      error.response?.status !== 429 &&
+      error.response?.status !== 401 &&
+      error.response?.status !== 403) {
     return Promise.reject(error);
   }
 
-  // Usar configuración específica del endpoint
-  const baseDelay = endpointConfig.retryDelay;
-  const delay = baseDelay * Math.pow(1.5, config.retryCount - 1);
+  const delay = RETRY_DELAY * Math.pow(2, config.retryCount - 1);
 
-  console.log(`🔄 Reintentando ${endpointType} (${config.retryCount}/${retries}) después de ${delay}ms`);
+  console.log(`🔄 Reintentando solicitud (${config.retryCount}/${retries}) después de ${delay}ms`);
 
   return new Promise(resolve => {
     setTimeout(() => resolve(apiClient(config)), delay);
@@ -138,14 +118,9 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error) => {
-    // Determinar tipo de endpoint para configuración específica
-    const endpointType = error.config?.url?.includes('/realtime/')
-      ? 'realtime'
-      : 'default';
-
     // Intentar reintento antes de manejar el error
     try {
-      return await retryRequest(error, endpointType);
+      return await retryRequest(error);
     } catch (retryError) {
       // Si fallan los reintentos, manejar el error normalmente
       error = retryError;
@@ -212,15 +187,6 @@ apiClient.interceptors.response.use(
       timestamp: new Date().toISOString(),
       endpoint: error.config?.url,
       method: error.config?.method?.toUpperCase(),
-      endpointType: error.config?.url?.includes('/realtime/') ? 'realtime' : 'default',
-      canRetry: error.code === 'ECONNABORTED' ||
-                error.response?.status === 429 ||
-                error.response?.status >= 500 ||
-                (error.response?.status >= 400 && error.response?.status < 500 && error.response?.status !== 401 && error.response?.status !== 403),
-      suggestedAction: error.response?.status === 401 ? 'refresh_token' :
-                      error.response?.status === 403 ? 'check_permissions' :
-                      error.response?.status >= 500 ? 'retry_later' :
-                      error.code === 'ECONNABORTED' ? 'check_connection' : 'unknown'
     };
 
     return Promise.reject(enhancedError);

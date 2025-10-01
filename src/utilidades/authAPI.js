@@ -357,20 +357,9 @@ const authAPI = {
   // Verificar si está autenticado
   isAuthenticated: () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken');
       const isAuth = localStorage.getItem('isAuthenticated');
-      const hasValidToken = token && token.length > 10; // Validar longitud mínima del token
-
-      if (hasValidToken && isAuth === 'true') {
-        return true;
-      } else if (token && isAuth !== 'true') {
-        // Token existe pero estado no está marcado como autenticado
-        console.warn('⚠️ Token encontrado pero estado de autenticación inválido, limpiando...');
-        authAPI.clearAuthData();
-        return false;
-      }
-
-      return false;
+      return !!(token && isAuth === 'true');
     } catch (error) {
       console.error('Error checking authentication:', error);
       return false;
@@ -390,7 +379,7 @@ const authAPI = {
               id: parsed.id || parsed.userId || parsed._id,
               name: parsed.name || parsed.userName || parsed.fullName || 'Usuario',
               email: parsed.email || parsed.userEmail,
-              role: parsed.role || parsed.userRole || parsed.type || 'CONDUCTOR'
+              role: parsed.role || parsed.userRole || parsed.type || 'USER'
             };
           }
         } catch (parseError) {
@@ -409,7 +398,7 @@ const authAPI = {
           id: userId || 'unknown',
           name: userName || 'Usuario',
           email: userEmail || 'user@example.com',
-          role: userRole || 'CONDUCTOR'
+          role: userRole || 'USER'
         };
       }
 
@@ -453,7 +442,7 @@ const authAPI = {
 
   // Verificar si es administrador (mantiene compatibilidad)
   isAdmin: () => {
-    return authAPI.hasRole('SUPERADMIN') || authAPI.hasRole('GESTOR');
+    return authAPI.hasRole('ADMINISTRADOR') || authAPI.hasRole('SUPERADMIN') || authAPI.hasRole('GESTOR');
   },
 
   // ================================
@@ -499,7 +488,7 @@ const authAPI = {
             id: userData.id || userData.userId || userData._id,
             name: userData.name || userData.userName || userData.fullName || userData.displayName,
             email: userData.email || userData.userEmail,
-            role: userData.role || userData.userRole || userData.type || 'CONDUCTOR'
+            role: userData.role || userData.userRole || userData.type || 'USER'
           };
 
           // Validar que al menos tengamos id y email
@@ -518,7 +507,7 @@ const authAPI = {
               id: finalUserData.id || 'unknown',
               name: finalUserData.name || 'Usuario',
               email: finalUserData.email || 'user@example.com',
-              role: finalUserData.role || 'CONDUCTOR'
+              role: finalUserData.role || 'USER'
             };
 
             localStorage.setItem('userData', JSON.stringify(minimalUserData));
@@ -536,7 +525,7 @@ const authAPI = {
             id: 'fallback',
             name: 'Usuario',
             email: 'user@example.com',
-            role: 'CONDUCTOR'
+            role: 'USER'
           };
 
           localStorage.setItem('userData', JSON.stringify(fallbackUserData));
@@ -578,37 +567,7 @@ const authAPI = {
 
   // Obtener token de autorización
   getAuthToken: () => {
-    return localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
-  },
-
-  // Función para validar y limpiar datos de autenticación
-  validateAndCleanAuthData: () => {
-    try {
-      const token = authAPI.getAuthToken();
-      const userData = authAPI.getCurrentUser();
-      const isAuth = localStorage.getItem('isAuthenticated');
-
-      if (token && isAuth === 'true') {
-        if (userData && userData.id && userData.email) {
-          console.log('✅ Datos de autenticación válidos');
-          return true;
-        } else {
-          console.warn('⚠️ Token válido pero datos de usuario incompletos, limpiando...');
-          authAPI.clearAuthData();
-          return false;
-        }
-      } else if (token) {
-        console.warn('⚠️ Token encontrado pero estado de autenticación inválido, limpiando...');
-        authAPI.clearAuthData();
-        return false;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('❌ Error validando datos de autenticación:', error);
-      authAPI.clearAuthData();
-      return false;
-    }
+    return localStorage.getItem('authToken') || localStorage.getItem('userToken');
   },
 
   // ================================
@@ -618,7 +577,7 @@ const authAPI = {
   // Limpiar datos corruptos de localStorage
   clearCorruptedData: () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const userData = localStorage.getItem('userData');
       const isAuth = localStorage.getItem('isAuthenticated');
 
@@ -631,8 +590,8 @@ const authAPI = {
         } else {
           try {
             const parsedUser = JSON.parse(userData);
-            if (!parsedUser || !parsedUser.id || !parsedUser.email) {
-              console.warn('⚠️ User data incomplete or null - clearing corrupted data');
+            if (!parsedUser.id || !parsedUser.email) {
+              console.warn('⚠️ User data incomplete - clearing corrupted data');
               corrupted = true;
             }
           } catch (e) {
@@ -640,9 +599,6 @@ const authAPI = {
             corrupted = true;
           }
         }
-      } else if (token && isAuth !== 'true') {
-        console.warn('⚠️ Token exists but authentication state is invalid - clearing corrupted data');
-        corrupted = true;
       }
 
       if (corrupted) {
@@ -653,9 +609,7 @@ const authAPI = {
       return false;
     } catch (error) {
       console.error('❌ Error checking for corrupted data:', error);
-      // Limpiar todo si hay error crítico
-      authAPI.clearAuthData();
-      return true;
+      return false;
     }
   },
 
