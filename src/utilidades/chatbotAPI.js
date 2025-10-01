@@ -1,6 +1,7 @@
 // src/utilidades/chatbotAPI.js - Servicio para el sistema de chatbot
 import { apiClient, apiUtils } from '../api/baseAPI';
-import conversationMemory from '../utilidades/conversationMemory';
+import conversationMemory from './conversationMemory';
+import queryEngine from './queryEngine';
 
 const chatbotAPI = {
   // ================================
@@ -320,6 +321,14 @@ const chatbotAPI = {
       // Obtener contexto del usuario
       const contextoUsuario = options.contextoUsuario || this.obtenerContextoUsuario();
 
+      // Verificar estado del servicio primero
+      const estadoServicio = await this.verificarEstado();
+
+      // Si estamos en modo offline, proporcionar respuestas básicas
+      if (estadoServicio.mode === 'offline') {
+        return this.generarRespuestaOffline(mensaje, contextoUsuario);
+      }
+
       // Procesar mensaje con el backend
       const response = await this.sendMessage(mensaje, contextoUsuario.idEmpresa, contextoUsuario.idUsuario);
 
@@ -335,8 +344,59 @@ const chatbotAPI = {
 
       return response;
     } catch (error) {
-      throw new Error(apiUtils.formatError(error));
+      // Si hay error de conexión, intentar modo offline
+      console.warn('❌ Error procesando consulta, intentando modo offline:', error.message);
+
+      const contextoUsuario = options.contextoUsuario || this.obtenerContextoUsuario();
+      return this.generarRespuestaOffline(mensaje, contextoUsuario);
     }
+  },
+
+  /**
+   * Generar respuesta básica en modo offline
+   * @param {string} mensaje - Mensaje del usuario
+   * @param {Object} contextoUsuario - Contexto del usuario
+   * @returns {Object} Respuesta offline
+   */
+  generarRespuestaOffline: (mensaje, contextoUsuario) => {
+    const mensajeLower = mensaje.toLowerCase();
+
+    let respuesta = '';
+    let intencion = 'unknown';
+
+    // Respuestas básicas por palabras clave
+    if (mensajeLower.includes('hola') || mensajeLower.includes('buenos') || mensajeLower.includes('saludos')) {
+      respuesta = `¡Hola${contextoUsuario.esUsuarioAutenticado ? ` ${contextoUsuario.nombreUsuario}` : ''}! Soy el asistente de TransSync. Actualmente estoy funcionando en modo básico porque el servidor no está disponible. Puedes preguntarme sobre funcionalidades generales del sistema.`;
+      intencion = 'greeting';
+    } else if (mensajeLower.includes('ayuda') || mensajeLower.includes('que puedes hacer')) {
+      respuesta = '🤖 **Modo Básico - Funcionalidades Disponibles:**\n\n• Información general sobre conductores\n• Consulta de vehículos disponibles\n• Estados del sistema\n• Rutas y horarios\n• Vencimientos y alertas\n\nPara información en tiempo real, el servidor principal debe estar conectado.';
+      intencion = 'help';
+    } else if (mensajeLower.includes('conductor') || mensajeLower.includes('chofer')) {
+      respuesta = '👨‍💼 **Conductores:** Actualmente no puedo acceder a datos específicos de conductores porque el servidor no está disponible. En condiciones normales puedo proporcionarte información sobre conductores activos, licencias próximas a vencer, y asignaciones.';
+      intencion = 'count_driver';
+    } else if (mensajeLower.includes('vehiculo') || mensajeLower.includes('bus') || mensajeLower.includes('auto')) {
+      respuesta = '🚗 **Vehículos:** No puedo consultar información específica de vehículos en este momento. Normalmente puedo mostrarte vehículos disponibles, en mantenimiento, y próximos vencimientos de documentos.';
+      intencion = 'list_vehicle';
+    } else if (mensajeLower.includes('estado') || mensajeLower.includes('situacion')) {
+      respuesta = '📊 **Estado del Sistema:** Actualmente estoy funcionando en modo básico. El servidor principal no está disponible, pero puedo proporcionarte información general sobre las funcionalidades del sistema TransSync.';
+      intencion = 'system_status';
+    } else if (mensajeLower.includes('gracias') || mensajeLower.includes('thank')) {
+      respuesta = '¡De nada! 😊 Estoy aquí para ayudarte. Cuando el servidor principal esté disponible, podré proporcionarte información más detallada y en tiempo real.';
+      intencion = 'farewell';
+    } else {
+      respuesta = `🤔 **Consulta recibida:** "${mensaje}"\n\nActualmente estoy funcionando en modo básico porque el servidor no está disponible. Esta consulta requiere acceso a la base de datos para proporcionarte una respuesta precisa.\n\n**¿Te puedo ayudar con algo más básico como:**\n• Información general del sistema\n• Funcionalidades disponibles\n• Guía de uso del asistente`;
+      intencion = 'unknown';
+    }
+
+    return {
+      respuesta: respuesta,
+      intencion: intencion,
+      confianza: 0.8,
+      tiempoProcesamiento: 50,
+      success: true,
+      mode: 'offline',
+      timestamp: new Date().toISOString()
+    };
   },
 
   /**
@@ -345,35 +405,77 @@ const chatbotAPI = {
    */
   obtenerContextoUsuario: () => {
     try {
-      // Obtener datos del localStorage
-      const userData = localStorage.getItem('userData');
-      const empresaData = localStorage.getItem('empresaData');
+      // Obtener token para verificar autenticación
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
 
-      if (userData && empresaData) {
-        const user = JSON.parse(userData);
-        const empresa = JSON.parse(empresaData);
-
+      if (!token) {
+        // Usuario no autenticado
         return {
-          esUsuarioAutenticado: true,
-          idUsuario: user.idUsuario || user.id,
-          nombreUsuario: user.nombreUsuario || user.nombre || user.name,
-          idEmpresa: empresa.idEmpresa || empresa.id,
-          empresa: empresa.nombreEmpresa || empresa.nombre || empresa.name,
-          rol: user.rol || user.role,
-          permisos: user.permisos || user.permissions || []
+          esUsuarioAutenticado: false,
+          idUsuario: null,
+          nombreUsuario: 'Usuario Anónimo',
+          idEmpresa: 1,
+          empresa: 'TransSync',
+          rol: 'guest',
+          permisos: []
         };
       }
 
-      // Usuario no autenticado
-      return {
-        esUsuarioAutenticado: false,
-        idUsuario: null,
-        nombreUsuario: 'Usuario Anónimo',
-        idEmpresa: 1,
-        empresa: 'TransSync',
-        rol: 'guest',
-        permisos: []
+      // Obtener datos del usuario desde diferentes posibles fuentes
+      const userData = localStorage.getItem('userData');
+      const empresaData = localStorage.getItem('empresaData');
+
+      let user = null;
+      let empresa = null;
+
+      // Parsear datos si existen
+      if (userData) {
+        try {
+          user = JSON.parse(userData);
+        } catch (e) {
+          console.warn('Error parseando userData del localStorage');
+        }
+      }
+
+      if (empresaData) {
+        try {
+          empresa = JSON.parse(empresaData);
+        } catch (e) {
+          console.warn('Error parseando empresaData del localStorage');
+        }
+      }
+
+      // Si no hay datos estructurados, intentar obtener del objeto user del contexto de auth
+      if (!user) {
+        // Intentar obtener datos básicos del localStorage
+        const userId = localStorage.getItem('userId');
+        const userRole = localStorage.getItem('userRole') || localStorage.getItem('userRol');
+
+        if (userId) {
+          user = {
+            id: userId,
+            idUsuario: userId,
+            rol: userRole,
+            role: userRole
+          };
+        }
+      }
+
+      // Construir contexto del usuario
+      const contextoUsuario = {
+        esUsuarioAutenticado: true,
+        idUsuario: user?.idUsuario || user?.id || null,
+        nombreUsuario: user?.nombreUsuario || user?.nombre || user?.name || 'Usuario',
+        idEmpresa: empresa?.idEmpresa || empresa?.id || 'default-company',
+        empresa: empresa?.nombreEmpresa || empresa?.nombre || empresa?.name || 'TransSync',
+        rol: user?.rol || user?.role || 'USER',
+        permisos: user?.permisos || user?.permissions || []
       };
+
+      // Log para debugging
+      console.log('🤖 Contexto de usuario obtenido:', contextoUsuario);
+
+      return contextoUsuario;
     } catch (error) {
       console.error('Error obteniendo contexto del usuario:', error);
       return {
@@ -551,7 +653,7 @@ const chatbotAPI = {
       const response = await apiClient.get('/api/chatbot/health');
       return response.data;
     } catch (error) {
-      // Si falla, intentar con una consulta básica
+      // Si falla el endpoint de health, intentar con una consulta básica
       try {
         await apiClient.get('/api/chatbot/estadisticas?idEmpresa=1&period=dia');
         return {
@@ -560,10 +662,16 @@ const chatbotAPI = {
           timestamp: new Date().toISOString()
         };
       } catch (fallbackError) {
+        // Si ambos endpoints fallan, asumir que el servicio no está disponible
+        // pero no lanzar error para evitar excepciones no manejadas
+        console.warn('⚠️ Servicio de chatbot no disponible:', apiUtils.formatError(fallbackError));
+
+        // En lugar de devolver un estado de error, devolver un estado de "modo offline"
+        // para que el chatbot pueda seguir funcionando con respuestas básicas
         return {
-          success: false,
-          message: 'Servicio no disponible',
-          error: apiUtils.formatError(error),
+          success: true,
+          message: 'Modo offline - respuestas básicas disponibles',
+          mode: 'offline',
           timestamp: new Date().toISOString()
         };
       }

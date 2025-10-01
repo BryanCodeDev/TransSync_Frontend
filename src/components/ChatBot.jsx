@@ -76,38 +76,6 @@ const ChatBot = ({
   const messagesEndRef = useRef(null);
   
   
-  // Verificar conexión con el servicio de chatbot con recuperación automática
-  const verificarConexion = useCallback(async (retryCount = 0) => {
-    const maxRetries = 3;
-    const retryDelay = 2000;
-
-    try {
-      console.log(`🔍 Verificando conexión con chatbot (intento ${retryCount + 1}/${maxRetries + 1})`);
-      const resultado = await chatbotAPI.verificarEstado();
-
-      if (resultado.success) {
-        setConnectionStatus('connected');
-        console.log('✅ Conexión con chatbot verificada');
-        return true;
-      } else {
-        throw new Error('Estado del servicio indica error');
-      }
-    } catch (error) {
-      console.error(`❌ Error verificando conexión:`, error);
-
-      if (retryCount < maxRetries) {
-        console.log(`🔄 Reintentando en ${retryDelay / 1000} segundos...`);
-        setTimeout(() => {
-          verificarConexion(retryCount + 1);
-        }, retryDelay);
-      } else {
-        setConnectionStatus('disconnected');
-        console.error('❌ Falló verificación de conexión después de múltiples intentos');
-        return false;
-      }
-    }
-  }, []);
-
   useEffect(() => {
     // Obtener contexto del usuario al inicializar
     const context = chatbotAPI.obtenerContextoUsuario();
@@ -129,12 +97,15 @@ const ChatBot = ({
         }
       ]);
     }
+  }, [messages.length, initialMessage, t]);
 
-    // Verificar estado del servicio al abrir
+  // Efecto separado para verificar conexión cuando se abre el chat
+  useEffect(() => {
     if (isOpen && connectionStatus === 'unknown') {
+      console.log('🔍 Iniciando verificación de conexión del chatbot...');
       verificarConexion();
     }
-  }, [isOpen, connectionStatus, messages.length, initialMessage, t, verificarConexion]);
+  }, [isOpen, connectionStatus, verificarConexion]);
 
   // Manejar notificaciones en tiempo real
   const handleRealTimeNotification = useCallback((notification) => {
@@ -744,6 +715,7 @@ const ChatBot = ({
             {/* Indicador de conexión */}
             <div className={`w-3 h-3 xs:w-4 xs:h-4 rounded-full flex items-center justify-center ${
               connectionStatus === 'connected' ? 'bg-green-500' :
+              connectionStatus === 'offline' ? 'bg-blue-500' :
               connectionStatus === 'disconnected' ? 'bg-red-500' : 'bg-yellow-500'
             }`}>
               <span className="text-white text-xs font-bold">
@@ -768,6 +740,8 @@ const ChatBot = ({
                   ? '✅ Conectado'
                   : connectionStatus === 'connected'
                   ? '✅ API conectado'
+                  : connectionStatus === 'offline'
+                  ? '🤖 Modo básico'
                   : '⏳ Verificando...'}
               </div>
               {realTimeNotifications.length > 0 && (
@@ -801,11 +775,13 @@ const ChatBot = ({
                 <div className="text-xs opacity-90 flex items-center gap-1">
                   <span className={`w-1.5 h-1.5 xs:w-2 xs:h-2 rounded-full ${
                     connectionStatus === 'connected' ? 'bg-green-300' :
+                    connectionStatus === 'offline' ? 'bg-blue-300' :
                     connectionStatus === 'disconnected' ? 'bg-red-300' : 'bg-yellow-300'
                   }`}></span>
                   <span className="hidden xs:inline">
                     {isTyping ? 'Escribiendo...' :
                      connectionStatus === 'connected' ? 'Conectado' :
+                     connectionStatus === 'offline' ? 'Modo básico' :
                      connectionStatus === 'disconnected' ? 'Sin conexión' : 'Verificando...'}
                   </span>
                   <span className="xs:hidden">
@@ -989,7 +965,7 @@ const ChatBot = ({
                       onKeyPress={handleKeyPress}
                       rows={inputText.split('\n').length || 1}
                       style={{ maxHeight: '120px' }}
-                      disabled={isTyping || connectionStatus === 'disconnected'}
+                      disabled={isTyping}
                     />
                   </div>
                   <Button
@@ -1027,27 +1003,31 @@ const ChatBot = ({
                 )}
 
                 {/* Indicador de estado de conexión mejorado */}
-                {connectionStatus === 'disconnected' && (
+                {(connectionStatus === 'disconnected' || connectionStatus === 'offline') && (
                   <div className={`mt-3 p-2 rounded-lg ${
                     appTheme === "dark" ? 'bg-red-900/50 border border-red-700/50' : 'bg-red-50 border border-red-200'
                   }`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-red-500">⚠️</span>
-                        <span className={`text-sm font-medium ${appTheme === "dark" ? 'text-red-300' : 'text-red-700'}`}>
-                          {t('chatbot.connectionError')}
+                        <span className={`text-sm font-medium ${
+                          connectionStatus === 'offline'
+                            ? (appTheme === "dark" ? 'text-blue-300' : 'text-blue-700')
+                            : (appTheme === "dark" ? 'text-red-300' : 'text-red-700')
+                        }`}>
+                          {connectionStatus === 'offline' ? 'Modo básico activo' : t('chatbot.connectionError')}
                         </span>
                       </div>
                       <div className="flex gap-2">
                         <button
                           onClick={verificarConexion}
                           className={`text-xs px-2 py-1 rounded transition-colors ${
-                            appTheme === "dark"
-                              ? 'bg-red-800 hover:bg-red-700 text-red-200'
-                              : 'bg-red-600 hover:bg-red-700 text-white'
+                            connectionStatus === 'offline'
+                              ? (appTheme === "dark" ? 'bg-blue-800 hover:bg-blue-700 text-blue-200' : 'bg-blue-600 hover:bg-blue-700 text-white')
+                              : (appTheme === "dark" ? 'bg-red-800 hover:bg-red-700 text-red-200' : 'bg-red-600 hover:bg-red-700 text-white')
                           }`}
                         >
-                          {t('chatbot.retry')}
+                          {connectionStatus === 'offline' ? '🔄 Verificar servidor' : t('chatbot.retry')}
                         </button>
                         <button
                           onClick={recuperarConexion}
@@ -1061,8 +1041,14 @@ const ChatBot = ({
                         </button>
                       </div>
                     </div>
-                    <div className={`text-xs ${appTheme === "dark" ? 'text-red-400' : 'text-red-600'}`}>
-                      {t('chatbot.connectionHelp')}
+                    <div className={`text-xs ${
+                      connectionStatus === 'offline'
+                        ? (appTheme === "dark" ? 'text-blue-400' : 'text-blue-600')
+                        : (appTheme === "dark" ? 'text-red-400' : 'text-red-600')
+                    }`}>
+                      {connectionStatus === 'offline'
+                        ? 'El chatbot está funcionando en modo básico con respuestas generales. Para información específica, el servidor debe estar disponible.'
+                        : t('chatbot.connectionHelp')}
                     </div>
                   </div>
                 )}
