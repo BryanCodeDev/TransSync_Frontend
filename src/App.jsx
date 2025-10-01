@@ -55,8 +55,8 @@ const useSidebar = () => {
 };
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { authData } = useAuth(); 
-  const userRole = authData?.user?.rol;
+  const { authData } = useAuth();
+  const userRole = authData?.user?.role || authData?.user?.rol;
     // 1. Verifica si el usuario está autenticado
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;

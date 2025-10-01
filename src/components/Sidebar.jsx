@@ -103,6 +103,19 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     }
   };
 
+  // Función mejorada para navegación segura
+  const handleNavigation = (path) => {
+    try {
+      console.log('🔗 Navegando a:', path);
+      navigate(path);
+      handleLinkClick();
+    } catch (error) {
+      console.error('❌ Error en navegación:', error);
+      // Fallback: intentar navegación directa
+      window.location.href = path;
+    }
+  };
+
   const formatUserRole = (role) => {
     const roles = {
       'SUPERADMIN': 'Super Administrador',
@@ -371,7 +384,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
                             : "text-white/90 hover:bg-white/10 hover:text-white"}
                         ${(isOpen || (!isMobile && !isTablet)) ? 'p-2 sm:p-3 justify-start' : 'p-2 sm:p-3 justify-center'}
                       `}
-                      onClick={handleLinkClick}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation(path);
+                      }}
                     >
                       <div className={`flex items-center justify-center text-base sm:text-lg ${(isOpen || (!isMobile && !isTablet)) ? 'w-5 sm:w-6 mr-3 sm:mr-4' : 'w-5 sm:w-6'} ${isActive ? (theme === "dark" ? "text-gray-200" : "text-blue-200") : ""}`}>
                         {icon}

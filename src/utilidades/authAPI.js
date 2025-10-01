@@ -357,9 +357,20 @@ const authAPI = {
   // Verificar si está autenticado
   isAuthenticated: () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
       const isAuth = localStorage.getItem('isAuthenticated');
-      return !!(token && isAuth === 'true');
+      const hasValidToken = token && token.length > 10; // Validar longitud mínima del token
+
+      if (hasValidToken && isAuth === 'true') {
+        return true;
+      } else if (token && isAuth !== 'true') {
+        // Token existe pero estado no está marcado como autenticado
+        console.warn('⚠️ Token encontrado pero estado de autenticación inválido, limpiando...');
+        authAPI.clearAuthData();
+        return false;
+      }
+
+      return false;
     } catch (error) {
       console.error('Error checking authentication:', error);
       return false;
@@ -567,7 +578,37 @@ const authAPI = {
 
   // Obtener token de autorización
   getAuthToken: () => {
-    return localStorage.getItem('authToken') || localStorage.getItem('userToken');
+    return localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+  },
+
+  // Función para validar y limpiar datos de autenticación
+  validateAndCleanAuthData: () => {
+    try {
+      const token = authAPI.getAuthToken();
+      const userData = authAPI.getCurrentUser();
+      const isAuth = localStorage.getItem('isAuthenticated');
+
+      if (token && isAuth === 'true') {
+        if (userData && userData.id && userData.email) {
+          console.log('✅ Datos de autenticación válidos');
+          return true;
+        } else {
+          console.warn('⚠️ Token válido pero datos de usuario incompletos, limpiando...');
+          authAPI.clearAuthData();
+          return false;
+        }
+      } else if (token) {
+        console.warn('⚠️ Token encontrado pero estado de autenticación inválido, limpiando...');
+        authAPI.clearAuthData();
+        return false;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('❌ Error validando datos de autenticación:', error);
+      authAPI.clearAuthData();
+      return false;
+    }
   },
 
   // ================================
@@ -577,7 +618,7 @@ const authAPI = {
   // Limpiar datos corruptos de localStorage
   clearCorruptedData: () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
       const userData = localStorage.getItem('userData');
       const isAuth = localStorage.getItem('isAuthenticated');
 
@@ -590,8 +631,8 @@ const authAPI = {
         } else {
           try {
             const parsedUser = JSON.parse(userData);
-            if (!parsedUser.id || !parsedUser.email) {
-              console.warn('⚠️ User data incomplete - clearing corrupted data');
+            if (!parsedUser || !parsedUser.id || !parsedUser.email) {
+              console.warn('⚠️ User data incomplete or null - clearing corrupted data');
               corrupted = true;
             }
           } catch (e) {
@@ -599,6 +640,9 @@ const authAPI = {
             corrupted = true;
           }
         }
+      } else if (token && isAuth !== 'true') {
+        console.warn('⚠️ Token exists but authentication state is invalid - clearing corrupted data');
+        corrupted = true;
       }
 
       if (corrupted) {
@@ -609,7 +653,9 @@ const authAPI = {
       return false;
     } catch (error) {
       console.error('❌ Error checking for corrupted data:', error);
-      return false;
+      // Limpiar todo si hay error crítico
+      authAPI.clearAuthData();
+      return true;
     }
   },
 

@@ -522,7 +522,7 @@
       "save": "Guardar",
       "saving": "Guardando...",
       "createDriver": "Crear",
-      "updateDriver": "Actualizar Vehículo"
+      "updateDriver": "Actualizar Conductor"
     },
     "table": {
       "name": "Nombre",
@@ -547,7 +547,7 @@
       "loadingDrivers": "Cargando conductores...",
       "noDrivers": "No se encontraron conductores",
       "tryOtherTerms": "Intenta con otros términos de búsqueda",
-      "confirmDelete": "¿Eliminar a",
+      "confirmDelete": "¿Eliminar a este conductor?",
       "deleteWarning": "Esta acción no se puede deshacer.",
       "delete": "Eliminar",
       "cancel": "Cancelar",

@@ -260,13 +260,21 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     setIsUserMenuOpen(false); // Cerrar menú de usuario si está abierto
   };
 
-  // Función para navegar al dashboard
+  // Función para navegar al dashboard con manejo de errores mejorado
   const goToDashboard = () => {
-    const userRole = getUserRole();
-    if (userRole === "SUPERADMIN" || userRole === "GESTOR") {
-      navigate("/admin/dashboard", { replace: true });
-    } else {
-      navigate("/dashboard", { replace: true });
+    try {
+      const userRole = getUserRole();
+      console.log('🔗 Navegando al dashboard, rol del usuario:', userRole);
+
+      if (userRole === "SUPERADMIN" || userRole === "GESTOR") {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    } catch (error) {
+      console.error('❌ Error navegando al dashboard:', error);
+      // Fallback: navegación directa
+      window.location.href = '/dashboard';
     }
   };
 
