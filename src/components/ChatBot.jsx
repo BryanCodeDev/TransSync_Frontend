@@ -86,7 +86,7 @@ const ChatBot = ({
     if (messages.length === 0) {
       const mensajeInicial = context.esUsuarioAutenticado
         ? `Hola ${context.nombreUsuario}! Soy el asistente de ${context.empresa}. Tengo acceso a datos actuales del sistema y puedo ayudarte con información sobre conductores, vehículos, rutas, horarios y más. ¿Qué necesitas consultar?`
-        : t('chatbot.initialMessage');
+        : '🔐 **Asistente TransSync**\n\nHola! Soy el asistente virtual de TransSync. Para acceder a información del sistema y hacer consultas inteligentes, necesitas iniciar sesión.\n\nUna vez autenticado podrás:\n• Consultar conductores activos\n• Ver vehículos disponibles\n• Revisar rutas y horarios\n• Recibir alertas de vencimientos\n• Acceder al dashboard del sistema';
 
       setMessages([
         {
@@ -454,6 +454,20 @@ const ChatBot = ({
   const handleSendMessage = async () => {
     if (inputText.trim() === '' || isTyping) return;
 
+    // Verificar autenticación antes de procesar
+    if (!userContext?.esUsuarioAutenticado) {
+      const errorMessage = {
+        id: Date.now(),
+        text: '🔐 **Autenticación requerida**\n\nPara usar el asistente inteligente necesitas iniciar sesión. Por favor, accede a tu cuenta para consultar información del sistema.',
+        sender: 'bot',
+        timestamp: new Date(),
+        isError: true
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setInputText('');
+      return;
+    }
+
     // Validar mensaje
     const validacion = chatbotAPI.validarMensaje(inputText);
     if (!validacion.esValido) {
@@ -561,7 +575,7 @@ const ChatBot = ({
   };
 
   const handleSuggestionClick = (sugerencia) => {
-    if (isTyping || connectionStatus !== 'connected') return;
+    if (isTyping || connectionStatus !== 'connected' || !userContext?.esUsuarioAutenticado) return;
     setInputText(sugerencia.texto);
     setTimeout(() => handleSendMessage(), 100);
   };
@@ -671,6 +685,10 @@ const ChatBot = ({
 
   // Obtener sugerencias inteligentes
   const obtenerSugerenciasInteligentes = () => {
+    if (!userContext?.esUsuarioAutenticado) {
+      return []; // No mostrar sugerencias si no está autenticado
+    }
+
     if (!userContext?.idUsuario) {
       return chatbotAPI.obtenerSugerencias().slice(0, 4);
     }
@@ -982,20 +1000,20 @@ const ChatBot = ({
                         ${appTheme === "dark" ? 'placeholder-gray-500' : 'placeholder-gray-400'}
                         ${currentTheme.input}
                       `}
-                      placeholder={t('chatbot.placeholder')}
+                      placeholder={userContext?.esUsuarioAutenticado ? t('chatbot.placeholder') : 'Inicia sesión para usar el asistente...'}
                       value={inputText}
                       onChange={handleInputChange}
                       onKeyPress={handleKeyPress}
                       rows={inputText.split('\n').length || 1}
                       style={{ maxHeight: '120px' }}
-                      disabled={isTyping || connectionStatus !== 'connected'}
+                      disabled={isTyping || connectionStatus !== 'connected' || !userContext?.esUsuarioAutenticado}
                     />
                   </div>
                   <Button
                     variant="primary"
                     size="medium"
                     onClick={handleSendMessage}
-                    disabled={!inputText.trim() || isTyping || connectionStatus !== 'connected'}
+                    disabled={!inputText.trim() || isTyping || connectionStatus !== 'connected' || !userContext?.esUsuarioAutenticado}
                     className="px-2 xs:px-3 sm:px-4 py-2 xs:py-2.5 sm:py-3 rounded-xl font-semibold shadow-sm hover:shadow-md transition-all duration-200 min-h-[44px] xs:min-h-[44px] sm:min-h-[44px]"
                     dark={appTheme === "dark"}
                   >
@@ -1005,7 +1023,7 @@ const ChatBot = ({
                 </div>
                 
                 {/* Sugerencias dinámicas */}
-                {!isTyping && messages.length > 1 && (
+                {!isTyping && messages.length > 1 && userContext?.esUsuarioAutenticado && (
                   <div className="flex flex-wrap gap-1 xs:gap-2 mt-2 xs:mt-3">
                     {sugerencias.map((sugerencia, index) => (
                       <button
@@ -1085,7 +1103,7 @@ const ChatBot = ({
                   </div>
                 )}
 
-                {/* Información del usuario (opcional) */}
+                {/* Información del usuario (solo si está autenticado) */}
                 {userContext && userContext.esUsuarioAutenticado && (
                   <div className={`mt-2 text-xs text-center ${
                     appTheme === "dark" ? 'text-gray-400' : 'text-gray-600'
