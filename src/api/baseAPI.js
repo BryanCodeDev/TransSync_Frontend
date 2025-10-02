@@ -29,6 +29,8 @@ export const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  // Configuración adicional para CORS
+  withCredentials: false, // Cambiar a true si necesitas enviar cookies
 });
 
 // Función de reintento con backoff exponencial

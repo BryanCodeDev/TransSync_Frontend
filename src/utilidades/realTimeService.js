@@ -38,13 +38,22 @@ class RealTimeService {
       // Conectar al servidor WebSocket
       this.socket = io(process.env.REACT_APP_WS_URL || process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app', {
         transports: ['websocket', 'polling'],
-        timeout: 10000, // Aumentado
+        timeout: 20000, // Aumentado para mejor conexión
         forceNew: true,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
         auth: {
-          token: localStorage.getItem('authToken'),
+          token: localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token'),
           userId: userContext?.idUsuario,
           empresaId: userContext?.idEmpresa,
           rol: userContext?.rol || 'USER'
+        },
+        // Headers adicionales para CORS
+        extraHeaders: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': 'true'
         }
       });
 
@@ -807,18 +816,21 @@ class RealTimeService {
    */
   async getServiceStats() {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app'}/api/realtime/stats`, {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app'}/api/realtime/estadisticas`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        mode: 'cors'
       });
 
       if (response.ok) {
         return await response.json();
       } else {
-        throw new Error('Error al obtener estadísticas');
+        throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error('❌ Error obteniendo estadísticas:', error);
@@ -831,18 +843,21 @@ class RealTimeService {
    */
   async getConnectedClients() {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app'}/api/realtime/clients`, {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app'}/api/realtime/clientes`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        mode: 'cors'
       });
 
       if (response.ok) {
         return await response.json();
       } else {
-        throw new Error('Error al obtener clientes conectados');
+        throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error('❌ Error obteniendo clientes conectados:', error);
@@ -855,13 +870,15 @@ class RealTimeService {
    */
   async sendNotificationViaAPI(targetType, targetId, event, data, priority = 'medium') {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app'}/api/realtime/notifications`, {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app'}/api/realtime/notificaciones`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
+        mode: 'cors',
         body: JSON.stringify({
           targetType,
           targetId,
@@ -874,7 +891,7 @@ class RealTimeService {
       if (response.ok) {
         return await response.json();
       } else {
-        throw new Error('Error al enviar notificación');
+        throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error('❌ Error enviando notificación via API:', error);
@@ -887,18 +904,21 @@ class RealTimeService {
    */
   async getPerformanceMetrics() {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app'}/api/realtime/metrics`, {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('userToken') || localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app'}/api/realtime/metricas`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        mode: 'cors'
       });
 
       if (response.ok) {
         return await response.json();
       } else {
-        throw new Error('Error al obtener métricas');
+        throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error('❌ Error obteniendo métricas:', error);
