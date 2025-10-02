@@ -336,107 +336,107 @@ const Rutas = () => {
     return (
       <div className="w-full h-screen flex flex-col bg-background-light dark:bg-background-dark">
         {/* Header de Control */}
-        <div className="bg-background-light dark:bg-background-dark shadow-sm border-b border-border-light dark:border-border-dark p-3 sm:p-4 md:p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4 md:gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 md:gap-6">
-            <div className="flex items-center gap-3">
-              <Bus className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-text-primary-light dark:text-text-primary-dark truncate" data-tutorial="routes">
-                {t('routes.title')}
-              </h1>
-            </div>
-            <div className="flex items-center gap-2 text-sm sm:text-base text-text-secondary-light dark:text-text-secondary-dark">
-              <div className={`w-2 h-2 rounded-full ${refreshing ? 'bg-warning-500 animate-pulse' : 'bg-success-500'}`}></div>
-              <span className="truncate">{refreshing ? 'Actualizando...' : 'En tiempo real'}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
-            {/* Botón de menú móvil */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden bg-secondary-600 dark:bg-secondary-700 text-white p-2 rounded-lg hover:bg-secondary-700 dark:hover:bg-secondary-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-
-            {/* Filtros de visualización - responsive */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <label className="flex items-center gap-2 text-sm sm:text-base text-text-primary-light dark:text-text-primary-dark bg-surface-light dark:bg-surface-dark px-3 py-2 rounded-lg border border-border-light dark:border-border-dark">
-                <input
-                  type="checkbox"
-                  checked={showBuses}
-                  onChange={(e) => setShowBuses(e.target.checked)}
-                  className="rounded w-4 h-4 text-primary-600 dark:text-primary-400"
-                />
-                <Bus className="w-4 h-4 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-                <span className="truncate">Buses</span>
-              </label>
-              <label className="flex items-center gap-2 text-sm sm:text-base text-text-primary-light dark:text-text-primary-dark bg-surface-light dark:bg-surface-dark px-3 py-2 rounded-lg border border-border-light dark:border-border-dark">
-                <input
-                  type="checkbox"
-                  checked={showRoutes}
-                  onChange={(e) => setShowRoutes(e.target.checked)}
-                  className="rounded w-4 h-4 text-primary-600 dark:text-primary-400"
-                />
-                <Route className="w-4 h-4 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-                <span className="truncate">Rutas</span>
-              </label>
-              <label className="flex items-center gap-2 text-sm sm:text-base text-text-primary-light dark:text-text-primary-dark bg-surface-light dark:bg-surface-dark px-3 py-2 rounded-lg border border-border-light dark:border-border-dark">
-                <input
-                  type="checkbox"
-                  checked={showStops}
-                  onChange={(e) => setShowStops(e.target.checked)}
-                  className="rounded w-4 h-4 text-primary-600 dark:text-primary-400"
-                />
-                <MapPin className="w-4 h-4 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-                <span className="truncate">Paradas</span>
-              </label>
-            </div>
-
-            {/* Botones de acción */}
-            <div className="flex items-center gap-2">
+        <div className="bg-background-light dark:bg-background-dark shadow-sm border-b border-border-light dark:border-border-dark p-2 sm:p-3 md:p-4">
+          <div className="flex flex-col gap-3">
+            {/* Primera fila - Título y estado */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <Bus className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                <h1 className="text-base sm:text-lg md:text-xl font-bold text-text-primary-light dark:text-text-primary-dark truncate" data-tutorial="routes">
+                  {t('routes.title')}
+                </h1>
+              </div>
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-text-secondary-light dark:text-text-secondary-dark flex-shrink-0">
+                <div className={`w-2 h-2 rounded-full ${refreshing ? 'bg-warning-500 animate-pulse' : 'bg-success-500'}`}></div>
+                <span className="hidden sm:inline truncate">{refreshing ? 'Actualizando...' : 'En tiempo real'}</span>
+              </div>
               <button
-                onClick={refreshRealTimeData}
-                disabled={refreshing}
-                className="bg-success-600 dark:bg-success-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base hover:bg-success-700 dark:hover:bg-success-600 disabled:opacity-50 transition-colors flex items-center gap-2 min-h-[44px]"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="md:hidden bg-secondary-600 dark:bg-secondary-700 text-white p-2 rounded-lg hover:bg-secondary-700 dark:hover:bg-secondary-600 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center flex-shrink-0"
               >
-                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline truncate">Actualizar</span>
+                <Menu className="w-4 h-4" />
               </button>
+            </div>
 
-              <button
-                onClick={() => {
-                  setMapCenter([4.6482, -74.0648]);
-                  setMapZoom(11);
-                  setSelectedRoute(null);
-                  setSelectedBus(null);
-                }}
-                className="bg-secondary-600 dark:bg-secondary-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base hover:bg-secondary-700 dark:hover:bg-secondary-600 transition-colors flex items-center gap-2 min-h-[44px]"
-              >
-                <Home className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline truncate">Vista General</span>
-              </button>
+            {/* Segunda fila - Controles */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Filtros de visualización */}
+              <div className="flex flex-wrap items-center gap-2 flex-1">
+                <label className="flex items-center gap-2 text-xs sm:text-sm text-text-primary-light dark:text-text-primary-dark bg-surface-light dark:bg-surface-dark px-2 sm:px-3 py-2 rounded-lg border border-border-light dark:border-border-dark min-h-[40px]">
+                  <input
+                    type="checkbox"
+                    checked={showBuses}
+                    onChange={(e) => setShowBuses(e.target.checked)}
+                    className="rounded w-3 h-3 sm:w-4 sm:h-4 text-primary-600 dark:text-primary-400"
+                  />
+                  <Bus className="w-3 h-3 sm:w-4 sm:h-4 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                  <span className="truncate">Buses</span>
+                </label>
+                <label className="flex items-center gap-2 text-xs sm:text-sm text-text-primary-light dark:text-text-primary-dark bg-surface-light dark:bg-surface-dark px-2 sm:px-3 py-2 rounded-lg border border-border-light dark:border-border-dark min-h-[40px]">
+                  <input
+                    type="checkbox"
+                    checked={showRoutes}
+                    onChange={(e) => setShowRoutes(e.target.checked)}
+                    className="rounded w-3 h-3 sm:w-4 sm:h-4 text-primary-600 dark:text-primary-400"
+                  />
+                  <Route className="w-3 h-3 sm:w-4 sm:h-4 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                  <span className="truncate">Rutas</span>
+                </label>
+                <label className="flex items-center gap-2 text-xs sm:text-sm text-text-primary-light dark:text-text-primary-dark bg-surface-light dark:bg-surface-dark px-2 sm:px-3 py-2 rounded-lg border border-border-light dark:border-border-dark min-h-[40px]">
+                  <input
+                    type="checkbox"
+                    checked={showStops}
+                    onChange={(e) => setShowStops(e.target.checked)}
+                    className="rounded w-3 h-3 sm:w-4 sm:h-4 text-primary-600 dark:text-primary-400"
+                  />
+                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                  <span className="truncate">Paradas</span>
+                </label>
+              </div>
 
-              {/* Botón para gestores - mostrar todas las ubicaciones de conductores */}
-              {userRole === 'GESTOR' && (
+              {/* Botones de acción */}
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <button
-                  onClick={() => setShowAllDriverLocations(!showAllDriverLocations)}
-                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base transition-colors flex items-center gap-2 min-h-[44px] ${
-                    showAllDriverLocations
-                      ? 'bg-warning-600 dark:bg-warning-700 text-white hover:bg-warning-700 dark:hover:bg-warning-600'
-                      : 'bg-info-600 dark:bg-info-700 text-white hover:bg-info-700 dark:hover:bg-info-600'
-                  }`}
+                  onClick={refreshRealTimeData}
+                  disabled={refreshing}
+                  className="bg-success-600 dark:bg-success-700 text-white px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm hover:bg-success-700 dark:hover:bg-success-600 disabled:opacity-50 transition-colors flex items-center gap-1 sm:gap-2 min-h-[40px]"
                 >
-                  <Users className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline truncate">
-                    {showAllDriverLocations ? 'Ocultar Conductores' : 'Ver Todos Conductores'}
-                  </span>
+                  <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline truncate">Actualizar</span>
                 </button>
-              )}
+
+                <button
+                  onClick={() => {
+                    setMapCenter([4.6482, -74.0648]);
+                    setMapZoom(11);
+                    setSelectedRoute(null);
+                    setSelectedBus(null);
+                  }}
+                  className="bg-secondary-600 dark:bg-secondary-700 text-white px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm hover:bg-secondary-700 dark:hover:bg-secondary-600 transition-colors flex items-center gap-1 sm:gap-2 min-h-[40px]"
+                >
+                  <Home className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">Vista General</span>
+                </button>
+
+                {/* Botón para gestores - mostrar todas las ubicaciones de conductores */}
+                {userRole === 'GESTOR' && (
+                  <button
+                    onClick={() => setShowAllDriverLocations(!showAllDriverLocations)}
+                    className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm transition-colors flex items-center gap-1 sm:gap-2 min-h-[40px] ${
+                      showAllDriverLocations
+                        ? 'bg-warning-600 dark:bg-warning-700 text-white hover:bg-warning-700 dark:hover:bg-warning-600'
+                        : 'bg-info-600 dark:bg-info-700 text-white hover:bg-info-700 dark:hover:bg-info-600'
+                    }`}
+                  >
+                    <Users className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden sm:inline truncate">
+                      {showAllDriverLocations ? 'Ocultar Conductores' : 'Ver Todos Conductores'}
+                    </span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
         {isAddingStop && (
           <div className="mt-3 p-3 bg-info-50 dark:bg-info-900/20 border border-info-200 dark:border-info-800 rounded-lg text-sm text-info-700 dark:text-info-300 flex items-center gap-2">

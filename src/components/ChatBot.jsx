@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import chatbotAPI from '../utilidades/chatbotAPI';
 import conversationMemory from '../utilidades/conversationMemory';
 import realTimeService from '../utilidades/realTimeService';
-import { useTheme } from '../context/ThemeContext'; // 👈 Importar useTheme
+import { useTheme } from '../context/ThemeContext';
 
 // Componente Button con paleta uniforme y modo oscuro
 const Button = ({
@@ -68,6 +68,7 @@ const ChatBot = ({
   const { theme: appTheme } = useTheme();
   const [realTimeNotifications, setRealTimeNotifications] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [quietMode, setQuietMode] = useState(() => {
     // Recuperar preferencia del localStorage
     const saved = localStorage.getItem('chatbotQuietMode');
@@ -81,11 +82,11 @@ const ChatBot = ({
     const context = chatbotAPI.obtenerContextoUsuario();
     setUserContext(context);
 
-    // Mensaje inicial personalizado
+    // Mensaje inicial personalizado - solo establecer si no hay mensajes
     if (messages.length === 0) {
       const mensajeInicial = context.esUsuarioAutenticado
         ? `Hola ${context.nombreUsuario}! Soy el asistente de ${context.empresa}. Tengo acceso a datos actuales del sistema y puedo ayudarte con información sobre conductores, vehículos, rutas, horarios y más. ¿Qué necesitas consultar?`
-        : t('chatbot.initialMessage');
+        : '🔐 **Asistente TransSync**\n\nHola! Soy el asistente virtual de TransSync. Para acceder a información del sistema y hacer consultas inteligentes, necesitas iniciar sesión.\n\nUna vez autenticado podrás:\n• Consultar conductores activos\n• Ver vehículos disponibles\n• Revisar rutas y horarios\n• Recibir alertas de vencimientos\n• Acceder al dashboard del sistema';
 
       setMessages([
         {
@@ -97,96 +98,153 @@ const ChatBot = ({
         }
       ]);
     }
+  }, [messages.length, t]); // Agregar dependencias faltantes
 
-    // Verificar estado del servicio al abrir
+  // Verificar conexión con el servicio de chatbot
+  const verificarConexion = useCallback(async (isRetry = false) => {
+    try {
+      if (!isRetry) {
+        setConnectionStatus('verifying');
+      }
+
+      const resultado = await chatbotAPI.verificarEstado();
+
+      if (resultado && resultado.success) {
+        setConnectionStatus('connected');
+        setRetryCount(0); // Resetear contador de reintentos
+      } else {
+        setConnectionStatus('disconnected');
+        // Programar reintento automático si no es un reintento manual
+        if (!isRetry && retryCount < 3) {
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+            verificarConexion(true);
+          }, 2000 * (retryCount + 1)); // Backoff exponencial
+        }
+      }
+    } catch (error) {
+      console.error('Error verificando conexión del chatbot:', error);
+      setConnectionStatus('disconnected');
+
+      // Programar reintento automático si no es un reintento manual
+      if (!isRetry && retryCount < 3) {
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          verificarConexion(true);
+        }, 2000 * (retryCount + 1)); // Backoff exponencial
+      }
+    }
+  }, [retryCount]);
+
+  // Efecto separado para verificar conexión
+  useEffect(() => {
     if (isOpen && connectionStatus === 'unknown') {
       verificarConexion();
     }
-  }, [isOpen, connectionStatus, messages.length, initialMessage, t]);
+  }, [isOpen, connectionStatus, verificarConexion]);
 
   // Manejar notificaciones en tiempo real
   const handleRealTimeNotification = useCallback((notification) => {
-    // Si está en modo quiet, solo almacenar notificaciones sin mostrarlas
-    if (quietMode) {
-      setRealTimeNotifications(prev => [notification, ...prev.slice(0, 9)]);
-      return;
+    try {
+      // Validar notificación
+      if (!notification || !notification.title || !notification.message) {
+        console.warn('Notificación inválida recibida:', notification);
+        return;
+      }
+
+      // Si está en modo quiet, solo almacenar notificaciones sin mostrarlas
+      if (quietMode) {
+        setRealTimeNotifications(prev => [notification, ...prev.slice(0, 9)]);
+        return;
+      }
+
+      // Agregar notificación al estado
+      setRealTimeNotifications(prev => [notification, ...prev.slice(0, 9)]); // Mantener máximo 10
+
+      // Crear mensaje del bot con la notificación
+      const botMessage = {
+        id: Date.now() + Math.random(),
+        text: `🔔 **${t('chatbot.realTimeNotification')}**\n\n${notification.title}\n${notification.message}`,
+        sender: 'bot',
+        timestamp: new Date(),
+        intencion: 'realtime_notification',
+        notification: notification,
+        formatted: true,
+        isRealTime: true
+      };
+
+      setMessages(prev => [...prev, botMessage]);
+
+      // Auto-scroll al final
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+    } catch (error) {
+      console.error('Error manejando notificación en tiempo real:', error);
     }
-
-    // Agregar notificación al estado
-    setRealTimeNotifications(prev => [notification, ...prev.slice(0, 9)]); // Mantener máximo 10
-
-    // Crear mensaje del bot con la notificación
-    const botMessage = {
-      id: Date.now() + Math.random(),
-      text: `🔔 **${t('chatbot.realTimeNotification')}**\n\n${notification.title}\n${notification.message}`,
-      sender: 'bot',
-      timestamp: new Date(),
-      intencion: 'realtime_notification',
-      notification: notification,
-      formatted: true,
-      isRealTime: true
-    };
-
-    setMessages(prev => [...prev, botMessage]);
-
-    // Auto-scroll al final
-    setTimeout(() => {
-      scrollToBottom();
-    }, 100);
   }, [quietMode, t]);
 
   // Configurar WebSocket para notificaciones en tiempo real
   useEffect(() => {
-    if (userContext && isOpen) {
-      // Conectar al servicio WebSocket
-      realTimeService.connect(userContext);
-      setWsConnected(true);
+    if (userContext && isOpen && userContext.esUsuarioAutenticado) {
+      try {
+        // Conectar al servicio WebSocket
+        realTimeService.connect(userContext);
+        setWsConnected(true);
 
-      // Configurar listeners para notificaciones
-      const setupRealTimeListeners = () => {
-        // Nuevo conductor
-        realTimeService.on('notification:new_conductor', (notification) => {
-          handleRealTimeNotification(notification);
-        });
+        // Configurar listeners para notificaciones
+        const setupRealTimeListeners = () => {
+          // Nuevo conductor
+          realTimeService.on('notification:new_conductor', (notification) => {
+            handleRealTimeNotification(notification);
+          });
 
-        // Nuevo vehículo
-        realTimeService.on('notification:new_vehicle', (notification) => {
-          handleRealTimeNotification(notification);
-        });
+          // Nuevo vehículo
+          realTimeService.on('notification:new_vehicle', (notification) => {
+            handleRealTimeNotification(notification);
+          });
 
-        // Nuevo viaje
-        realTimeService.on('notification:new_trip', (notification) => {
-          handleRealTimeNotification(notification);
-        });
+          // Nuevo viaje
+          realTimeService.on('notification:new_trip', (notification) => {
+            handleRealTimeNotification(notification);
+          });
 
-        // Alertas de vencimiento
-        realTimeService.on('notification:expiration_alert', (notification) => {
-          handleRealTimeNotification(notification);
-        });
+          // Alertas de vencimiento
+          realTimeService.on('notification:expiration_alert', (notification) => {
+            handleRealTimeNotification(notification);
+          });
 
-        // Conexión WebSocket
-        realTimeService.on('connection:established', (data) => {
-          console.log('🔗 WebSocket conectado para notificaciones en tiempo real');
-          setWsConnected(true);
-        });
+          // Conexión WebSocket
+          realTimeService.on('connection:established', (data) => {
+            console.log('🔗 WebSocket conectado para notificaciones en tiempo real');
+            setWsConnected(true);
+          });
 
-        // Desconexión WebSocket
-        realTimeService.on('connection:error', (error) => {
-          console.log('🔌 WebSocket desconectado:', error);
-          setWsConnected(false);
-        });
-      };
+          // Desconexión WebSocket
+          realTimeService.on('connection:error', (error) => {
+            console.log('🔌 WebSocket desconectado:', error);
+            setWsConnected(false);
+          });
+        };
 
-      setupRealTimeListeners();
+        setupRealTimeListeners();
 
-      // Solicitar permisos para notificaciones del navegador
-      realTimeService.requestNotificationPermission();
+        // Solicitar permisos para notificaciones del navegador
+        realTimeService.requestNotificationPermission();
 
-      // Cleanup function
-      return () => {
-        realTimeService.disconnect();
+        // Cleanup function
+        return () => {
+          try {
+            realTimeService.disconnect();
+            setWsConnected(false);
+          } catch (error) {
+            console.error('Error desconectando WebSocket:', error);
+          }
+        };
+      } catch (error) {
+        console.error('Error configurando WebSocket:', error);
         setWsConnected(false);
-      };
+      }
     }
   }, [userContext, isOpen, handleRealTimeNotification]);
 
@@ -194,15 +252,6 @@ const ChatBot = ({
     scrollToBottom();
   }, [messages]);
 
-  // Verificar conexión con el servicio de chatbot
-  const verificarConexion = async () => {
-    try {
-      const resultado = await chatbotAPI.verificarEstado();
-      setConnectionStatus(resultado.success ? 'connected' : 'disconnected');
-    } catch (error) {
-      setConnectionStatus('disconnected');
-    }
-  };
 
   // Animaciones CSS mejoradas con modo oscuro
   useEffect(() => {
@@ -372,7 +421,10 @@ const ChatBot = ({
   const toggleChat = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
-      verificarConexion();
+      // Pequeño delay para asegurar que el componente esté listo
+      setTimeout(() => {
+        verificarConexion();
+      }, 100);
     }
   };
 
@@ -401,6 +453,20 @@ const ChatBot = ({
 
   const handleSendMessage = async () => {
     if (inputText.trim() === '' || isTyping) return;
+
+    // Verificar autenticación antes de procesar
+    if (!userContext?.esUsuarioAutenticado) {
+      const errorMessage = {
+        id: Date.now(),
+        text: '🔐 **Autenticación requerida**\n\nPara usar el asistente inteligente necesitas iniciar sesión. Por favor, accede a tu cuenta para consultar información del sistema.',
+        sender: 'bot',
+        timestamp: new Date(),
+        isError: true
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setInputText('');
+      return;
+    }
 
     // Validar mensaje
     const validacion = chatbotAPI.validarMensaje(inputText);
@@ -436,6 +502,11 @@ const ChatBot = ({
         contextoUsuario: userContext
       });
 
+      // Verificar si la respuesta es válida
+      if (!respuesta || !respuesta.respuesta) {
+        throw new Error('Respuesta inválida del servidor');
+      }
+
       setTimeout(() => {
         const botMessage = {
           id: Date.now() + 1,
@@ -467,9 +538,20 @@ const ChatBot = ({
     } catch (error) {
       console.error('Error procesando mensaje inteligente:', error);
 
+      let errorText = t('chatbot.processingError');
+
+      // Proporcionar mensajes de error más específicos
+      if (error.message && error.message.includes('network')) {
+        errorText = 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.';
+      } else if (error.message && error.message.includes('timeout')) {
+        errorText = 'La consulta tardó demasiado. Intenta con una pregunta más simple.';
+      } else if (error.message && error.message.includes('unauthorized')) {
+        errorText = 'Sesión expirada. Por favor recarga la página.';
+      }
+
       const errorMessage = {
         id: Date.now() + 1,
-        text: t('chatbot.processingError'),
+        text: errorText,
         sender: 'bot',
         timestamp: new Date(),
         isError: true
@@ -477,7 +559,11 @@ const ChatBot = ({
 
       setMessages(prev => [...prev, errorMessage]);
       setIsTyping(false);
-      setConnectionStatus('disconnected');
+
+      // Solo marcar como desconectado si es un error de red
+      if (error.message && (error.message.includes('network') || error.message.includes('timeout'))) {
+        setConnectionStatus('disconnected');
+      }
     }
   };
 
@@ -489,7 +575,7 @@ const ChatBot = ({
   };
 
   const handleSuggestionClick = (sugerencia) => {
-    if (isTyping) return;
+    if (isTyping || connectionStatus !== 'connected' || !userContext?.esUsuarioAutenticado) return;
     setInputText(sugerencia.texto);
     setTimeout(() => handleSendMessage(), 100);
   };
@@ -497,6 +583,51 @@ const ChatBot = ({
   // Limpiar todas las notificaciones
   const clearNotifications = () => {
     setRealTimeNotifications([]);
+  };
+
+  // Ejecutar diagnóstico de conexión
+  const ejecutarDiagnostico = async () => {
+    try {
+      setConnectionStatus('verifying');
+      const resultado = await chatbotAPI.diagnosticarConexion();
+
+      // Crear mensaje con resultados del diagnóstico
+      const diagnosticoText = `🔍 **Diagnóstico de Conexión**\n\n` +
+        `⏰ Timestamp: ${new Date(resultado.timestamp).toLocaleString()}\n\n` +
+        `🔐 **Autenticación:**\n` +
+        `${resultado.autenticacion.tieneToken ? '✅' : '❌'} Tiene token: ${resultado.autenticacion.tieneToken ? 'Sí' : 'No'}\n` +
+        `${resultado.autenticacion.isAuthenticated ? '✅' : '❌'} Está autenticado: ${resultado.autenticacion.isAuthenticated ? 'Sí' : 'No'}\n` +
+        `${resultado.autenticacion.userData ? '✅' : '❌'} Tiene datos de usuario: ${resultado.autenticacion.userData ? 'Sí' : 'No'}\n\n` +
+        `🌐 **Endpoints:**\n` +
+        `Health: ${resultado.endpoints.health?.ok ? '✅ OK' : '❌ Error'}\n` +
+        `Vehículos: ${resultado.endpoints.vehiculos?.status === 'OK' ? '✅ OK' : '❌ Error'}\n` +
+        `Conductores: ${resultado.endpoints.conductores?.status === 'OK' ? '✅ OK' : '❌ Error'}\n` +
+        `Chatbot: ${resultado.endpoints.chatbotHealth?.status === 'OK' ? '✅ OK' : '❌ Error'}\n\n` +
+        `${resultado.problemas.length > 0 ? `⚠️ **Problemas detectados:**\n${resultado.problemas.map(p => `• ${p}`).join('\n')}` : '✅ No se detectaron problemas'}`;
+
+      const botMessage = {
+        id: Date.now() + Math.random(),
+        text: diagnosticoText,
+        sender: 'bot',
+        timestamp: new Date(),
+        intencion: 'diagnostico',
+        formatted: true,
+        isDiagnostico: true
+      };
+
+      setMessages(prev => [...prev, botMessage]);
+
+      // Actualizar estado de conexión basado en resultados
+      if (resultado.autenticacion.isAuthenticated && resultado.endpoints.health?.ok) {
+        setConnectionStatus('connected');
+      } else {
+        setConnectionStatus('disconnected');
+      }
+
+    } catch (error) {
+      console.error('Error ejecutando diagnóstico:', error);
+      setConnectionStatus('disconnected');
+    }
   };
 
   // Ver todas las notificaciones
@@ -599,6 +730,10 @@ const ChatBot = ({
 
   // Obtener sugerencias inteligentes
   const obtenerSugerenciasInteligentes = () => {
+    if (!userContext?.esUsuarioAutenticado) {
+      return []; // No mostrar sugerencias si no está autenticado
+    }
+
     if (!userContext?.idUsuario) {
       return chatbotAPI.obtenerSugerencias().slice(0, 4);
     }
@@ -692,6 +827,8 @@ const ChatBot = ({
                   ? '✅ Conectado'
                   : connectionStatus === 'connected'
                   ? '✅ API conectado'
+                  : connectionStatus === 'disconnected' && retryCount > 0
+                  ? `⏳ Reintentando (${retryCount}/3)...`
                   : '⏳ Verificando...'}
               </div>
               {realTimeNotifications.length > 0 && (
@@ -730,7 +867,8 @@ const ChatBot = ({
                   <span className="hidden xs:inline">
                     {isTyping ? 'Escribiendo...' :
                      connectionStatus === 'connected' ? 'Conectado' :
-                     connectionStatus === 'disconnected' ? 'Sin conexión' : 'Verificando...'}
+                     connectionStatus === 'disconnected' ? `Sin conexión${retryCount > 0 ? ` (${retryCount}/3)` : ''}` :
+                     connectionStatus === 'verifying' ? 'Verificando...' : 'Verificando...'}
                   </span>
                   <span className="xs:hidden">
                     {isTyping ? '...' :
@@ -766,6 +904,14 @@ const ChatBot = ({
                 <span className="text-xs sm:text-sm">
                   {isMinimized ? '🔼' : '🔽'}
                 </span>
+              </button>
+              <button
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-1.5 sm:p-2 transition-colors duration-200"
+                onClick={ejecutarDiagnostico}
+                aria-label="Ejecutar diagnóstico"
+                title="Ejecutar diagnóstico de conexión"
+              >
+                <span className="text-xs sm:text-sm">🔍</span>
               </button>
               <button
                 className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-1.5 sm:p-2 transition-colors duration-200"
@@ -907,20 +1053,20 @@ const ChatBot = ({
                         ${appTheme === "dark" ? 'placeholder-gray-500' : 'placeholder-gray-400'}
                         ${currentTheme.input}
                       `}
-                      placeholder={t('chatbot.placeholder')}
+                      placeholder={userContext?.esUsuarioAutenticado ? t('chatbot.placeholder') : 'Inicia sesión para usar el asistente...'}
                       value={inputText}
                       onChange={handleInputChange}
                       onKeyPress={handleKeyPress}
                       rows={inputText.split('\n').length || 1}
                       style={{ maxHeight: '120px' }}
-                      disabled={isTyping || connectionStatus === 'disconnected'}
+                      disabled={isTyping || connectionStatus !== 'connected' || !userContext?.esUsuarioAutenticado}
                     />
                   </div>
                   <Button
                     variant="primary"
                     size="medium"
                     onClick={handleSendMessage}
-                    disabled={!inputText.trim() || isTyping || connectionStatus === 'disconnected'}
+                    disabled={!inputText.trim() || isTyping || connectionStatus !== 'connected' || !userContext?.esUsuarioAutenticado}
                     className="px-2 xs:px-3 sm:px-4 py-2 xs:py-2.5 sm:py-3 rounded-xl font-semibold shadow-sm hover:shadow-md transition-all duration-200 min-h-[44px] xs:min-h-[44px] sm:min-h-[44px]"
                     dark={appTheme === "dark"}
                   >
@@ -930,13 +1076,13 @@ const ChatBot = ({
                 </div>
                 
                 {/* Sugerencias dinámicas */}
-                {!isTyping && messages.length > 1 && (
+                {!isTyping && messages.length > 1 && userContext?.esUsuarioAutenticado && (
                   <div className="flex flex-wrap gap-1 xs:gap-2 mt-2 xs:mt-3">
                     {sugerencias.map((sugerencia, index) => (
                       <button
                         key={index}
                         onClick={() => handleSuggestionClick(sugerencia)}
-                        disabled={connectionStatus === 'disconnected'}
+                        disabled={connectionStatus !== 'connected'}
                         className={`px-2 xs:px-3 py-1 text-xs rounded-full transition-colors duration-200 border disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 ${
                           appTheme === "dark"
                             ? 'bg-gradient-to-r from-blue-600/10 to-blue-700/10 text-blue-400 hover:from-blue-600/20 hover:to-blue-700/20 border-blue-500/30'
@@ -1010,7 +1156,7 @@ const ChatBot = ({
                   </div>
                 )}
 
-                {/* Información del usuario (opcional) */}
+                {/* Información del usuario (solo si está autenticado) */}
                 {userContext && userContext.esUsuarioAutenticado && (
                   <div className={`mt-2 text-xs text-center ${
                     appTheme === "dark" ? 'text-gray-400' : 'text-gray-600'
