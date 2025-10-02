@@ -22,7 +22,6 @@ import {
    FaHome,
    FaChartLine
  } from 'react-icons/fa';
-import { getUserRole } from '../utilidades/authAPI';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import { useNotification } from '../utilidades/notificationService';

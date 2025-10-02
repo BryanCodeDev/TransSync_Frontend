@@ -2,7 +2,6 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from './hooks/useAuth';
 import { Toaster } from 'react-hot-toast';
-import { isAuthenticated } from './utilidades/authAPI';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { UserProvider } from './context/UserContext';
