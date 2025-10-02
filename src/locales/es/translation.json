@@ -159,30 +159,30 @@
       "footer": "TransSync es una aplicación web progresiva (PWA) que puedes instalar en tu dispositivo móvil para un acceso rápido y sin conexión",
       "features": {
         "title": "Características destacadas",
-        "list": [
-          "Acceso rápido desde tu pantalla de inicio",
-          "Funciona sin conexión a internet",
-          "Notificaciones push en tiempo real",
-          "Interfaz optimizada para móviles",
-          "Actualizaciones automáticas"
-        ]
+        "list": {
+          "0": "Acceso rápido desde tu pantalla de inicio",
+          "1": "Funciona sin conexión a internet",
+          "2": "Notificaciones push en tiempo real",
+          "3": "Interfaz optimizada para móviles",
+          "4": "Actualizaciones automáticas"
+        }
       },
       "instructions": {
         "title": "Instrucciones de instalación",
-        "steps": [
-          {
+        "steps": {
+          "0": {
             "title": "Paso 1: Abre tu navegador",
             "description": "Abre el navegador de tu dispositivo móvil"
           },
-          {
+          "1": {
             "title": "Paso 2: Ingresa la URL",
             "description": "Escribe la dirección web de TransSync"
           },
-          {
+          "2": {
             "title": "Paso 3: Instala la aplicación",
             "description": "Busca el botón de instalación en tu navegador"
           }
-        ]
+        }
       },
       "iosGuide": "Guía de instalación para iOS",
       "alternative": {
