@@ -17,15 +17,20 @@ export const useAuth = () => {
   const checkAuthStatus = useCallback(() => {
     try {
       setError(null);
+      console.log('🔐 Verificando estado de autenticación...');
 
       // Limpiar datos corruptos primero
       clearCorruptedData();
 
       const authenticated = isAuthenticated();
+      console.log('🔐 Usuario autenticado:', authenticated);
 
       if (authenticated) {
         const userData = getCurrentUser();
         const role = getUserRole();
+
+        console.log('🔐 Datos del usuario:', userData);
+        console.log('🔐 Rol del usuario:', role);
 
         if (userData && role && userData.id && userData.email) {
           setIsLoggedIn(true);
@@ -40,6 +45,9 @@ export const useAuth = () => {
           // Verificar si hay datos de respaldo
           const backupUserData = getCurrentUser();
           const backupRole = getUserRole();
+
+          console.log('🔐 Datos de respaldo:', backupUserData);
+          console.log('🔐 Rol de respaldo:', backupRole);
 
           if (backupUserData && backupRole && backupUserData.id && backupUserData.email) {
             setIsLoggedIn(true);
@@ -57,6 +65,7 @@ export const useAuth = () => {
         setIsLoggedIn(false);
         setUser(null);
         setUserRole('');
+        console.log('🔐 Usuario no autenticado');
       }
     } catch (err) {
       console.error('❌ Error checking auth status:', err);
@@ -90,7 +99,7 @@ export const useAuth = () => {
   const handleLogin = useCallback((userData, role) => {
     setIsLoggedIn(true);
     setUser(userData);
-    setUserRole(role);
+    setUserRole(role || userData?.role || userData?.rol || 'USER');
   }, []);
 
   // Verificar autenticación al montar el componente

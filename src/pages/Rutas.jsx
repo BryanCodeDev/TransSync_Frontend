@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Play, Square, Wrench, AlertCircle, RefreshCw, Bus, Menu, Route, MapPin,
@@ -18,6 +18,14 @@ import { useAuthContext } from '../context/AuthContext';
 const Rutas = () => {
   const { t } = useTranslation();
   const { userRole } = useAuthContext();
+
+  // Debug para rol GESTOR
+  useEffect(() => {
+    if (userRole === 'GESTOR') {
+      console.log('👑 Usuario con rol GESTOR accediendo a página Rutas');
+      console.log('🔍 Estado inicial - userRole:', userRole);
+    }
+  }, [userRole]);
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [stops, setStops] = useState([]);
@@ -46,38 +54,49 @@ const Rutas = () => {
   ];
 
   // Función para cargar datos iniciales
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('🚀 Iniciando carga de datos iniciales para usuario con rol:', userRole);
 
       // Cargar rutas activas
+      console.log('📡 Cargando rutas activas...');
       const routesData = await rutasAPI.getActive();
+      console.log('✅ Rutas cargadas:', routesData?.rutas?.length || 0);
       setRoutes(routesData.rutas || []);
 
       // Cargar vehículos
+      console.log('📡 Cargando vehículos...');
       const vehiclesData = await vehiculosAPI.getAll();
+      console.log('✅ Vehículos cargados:', vehiclesData?.vehiculos?.length || 0);
       setBuses(vehiclesData.vehiculos || []);
 
       // Cargar paradas para cada ruta
       const stopsPromises = routesData.rutas?.map(route => rutasAPI.getStops(route.idRuta)) || [];
+      console.log('📡 Cargando paradas para', stopsPromises.length, 'rutas...');
+
       const stopsResults = await Promise.allSettled(stopsPromises);
+      console.log('✅ Paradas cargadas');
 
       const allStops = [];
       stopsResults.forEach((result, index) => {
         if (result.status === 'fulfilled') {
           allStops.push(...(result.value.paradas || []));
+        } else {
+          console.warn('❌ Error cargando paradas para ruta', index, ':', result.reason);
         }
       });
       setStops(allStops);
+      console.log('✅ Datos iniciales cargados completamente');
 
     } catch (err) {
-      console.error('Error loading initial data:', err);
-      setError('Error al cargar los datos. Intente nuevamente.');
+      console.error('❌ Error loading initial data:', err);
+      setError(`Error al cargar los datos: ${err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [userRole]);
 
   // Función para actualizar datos en tiempo real
   const refreshRealTimeData = async () => {
@@ -105,7 +124,7 @@ const Rutas = () => {
   // Cargar datos iniciales al montar el componente
   useEffect(() => {
     loadInitialData();
-  }, []);
+  }, [loadInitialData]);
 
   const handleBusClick = (bus) => {
     setSelectedBus(bus);
@@ -277,6 +296,7 @@ const Rutas = () => {
   }
 
   if (error) {
+    console.error('Error en página Rutas:', error);
     return (
       <div className="w-full h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
         <div className="text-center">
@@ -293,10 +313,30 @@ const Rutas = () => {
     );
   }
 
-  return (
-    <div className="w-full h-screen flex flex-col bg-background-light dark:bg-background-dark">
-      {/* Header de Control */}
-      <div className="bg-background-light dark:bg-background-dark shadow-sm border-b border-border-light dark:border-border-dark p-3 sm:p-4 md:p-6">
+  // Componente de debugging para GESTOR
+  const DebugPanel = () => {
+    if (userRole !== 'GESTOR' || process.env.NODE_ENV !== 'development') return null;
+
+    return (
+      <div className="fixed top-4 right-4 bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 rounded-lg p-3 z-[9999] max-w-sm">
+        <h4 className="font-bold text-yellow-800 dark:text-yellow-200 mb-2">🔧 Debug GESTOR</h4>
+        <div className="text-xs space-y-1 text-yellow-700 dark:text-yellow-300">
+          <div>Rol: {userRole}</div>
+          <div>Rutas: {routes.length}</div>
+          <div>Buses: {buses.length}</div>
+          <div>Paradas: {stops.length}</div>
+          <div>Cargando: {loading ? 'Sí' : 'No'}</div>
+          <div>Error: {error || 'Ninguno'}</div>
+        </div>
+      </div>
+    );
+  };
+
+  try {
+    return (
+      <div className="w-full h-screen flex flex-col bg-background-light dark:bg-background-dark">
+        {/* Header de Control */}
+        <div className="bg-background-light dark:bg-background-dark shadow-sm border-b border-border-light dark:border-border-dark p-3 sm:p-4 md:p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4 md:gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 md:gap-6">
             <div className="flex items-center gap-3">
@@ -1050,8 +1090,31 @@ const Rutas = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+
+        {/* Panel de debugging para GESTOR */}
+        <DebugPanel />
+      </div>
+    );
+  } catch (error) {
+    console.error('❌ Error crítico en componente Rutas:', error);
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+        <div className="text-center">
+          <AlertCircle className="w-8 h-8 mx-auto mb-4 text-error-600 dark:text-error-400" />
+          <p className="text-error-600 dark:text-error-400 mb-4">Error crítico en la página de rutas</p>
+          <p className="text-text-secondary-light dark:text-text-secondary-dark mb-4">
+            {error.message || 'Error desconocido'}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary-600 dark:bg-primary-700 text-white px-4 py-2 rounded hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+          >
+            Recargar página
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default Rutas;
