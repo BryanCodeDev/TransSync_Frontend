@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Play, Square, Wrench, AlertCircle, RefreshCw, Bus, Menu, Route, MapPin,
@@ -13,9 +13,19 @@ import 'leaflet/dist/leaflet.css';
 import rutasAPI from '../utilidades/rutasAPI';
 import vehiculosAPI from '../utilidades/vehiculosAPI';
 import dashboardAPI from '../utilidades/dashboardAPI';
+import { useAuthContext } from '../context/AuthContext';
 
 const Rutas = () => {
   const { t } = useTranslation();
+  const { userRole } = useAuthContext();
+
+  // Debug para rol GESTOR
+  useEffect(() => {
+    if (userRole === 'GESTOR') {
+      console.log('👑 Usuario con rol GESTOR accediendo a página Rutas');
+      console.log('🔍 Estado inicial - userRole:', userRole);
+    }
+  }, [userRole]);
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [stops, setStops] = useState([]);
@@ -33,6 +43,9 @@ const Rutas = () => {
   const [error, setError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [showCurrentLocation, setShowCurrentLocation] = useState(false);
+  const [showAllDriverLocations, setShowAllDriverLocations] = useState(false);
 
   // Colombia bounds para restringir el mapa
   const colombiaBounds = [
@@ -41,38 +54,49 @@ const Rutas = () => {
   ];
 
   // Función para cargar datos iniciales
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('🚀 Iniciando carga de datos iniciales para usuario con rol:', userRole);
 
       // Cargar rutas activas
+      console.log('📡 Cargando rutas activas...');
       const routesData = await rutasAPI.getActive();
+      console.log('✅ Rutas cargadas:', routesData?.rutas?.length || 0);
       setRoutes(routesData.rutas || []);
 
       // Cargar vehículos
+      console.log('📡 Cargando vehículos...');
       const vehiclesData = await vehiculosAPI.getAll();
+      console.log('✅ Vehículos cargados:', vehiclesData?.vehiculos?.length || 0);
       setBuses(vehiclesData.vehiculos || []);
 
       // Cargar paradas para cada ruta
       const stopsPromises = routesData.rutas?.map(route => rutasAPI.getStops(route.idRuta)) || [];
+      console.log('📡 Cargando paradas para', stopsPromises.length, 'rutas...');
+
       const stopsResults = await Promise.allSettled(stopsPromises);
+      console.log('✅ Paradas cargadas');
 
       const allStops = [];
       stopsResults.forEach((result, index) => {
         if (result.status === 'fulfilled') {
           allStops.push(...(result.value.paradas || []));
+        } else {
+          console.warn('❌ Error cargando paradas para ruta', index, ':', result.reason);
         }
       });
       setStops(allStops);
+      console.log('✅ Datos iniciales cargados completamente');
 
     } catch (err) {
-      console.error('Error loading initial data:', err);
-      setError('Error al cargar los datos. Intente nuevamente.');
+      console.error('❌ Error loading initial data:', err);
+      setError(`Error al cargar los datos: ${err.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [userRole]);
 
   // Función para actualizar datos en tiempo real
   const refreshRealTimeData = async () => {
@@ -100,7 +124,7 @@ const Rutas = () => {
   // Cargar datos iniciales al montar el componente
   useEffect(() => {
     loadInitialData();
-  }, []);
+  }, [loadInitialData]);
 
   const handleBusClick = (bus) => {
     setSelectedBus(bus);
@@ -244,6 +268,22 @@ const Rutas = () => {
     });
   };
 
+  // Función para crear ícono de ubicación actual
+  const currentLocationIcon = L.divIcon({
+    html: `<div style="background-color: #3b82f6; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(59,130,246,0.5); display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
+      <div style="width: 10px; height: 10px; background-color: white; border-radius: 50%;"></div>
+    </div>
+    <style>
+      @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 2px 8px rgba(59,130,246,0.5); }
+        50% { transform: scale(1.1); box-shadow: 0 2px 12px rgba(59,130,246,0.8); }
+        100% { transform: scale(1); box-shadow: 0 2px 8px rgba(59,130,246,0.5); }
+      }
+    </style>`,
+    iconSize: [25, 25],
+    iconAnchor: [12, 12]
+  });
+
   if (loading) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
@@ -256,6 +296,7 @@ const Rutas = () => {
   }
 
   if (error) {
+    console.error('Error en página Rutas:', error);
     return (
       <div className="w-full h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
         <div className="text-center">
@@ -272,10 +313,30 @@ const Rutas = () => {
     );
   }
 
-  return (
-    <div className="w-full h-screen flex flex-col bg-background-light dark:bg-background-dark">
-      {/* Header de Control */}
-      <div className="bg-background-light dark:bg-background-dark shadow-sm border-b border-border-light dark:border-border-dark p-3 sm:p-4 md:p-6">
+  // Componente de debugging para GESTOR
+  const DebugPanel = () => {
+    if (userRole !== 'GESTOR' || process.env.NODE_ENV !== 'development') return null;
+
+    return (
+      <div className="fixed top-4 right-4 bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 rounded-lg p-3 z-[9999] max-w-sm">
+        <h4 className="font-bold text-yellow-800 dark:text-yellow-200 mb-2">🔧 Debug GESTOR</h4>
+        <div className="text-xs space-y-1 text-yellow-700 dark:text-yellow-300">
+          <div>Rol: {userRole}</div>
+          <div>Rutas: {routes.length}</div>
+          <div>Buses: {buses.length}</div>
+          <div>Paradas: {stops.length}</div>
+          <div>Cargando: {loading ? 'Sí' : 'No'}</div>
+          <div>Error: {error || 'Ninguno'}</div>
+        </div>
+      </div>
+    );
+  };
+
+  try {
+    return (
+      <div className="w-full h-screen flex flex-col bg-background-light dark:bg-background-dark">
+        {/* Header de Control */}
+        <div className="bg-background-light dark:bg-background-dark shadow-sm border-b border-border-light dark:border-border-dark p-3 sm:p-4 md:p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4 md:gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 md:gap-6">
             <div className="flex items-center gap-3">
@@ -356,6 +417,23 @@ const Rutas = () => {
                 <Home className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline truncate">Vista General</span>
               </button>
+
+              {/* Botón para gestores - mostrar todas las ubicaciones de conductores */}
+              {userRole === 'GESTOR' && (
+                <button
+                  onClick={() => setShowAllDriverLocations(!showAllDriverLocations)}
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base transition-colors flex items-center gap-2 min-h-[44px] ${
+                    showAllDriverLocations
+                      ? 'bg-warning-600 dark:bg-warning-700 text-white hover:bg-warning-700 dark:hover:bg-warning-600'
+                      : 'bg-info-600 dark:bg-info-700 text-white hover:bg-info-700 dark:hover:bg-info-600'
+                  }`}
+                >
+                  <Users className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">
+                    {showAllDriverLocations ? 'Ocultar Conductores' : 'Ver Todos Conductores'}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -712,121 +790,173 @@ const Rutas = () => {
                 </Popup>
               </Marker>
             ))}
-{/* Buses */}
-{showBuses && buses.map(bus => (
-  <Marker
-    key={bus.idVehiculo}
-    position={[
-      (bus.lat && !isNaN(bus.lat) && bus.lat !== 0) ? bus.lat : 4.6482,
-      (bus.lng && !isNaN(bus.lng) && bus.lng !== 0) ? bus.lng : -74.0648
-    ]} // Usar coordenadas por defecto si no hay GPS válidas
-    icon={L.divIcon({
-      html: `<div style="
-        background-color: ${getStatusColor(bus.estVehiculo)};
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        ${isTracking && selectedBus?.idVehiculo === bus.idVehiculo ? 'animation: pulse 1s infinite;' : ''}
-      "><svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><path d="M8 6v6h8V6l2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8l2-2Z"/><path d="M16 16v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2"/></svg></div>
-      <style>
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-          100% { transform: scale(1); }
-        }
-      </style>`,
 
-      iconSize: [35, 35],
-      iconAnchor: [17, 17]
-    })}
-    eventHandlers={{
-      click: () => handleBusClick(bus)
-    }}
-  >
+            {/* Ubicación actual del usuario */}
+            {showCurrentLocation && currentLocation && (
+              <Marker
+                position={currentLocation}
+                icon={currentLocationIcon}
+              >
                 <Popup>
-                  <div className="min-w-[200px] text-gray-800 dark:text-gray-200">
+                  <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Bus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                      <h3 className="font-bold text-blue-900 dark:text-blue-300">
-                        {bus.plaVehiculo || `Vehículo ${bus.numVehiculo}`}
-                      </h3>
+                      <Locate className="w-4 h-4 text-blue-600" />
+                      <h3 className="font-bold">Mi Ubicación</h3>
                     </div>
-                    <div className="mt-2 space-y-1 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Navigation className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                        <span>
-                          <strong>Placa:</strong> {bus.plaVehiculo}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(bus.estVehiculo)}
-                        <span>
-                          <strong>Estado:</strong>
-                        </span>
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${bus.estVehiculo === "EN_RUTA"
-                            ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200"
-                            : "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
-                            }`}
-                        >
-                          {getStatusText(bus.estVehiculo)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>
-                          <strong>Modelo:</strong> {bus.marVehiculo} {bus.modVehiculo}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>
-                          <strong>Año:</strong> {bus.anioVehiculo}
-                        </span>
-                      </div>
-                      {bus.speed && (
-                        <div className="flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                          <span>
-                            <strong>Velocidad:</strong> {bus.speed} km/h
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                        <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-                        <span>
-                          <strong>Última actualización:</strong>{" "}
-                          {bus.lastUpdate ? new Date(bus.lastUpdate).toLocaleTimeString() : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        key="track-bus-popup"
-                        onClick={() => startTracking(bus)}
-                        className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors flex items-center gap-1"
-                      >
-                        <Target className="w-3 h-3" />
-                        Seguir
-                      </button>
-                      <button
-                        key="details-bus-popup"
-                        onClick={() => setSelectedBus(bus)}
-                        className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors flex items-center gap-1"
-                      >
-                        <Info className="w-3 h-3" />
-                        Detalles
-                      </button>
-                    </div>
+                    <p className="text-sm">Tu ubicación actual</p>
+                    <button
+                      onClick={() => {
+                        setShowCurrentLocation(false);
+                        setCurrentLocation(null);
+                      }}
+                      className="bg-secondary-500 text-white px-2 py-1 rounded text-xs mt-2 hover:bg-secondary-600 flex items-center gap-1"
+                    >
+                      <X className="w-3 h-3" />
+                      Ocultar
+                    </button>
                   </div>
                 </Popup>
-
               </Marker>
-            ))}
+            )}
+
+            {/* Buses */}
+            {showBuses && buses.map(bus => {
+              // Si es gestor y tiene activado "Ver Todos Conductores", mostrar todos los buses
+              // Si no es gestor, mostrar solo buses activos
+              const shouldShowBus = userRole === 'GESTOR' ? showAllDriverLocations || bus.estVehiculo === 'EN_RUTA' : showBuses;
+
+              if (!shouldShowBus) return null;
+
+              return (
+                <Marker
+                  key={bus.idVehiculo}
+                  position={[
+                    (bus.lat && !isNaN(bus.lat) && bus.lat !== 0) ? bus.lat : 4.6482,
+                    (bus.lng && !isNaN(bus.lng) && bus.lng !== 0) ? bus.lng : -74.0648
+                  ]}
+                  icon={L.divIcon({
+                    html: `<div style="
+                      background-color: ${getStatusColor(bus.estVehiculo)};
+                      width: 35px;
+                      height: 35px;
+                      border-radius: 50%;
+                      border: 3px solid white;
+                      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 16px;
+                      ${isTracking && selectedBus?.idVehiculo === bus.idVehiculo ? 'animation: pulse 1s infinite;' : ''}
+                    "><svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><path d="M8 6v6h8V6l2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8l2-2Z"/><path d="M16 16v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2"/></svg></div>
+                    <style>
+                      @keyframes pulse {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.1); }
+                        100% { transform: scale(1); }
+                      }
+                    </style>`,
+                    iconSize: [35, 35],
+                    iconAnchor: [17, 17]
+                  })}
+                  eventHandlers={{
+                    click: () => handleBusClick(bus)
+                  }}
+                >
+                  <Popup>
+                    <div className="min-w-[200px] text-gray-800 dark:text-gray-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Bus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <h3 className="font-bold text-blue-900 dark:text-blue-300">
+                          {bus.plaVehiculo || `Vehículo ${bus.numVehiculo}`}
+                        </h3>
+                      </div>
+                      <div className="mt-2 space-y-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Navigation className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          <span>
+                            <strong>Placa:</strong> {bus.plaVehiculo}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(bus.estVehiculo)}
+                          <span>
+                            <strong>Estado:</strong>
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${bus.estVehiculo === "EN_RUTA"
+                              ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200"
+                              : "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
+                              }`}
+                          >
+                            {getStatusText(bus.estVehiculo)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>
+                            <strong>Modelo:</strong> {bus.marVehiculo} {bus.modVehiculo}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>
+                            <strong>Año:</strong> {bus.anioVehiculo}
+                          </span>
+                        </div>
+                        {bus.speed && (
+                          <div className="flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                            <span>
+                              <strong>Velocidad:</strong> {bus.speed} km/h
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                          <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                          <span>
+                            <strong>Última actualización:</strong>{" "}
+                            {bus.lastUpdate ? new Date(bus.lastUpdate).toLocaleTimeString() : 'N/A'}
+                          </span>
+                        </div>
+                        {/* Información adicional para gestores */}
+                        {userRole === 'GESTOR' && (
+                          <>
+                            <div className="flex items-center gap-2 text-xs">
+                              <Navigation className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                              <span>
+                                <strong>Coordenadas:</strong> {bus.lat?.toFixed(4)}, {bus.lng?.toFixed(4)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <Activity className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                              <span>
+                                <strong>ID Vehículo:</strong> {bus.idVehiculo}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          key="track-bus-popup"
+                          onClick={() => startTracking(bus)}
+                          className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors flex items-center gap-1"
+                        >
+                          <Target className="w-3 h-3" />
+                          Seguir
+                        </button>
+                        <button
+                          key="details-bus-popup"
+                          onClick={() => setSelectedBus(bus)}
+                          className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors flex items-center gap-1"
+                        >
+                          <Info className="w-3 h-3" />
+                          Detalles
+                        </button>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
 
           {/* Indicador de tracking */}
@@ -860,12 +990,18 @@ const Rutas = () => {
               onClick={() => {
                 navigator.geolocation?.getCurrentPosition(
                   (position) => {
-                    setMapCenter([position.coords.latitude, position.coords.longitude]);
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    setMapCenter([lat, lng]);
                     setMapZoom(15);
+                    setCurrentLocation([lat, lng]);
+                    setShowCurrentLocation(true);
                   },
                   () => {
                     setMapCenter([4.6482, -74.0648]);
                     setMapZoom(12);
+                    setCurrentLocation(null);
+                    setShowCurrentLocation(false);
                   }
                 );
               }}
@@ -908,6 +1044,20 @@ const Rutas = () => {
                 <div className="w-4 h-1 border-b-2 border-dashed border-secondary-500"></div>
                 <span className="text-text-primary-light dark:text-text-primary-dark">Ruta inactiva</span>
               </div>
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-sm">
+                  <Locate className="w-3 h-3" />
+                </div>
+                <span className="text-text-primary-light dark:text-text-primary-dark">Mi ubicación</span>
+              </div>
+              {userRole === 'GESTOR' && (
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-warning-500 flex items-center justify-center text-white shadow-sm">
+                    <Users className="w-3 h-3" />
+                  </div>
+                  <span className="text-text-primary-light dark:text-text-primary-dark">Todos los conductores</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -940,8 +1090,31 @@ const Rutas = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+
+        {/* Panel de debugging para GESTOR */}
+        <DebugPanel />
+      </div>
+    );
+  } catch (error) {
+    console.error('❌ Error crítico en componente Rutas:', error);
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+        <div className="text-center">
+          <AlertCircle className="w-8 h-8 mx-auto mb-4 text-error-600 dark:text-error-400" />
+          <p className="text-error-600 dark:text-error-400 mb-4">Error crítico en la página de rutas</p>
+          <p className="text-text-secondary-light dark:text-text-secondary-dark mb-4">
+            {error.message || 'Error desconocido'}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary-600 dark:bg-primary-700 text-white px-4 py-2 rounded hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+          >
+            Recargar página
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default Rutas;
