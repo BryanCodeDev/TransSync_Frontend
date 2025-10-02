@@ -141,7 +141,11 @@ const Home = () => {
     { titulo: t('homePage.awards.items.3.titulo'), año: "2024", organizacion: t('homePage.awards.items.3.organizacion'), icono: Shield }
   ];
 
-  const ciudades = t('homePage.cities.list', { returnObjects: true });
+  const ciudades = [
+    "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucaramanga",
+    "Pereira", "Santa Marta", "Cúcuta", "Ibagué", "Manizales", "Pasto",
+    "Villavicencio", "Sincelejo", "Yopal", "Popayán", "Armenia", "Neiva"
+  ];
 
   const casosDeUso = [
     {
@@ -207,12 +211,38 @@ const Home = () => {
         <div className="absolute bottom-10 sm:bottom-20 right-5 sm:right-10 w-64 sm:w-96 h-64 sm:h-96 bg-purple-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
         <div className="w-full max-w-7xl mx-auto text-center relative z-10">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-full border border-white/20 mb-4 sm:mb-6 md:mb-8 hover:bg-white/15 transition-all duration-300">
+            <Award className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary-500" />
+            <span className="text-xs sm:text-sm font-medium">{t('homePage.hero.badge')}</span>
+          </div>
+
+          {/* Main Title */}
+          <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-3 sm:mb-4 md:mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 dark:from-primary-300 dark:via-primary-100 dark:to-secondary-200 bg-clip-text text-transparent transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            TranSync
+          </h1>
+
+          <p className={`text-sm sm:text-lg md:text-xl lg:text-2xl max-w-4xl mx-auto mb-6 sm:mb-8 md:mb-12 text-blue-100 dark:text-gray-300 leading-relaxed transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            {t('homePage.hero.subtitle')}
+          </p>
+
+          {/* CTA Buttons */}
+          <div className={`flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center items-center transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+          </div>
         </div>
       </header>
 
       {/* Estadísticas Impactantes */}
       <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-surface-light to-primary-50 dark:from-gray-900 dark:to-gray-800 border-b border-border-light dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-primary-800 to-primary-600 bg-clip-text text-transparent">
+              {t('homePage.hero.title')}
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-text-secondary-light dark:text-gray-300 max-w-3xl mx-auto">
+              {t('homePage.hero.subtitle')}
+            </p>
+          </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {estadisticas.map((stat, index) => (
@@ -410,6 +440,22 @@ const Home = () => {
         </div>
       </section>
 
+      {/* CTA Final Mejorado */}
+      <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] dark:from-gray-800 dark:via-gray-900 dark:to-black text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent pointer-events-none"></div>
+        <div className="absolute top-5 sm:top-10 left-5 sm:left-10 w-32 sm:w-48 md:w-64 h-32 sm:h-48 md:h-64 bg-blue-400/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-5 sm:bottom-10 right-5 sm:right-10 w-40 sm:w-64 md:w-80 h-40 sm:h-64 md:h-80 bg-purple-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
+          <h2 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 md:mb-6 transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            {t('homePage.cta.title')}
+          </h2>
+          <p className={`text-sm sm:text-base md:text-lg lg:text-xl text-blue-100 dark:text-gray-300 mb-6 sm:mb-8 md:mb-12 leading-relaxed transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            {t('homePage.cta.subtitle')}
+          </p>
+
+        </div>
+      </section>
 
       {/* Sección Mejorada de Descarga Móvil */}
       <section className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-surface-light via-primary-50/30 to-secondary-50/30 dark:from-gray-900 dark:via-primary-900/20 dark:to-secondary-900/20 border-t border-border-light dark:border-gray-700">
