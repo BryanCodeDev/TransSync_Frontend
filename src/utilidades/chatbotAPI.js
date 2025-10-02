@@ -540,6 +540,101 @@ const chatbotAPI = {
         };
       }
     }
+  },
+
+  /**
+   * Función de diagnóstico para probar diferentes endpoints
+   * @returns {Promise<Object>} Resultados del diagnóstico
+   */
+  diagnosticarConexion: async () => {
+    const resultados = {
+      timestamp: new Date().toISOString(),
+      endpoints: {},
+      autenticacion: {},
+      problemas: []
+    };
+
+    try {
+      // 1. Probar conectividad básica
+      try {
+        const healthResponse = await fetch(`${process.env.REACT_APP_API_URL || 'https://transyncbackend-production.up.railway.app'}/api/health`);
+        resultados.endpoints.health = {
+          status: healthResponse.status,
+          ok: healthResponse.ok,
+          statusText: healthResponse.statusText
+        };
+      } catch (error) {
+        resultados.endpoints.health = { error: error.message };
+        resultados.problemas.push('No se puede conectar al endpoint de health');
+      }
+
+      // 2. Probar autenticación
+      const token = localStorage.getItem('authToken');
+      resultados.autenticacion = {
+        tieneToken: !!token,
+        tokenLength: token ? token.length : 0,
+        isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
+        userData: !!localStorage.getItem('userData')
+      };
+
+      // 3. Probar endpoint de vehículos (CRUD básico)
+      try {
+        const vehiculosResponse = await apiClient.get('/api/vehiculos?limit=1');
+        resultados.endpoints.vehiculos = {
+          status: 'OK',
+          count: Array.isArray(vehiculosResponse.data) ? vehiculosResponse.data.length : 0
+        };
+      } catch (error) {
+        resultados.endpoints.vehiculos = {
+          error: error.message,
+          status: error.response?.status
+        };
+        if (error.response?.status === 401) {
+          resultados.problemas.push('Problema de autenticación en endpoint de vehículos');
+        }
+      }
+
+      // 4. Probar endpoint de conductores
+      try {
+        const conductoresResponse = await apiClient.get('/api/conductores?limit=1');
+        resultados.endpoints.conductores = {
+          status: 'OK',
+          count: Array.isArray(conductoresResponse.data) ? conductoresResponse.data.length : 0
+        };
+      } catch (error) {
+        resultados.endpoints.conductores = {
+          error: error.message,
+          status: error.response?.status
+        };
+        if (error.response?.status === 401) {
+          resultados.problemas.push('Problema de autenticación en endpoint de conductores');
+        }
+      }
+
+      // 5. Probar endpoint específico del chatbot
+      try {
+        const chatbotResponse = await apiClient.get('/api/chatbot/health');
+        resultados.endpoints.chatbotHealth = {
+          status: 'OK',
+          data: chatbotResponse.data
+        };
+      } catch (error) {
+        resultados.endpoints.chatbotHealth = {
+          error: error.message,
+          status: error.response?.status
+        };
+        if (error.response?.status === 401) {
+          resultados.problemas.push('Problema de autenticación en endpoint de chatbot');
+        }
+      }
+
+    } catch (error) {
+      resultados.error = error.message;
+      resultados.problemas.push('Error general en diagnóstico');
+    }
+
+    console.log('🔍 Diagnóstico de conexión:', resultados);
+    return resultados;
   }
 };
 

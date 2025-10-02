@@ -585,6 +585,51 @@ const ChatBot = ({
     setRealTimeNotifications([]);
   };
 
+  // Ejecutar diagnóstico de conexión
+  const ejecutarDiagnostico = async () => {
+    try {
+      setConnectionStatus('verifying');
+      const resultado = await chatbotAPI.diagnosticarConexion();
+
+      // Crear mensaje con resultados del diagnóstico
+      const diagnosticoText = `🔍 **Diagnóstico de Conexión**\n\n` +
+        `⏰ Timestamp: ${new Date(resultado.timestamp).toLocaleString()}\n\n` +
+        `🔐 **Autenticación:**\n` +
+        `${resultado.autenticacion.tieneToken ? '✅' : '❌'} Tiene token: ${resultado.autenticacion.tieneToken ? 'Sí' : 'No'}\n` +
+        `${resultado.autenticacion.isAuthenticated ? '✅' : '❌'} Está autenticado: ${resultado.autenticacion.isAuthenticated ? 'Sí' : 'No'}\n` +
+        `${resultado.autenticacion.userData ? '✅' : '❌'} Tiene datos de usuario: ${resultado.autenticacion.userData ? 'Sí' : 'No'}\n\n` +
+        `🌐 **Endpoints:**\n` +
+        `Health: ${resultado.endpoints.health?.ok ? '✅ OK' : '❌ Error'}\n` +
+        `Vehículos: ${resultado.endpoints.vehiculos?.status === 'OK' ? '✅ OK' : '❌ Error'}\n` +
+        `Conductores: ${resultado.endpoints.conductores?.status === 'OK' ? '✅ OK' : '❌ Error'}\n` +
+        `Chatbot: ${resultado.endpoints.chatbotHealth?.status === 'OK' ? '✅ OK' : '❌ Error'}\n\n` +
+        `${resultado.problemas.length > 0 ? `⚠️ **Problemas detectados:**\n${resultado.problemas.map(p => `• ${p}`).join('\n')}` : '✅ No se detectaron problemas'}`;
+
+      const botMessage = {
+        id: Date.now() + Math.random(),
+        text: diagnosticoText,
+        sender: 'bot',
+        timestamp: new Date(),
+        intencion: 'diagnostico',
+        formatted: true,
+        isDiagnostico: true
+      };
+
+      setMessages(prev => [...prev, botMessage]);
+
+      // Actualizar estado de conexión basado en resultados
+      if (resultado.autenticacion.isAuthenticated && resultado.endpoints.health?.ok) {
+        setConnectionStatus('connected');
+      } else {
+        setConnectionStatus('disconnected');
+      }
+
+    } catch (error) {
+      console.error('Error ejecutando diagnóstico:', error);
+      setConnectionStatus('disconnected');
+    }
+  };
+
   // Ver todas las notificaciones
   const viewAllNotifications = () => {
     if (realTimeNotifications.length === 0) return;
@@ -859,6 +904,14 @@ const ChatBot = ({
                 <span className="text-xs sm:text-sm">
                   {isMinimized ? '🔼' : '🔽'}
                 </span>
+              </button>
+              <button
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-1.5 sm:p-2 transition-colors duration-200"
+                onClick={ejecutarDiagnostico}
+                aria-label="Ejecutar diagnóstico"
+                title="Ejecutar diagnóstico de conexión"
+              >
+                <span className="text-xs sm:text-sm">🔍</span>
               </button>
               <button
                 className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-1.5 sm:p-2 transition-colors duration-200"

@@ -1,9 +1,17 @@
 {
   "welcome": "Welcome to Transsync",
-  "home": "Home",
+  "dashboard": "Dashboard",
   "admin_dashboard": "Admin Dashboard",
+  "drivers": "Drivers",
+  "routes": "Routes",
+  "vehicles": "Vehicles",
+  "schedules": "Schedules",
   "reports": "Reports",
   "emergency": "Emergency",
+  "login": "Login",
+  "register": "Register",
+  "logout": "Log out",
+  "home": "Home",
   "login": {
     "title": "Login",
     "subtitle": "Access your business account",
@@ -209,9 +217,6 @@
   },
   "homePage": {
     "hero": {
-      "badge": "Innovative Startup in Smart Transportation",
-      "title": "TranSync",
-      "subtitle": "The emerging platform revolutionizing public transportation management in Colombia",
       "stats": {
         "cities": "5+ Pilot Cities",
         "passengers": "150K+ Passengers Impacted",
@@ -220,7 +225,13 @@
       }
     },
     "cities": {
-      "title": "Cities That Trust TranSync"
+      "title": "Cities That Trust TranSync",
+      "subtitle": "And many more cities throughout Latin America",
+      "list": [
+        "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucaramanga",
+        "Pereira", "Santa Marta", "Cúcuta", "Ibagué", "Manizales", "Pasto",
+        "Villavicencio", "Sincelejo", "Yopal", "Popayán", "Armenia", "Neiva"
+      ]
     },
     "features": {
       "title": "Cutting-Edge Technology",
@@ -229,61 +240,37 @@
         {
           "title": "Intelligent Fleet Management",
           "description": "Real-time monitoring with predictive AI that anticipates problems before they occur.",
-          "benefits": [
-            "High-precision GPS",
-            "Predictive maintenance",
-            "Automatic alerts"
-          ],
+          "benefits": ["High-precision GPS", "Predictive maintenance", "Automatic alerts"],
           "stats": "99.8% accuracy"
         },
         {
           "title": "Advanced AI Optimization",
           "description": "Machine learning algorithms that optimize routes and schedules based on historical data and demand patterns.",
-          "benefits": [
-            "Predictive AI",
-            "Automatic optimization",
-            "Reduced waiting times"
-          ],
+          "benefits": ["Predictive AI", "Automatic optimization", "Reduced waiting times"],
           "stats": "40% less waiting time"
         },
         {
           "title": "Enterprise Security",
           "description": "Bank-grade security protocols with end-to-end encryption and 24/7 monitoring.",
-          "benefits": [
-            "AES-256 encryption",
-            "24/7 monitoring",
-            "GDPR compliance"
-          ],
+          "benefits": ["AES-256 encryption", "24/7 monitoring", "GDPR compliance"],
           "stats": "100% secure"
         },
         {
           "title": "Ultra-Precise Geolocation",
           "description": "Sub-meter precision GPS system optimized for complex urban environments.",
-          "benefits": [
-            "Precision <1 meter",
-            "Total coverage",
-            "Live updates"
-          ],
+          "benefits": ["Precision <1 meter", "Total coverage", "Live updates"],
           "stats": "<1m precision"
         },
         {
           "title": "Real-Time Analytics",
           "description": "Smart dashboard with advanced metrics and automated reports for strategic decisions.",
-          "benefits": [
-            "Real-time KPIs",
-            "Automated reports",
-            "Accurate predictions"
-          ],
+          "benefits": ["Real-time KPIs", "Automated reports", "Accurate predictions"],
           "stats": "24/7 monitoring"
         },
         {
           "title": "Dynamic Planning",
           "description": "Automated system that adapts in real-time to changes in demand and traffic conditions.",
-          "benefits": [
-            "Automatic adaptation",
-            "Continuous optimization",
-            "Total flexibility"
-          ],
+          "benefits": ["Automatic adaptation", "Continuous optimization", "Total flexibility"],
           "stats": "95% efficiency"
         }
       ]
@@ -295,35 +282,29 @@
         {
           "title": "Urban Public Transport",
           "description": "Optimization of bus and metro routes for cities with high population density",
-          "benefits": [
-            "Reduced waiting times",
-            "Better fleet distribution",
-            "Fuel savings"
-          ]
+          "benefits": ["Reduced waiting times", "Better fleet distribution", "Fuel savings"]
         },
         {
           "title": "BRT Systems",
           "description": "Comprehensive management of rapid transit systems with signaling priority",
-          "benefits": [
-            "Traffic light priority",
-            "Continuous traffic flow",
-            "Higher capacity"
-          ]
+          "benefits": ["Traffic light priority", "Continuous traffic flow", "Higher capacity"]
         },
         {
           "title": "Intermunicipal Transport",
           "description": "Coordination of routes between cities with synchronized schedules",
-          "benefits": [
-            "Optimized connections",
-            "Coordinated schedules",
-            "Efficient transfers"
-          ]
+          "benefits": ["Optimized connections", "Coordinated schedules", "Efficient transfers"]
         }
       ]
     },
     "testimonials": {
       "title": "What Our Clients Say",
-      "subtitle": "Real stories of digital transformation in public transportation",
+      "subtitle": "Real stories of digital transformation in public transportation"
+    },
+    "awards": {
+      "title": "Awards and Recognition",
+      "subtitle": "Recognized for our innovation and potential in the sector"
+    },
+    "testimonials": {
       "items": [
         {
           "texto": "As a pilot city, TranSync has allowed us to test technologies that previously seemed impossible. The initial results are promising and we see great potential for scaling.",
@@ -356,8 +337,6 @@
       ]
     },
     "awards": {
-      "title": "Awards and Recognition",
-      "subtitle": "Recognized for our innovation and potential in the sector",
       "items": [
         {
           "titulo": "Innovative Startup 2024",
@@ -377,20 +356,9 @@
         }
       ]
     },
-    "cta": {
-      "title": "Ready to Transform Your Transportation System?",
-      "subtitle": "Be part of the smart transportation revolution. Join our early adoption program and transform your operation",
-      "buttons": {
-        "demo": "Request Free Demo",
-        "expert": "Talk to an Expert"
-      },
-      "features": [
-        "30-day implementation",
-        "24/7 support included",
-        "Results guarantee"
-      ]
-    },
     "mobileDownload": {
+      "title": "Download TransSync Mobile",
+      "subtitle": "Install our mobile application to quickly access all TransSync features from your mobile device.",
       "qrCodeTitle": "Installation QR Code",
       "appBenefits": "App Benefits",
       "offlineFunctionality": "Works offline",
@@ -401,7 +369,45 @@
       "followInstructions": "Follow the installation instructions",
       "iosGuide": "iOS Installation Guide",
       "directAccess": "You can also access directly from your mobile browser",
-      "url": "https://transync1.netlify.app/mobile-download"
+      "url": "https://transync1.netlify.app/mobile-download",
+      "qrSection": {
+        "title": "Scan this QR code",
+        "description": "QR code for mobile installation"
+      },
+      "instructions": {
+        "title": "How to install the application?",
+        "steps": [
+          {
+            "title": "Open the camera",
+            "description": "On your mobile device, open the camera application"
+          },
+          {
+            "title": "Scan the code",
+            "description": "Point the camera at the QR code above"
+          },
+          {
+            "title": "Install the app",
+            "description": "Tap the banner that appears and select 'Install' or 'Add to home screen'"
+          }
+        ]
+      },
+      "features": {
+        "title": "Benefits of the mobile application",
+        "list": [
+          "Quick access from your home screen",
+          "Works without internet connection",
+          "Real-time push notifications",
+          "Mobile-optimized interface",
+          "Automatic updates",
+          "Works offline"
+        ]
+      },
+      "alternative": {
+        "title": "Prefer direct access?",
+        "description": "You can also access directly from your mobile browser",
+        "button": "Open TransSync"
+      },
+      "footer": "TransSync is a progressive web application (PWA) that can be installed on any mobile device"
     }
   },
   "navbar": {
@@ -479,6 +485,96 @@
       "updateError": "Could not update role.",
       "loadingUsers": "Loading users...",
       "noPermission": "You don't have permission to view this page."
+    }
+  },
+  "dashboard": {
+    "title": "TransSync Control Panel",
+    "stats": {
+      "busesInService": "Buses in service",
+      "activeDrivers": "Active drivers",
+      "activeRoutes": "Active routes",
+      "tripsInProgress": "Trips in progress",
+      "criticalAlerts": "Critical alerts"
+    },
+    "charts": {
+      "tripFrequency": "Trip Frequency",
+      "routeDistribution": "Distribution by Routes",
+      "periods": {
+        "week": "Week",
+        "month": "Month",
+        "year": "Year"
+      },
+      "periodTooltips": {
+        "week": "Shows data from the last 7 days",
+        "month": "Shows data from the last month",
+        "year": "Shows data from the last year"
+      }
+    },
+    "fleetStatus": {
+      "title": "Fleet Status",
+      "available": "Available",
+      "inRoute": "In route",
+      "maintenance": "In maintenance"
+    },
+    "alerts": {
+      "title": "System Alerts",
+      "active": "active",
+      "noAlerts": "No active alerts",
+      "systemOk": "System working correctly"
+    },
+    "realtime": {
+      "realTime": "Real Time",
+      "hourly": "Every Hour",
+      "connecting": "Connecting...",
+      "disconnected": "Disconnected",
+      "switchToHourly": "Click to switch to hourly updates",
+      "switchToRealtime": "Click to switch to real-time updates"
+    },
+    "controls": {
+      "disableNotifications": "Disable notifications",
+      "enableNotifications": "Enable notifications",
+      "forceUpdate": "Force data update",
+      "clearCache": "Clear dashboard cache",
+      "showPerformance": "Show performance metrics"
+    },
+    "performance": {
+      "title": "Performance Metrics",
+      "connectionStatus": "Connection Status",
+      "systemPerformance": "System Performance",
+      "updates": "Updates",
+      "cache": "Cache",
+      "notifications": "Notifications",
+      "systemInfo": "System Information",
+      "status": {
+        "connected": "Connected",
+        "connecting": "Connecting...",
+        "disconnected": "Disconnected",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "metrics": {
+        "responseTime": "Response time",
+        "queriesPerSecond": "Queries/second",
+        "cpu": "CPU",
+        "memory": "Memory",
+        "totalUpdates": "Total updates",
+        "lastUpdate": "Last update",
+        "cacheHits": "Hits",
+        "cacheMisses": "Misses",
+        "hitRate": "Hit rate",
+        "sent": "Sent",
+        "pending": "Pending",
+        "errors": "Errors",
+        "uptime": "Uptime",
+        "version": "Version",
+        "environment": "Environment"
+      },
+      "close": "Close"
+    },
+    "errors": {
+      "loadError": "Error loading dashboard",
+      "retry": "Retry",
+      "dataLoadError": "Error loading data. Check your connection."
     }
   },
   "drivers": {
@@ -665,6 +761,52 @@
       "deleteConfirm": "Delete this schedule?",
       "deleteSuccess": "Schedule deleted",
       "deleteError": "Error deleting schedule"
+    }
+  },
+  "reports": {
+    "title": "Reports and Analytics",
+    "subtitle": "Generate and view system reports",
+    "generate": "Generate Report",
+    "export": "Export",
+    "filters": {
+      "dateRange": "Date Range",
+      "route": "Route",
+      "driver": "Driver",
+      "vehicle": "Vehicle",
+      "status": "Status",
+      "all": "All"
+    },
+    "types": {
+      "trips": "Trips",
+      "performance": "Performance",
+      "routes": "Routes",
+      "drivers": "Drivers",
+      "vehicles": "Vehicles",
+      "incidents": "Incidents"
+    },
+    "table": {
+      "date": "Date",
+      "route": "Route",
+      "driver": "Driver",
+      "vehicle": "Vehicle",
+      "status": "Status",
+      "duration": "Duration",
+      "distance": "Distance",
+      "actions": "Actions"
+    },
+    "charts": {
+      "tripsByRoute": "Trips by Route",
+      "performanceByDriver": "Performance by Driver",
+      "incidentsByType": "Incidents by Type",
+      "usageByTime": "Usage by Time"
+    },
+    "messages": {
+      "loading": "Loading reports...",
+      "noData": "No data available",
+      "generating": "Generating report...",
+      "exporting": "Exporting...",
+      "success": "Report generated successfully",
+      "error": "Error generating report"
     }
   },
   "routes": {

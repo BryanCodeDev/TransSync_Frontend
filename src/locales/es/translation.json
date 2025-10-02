@@ -217,18 +217,15 @@
   },
   "homePage": {
     "hero": {
-      "badge": "Startup Innovadora en Transporte Inteligente",
-      "title": "TranSync",
-      "subtitle": "La plataforma emergente que revoluciona la gestión del transporte público en Colombia",
       "stats": {
-        "cities": "5+ Ciudades Piloto",
-        "passengers": "150K+ Pasajeros Impactados",
-        "satisfaction": "95% Satisfacción de Usuarios",
-        "efficiency": "25% Mejora de Eficiencia"
+        "cities": "5+ Ciudades piloto",
+        "passengers": "150K+ Pasajeros impactados",
+        "satisfaction": "95% Satisfacción usuarios",
+        "efficiency": "25% Mejora eficiencia"
       }
     },
     "cities": {
-      "title": "Ciudades Que Confían en TranSync",
+      "title": "Ciudades que Confían en TranSync",
       "subtitle": "Y muchas más ciudades en toda Latinoamérica",
       "list": [
         "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucaramanga",
@@ -238,41 +235,41 @@
     },
     "features": {
       "title": "Tecnología de Vanguardia",
-      "subtitle": "Funcionalidades avanzadas diseñadas para revolucionar la gestión del transporte público",
+      "subtitle": "Características avanzadas diseñadas para revolucionar la gestión del transporte público",
       "items": [
         {
-          "title": "Gestión Inteligente de Flota",
+          "title": "Gestión de Flota Inteligente",
           "description": "Monitoreo en tiempo real con IA predictiva que anticipa problemas antes de que ocurran.",
           "benefits": ["GPS de alta precisión", "Mantenimiento predictivo", "Alertas automáticas"],
           "stats": "99.8% precisión"
         },
         {
-          "title": "Optimización Avanzada con IA",
+          "title": "Optimización IA Avanzada",
           "description": "Algoritmos de machine learning que optimizan rutas y horarios basados en datos históricos y patrones de demanda.",
-          "benefits": ["IA Predictiva", "Optimización automática", "Reducción de esperas"],
-          "stats": "40% menos espera"
+          "benefits": ["IA predictiva", "Optimización automática", "Reducción de esperas"],
+          "stats": "40% menos tiempo de espera"
         },
         {
-          "title": "Seguridad Empresarial",
-          "description": "Protocolos de seguridad de grado bancario con encriptación de extremo a extremo y monitoreo 24/7.",
-          "benefits": ["Cifrado AES-256", "Monitoreo 24/7", "Cumplimiento GDPR"],
+          "title": "Seguridad Enterprise",
+          "description": "Protocolos de seguridad de nivel bancario con encriptación end-to-end y monitoreo 24/7.",
+          "benefits": ["Encriptación AES-256", "Monitoreo 24/7", "Cumplimiento GDPR"],
           "stats": "100% seguro"
         },
         {
-          "title": "Geolocalización Ultra Precisa",
-          "description": "Sistema GPS con precisión sub-métrica optimizado para entornos urbanos complejos.",
+          "title": "Geolocalización Ultra-Precisa",
+          "description": "Sistema GPS de precisión submétrica optimizado para entornos urbanos complejos.",
           "benefits": ["Precisión <1 metro", "Cobertura total", "Actualización en vivo"],
           "stats": "<1m precisión"
         },
         {
-          "title": "Analítica en Tiempo Real",
+          "title": "Analytics en Tiempo Real",
           "description": "Dashboard inteligente con métricas avanzadas y reportes automatizados para decisiones estratégicas.",
-          "benefits": ["KPIs en tiempo real", "Reportes automáticos", "Predicciones certeras"],
+          "benefits": ["KPIs en tiempo real", "Reportes automáticos", "Predicciones precisas"],
           "stats": "24/7 monitoreo"
         },
         {
           "title": "Planificación Dinámica",
-          "description": "Sistema automatizado que se adapta en tiempo real a los cambios en la demanda y condiciones del tráfico.",
+          "description": "Sistema automatizado que se adapta en tiempo real a cambios en la demanda y condiciones del tráfico.",
           "benefits": ["Adaptación automática", "Optimización continua", "Flexibilidad total"],
           "stats": "95% eficiencia"
         }
@@ -284,98 +281,91 @@
       "items": [
         {
           "title": "Transporte Público Urbano",
-          "description": "Optimización de rutas de autobuses y metro para ciudades con alta densidad de población",
+          "description": "Optimización de rutas de buses y metro para ciudades con alta densidad poblacional",
           "benefits": ["Reducción de tiempos de espera", "Mejor distribución de flota", "Ahorro de combustible"]
         },
         {
           "title": "Sistemas BRT",
-          "description": "Gestión integral de sistemas de tránsito rápido con prioridad semafórica",
-          "benefits": ["Prioridad semafórica", "Flujo de tráfico continuo", "Mayor capacidad"]
+          "description": "Gestión integral de sistemas de tránsito rápido con prioridad de señalización",
+          "benefits": ["Prioridad en semáforos", "Flujo continuo de tráfico", "Mayor capacidad"]
         },
         {
           "title": "Transporte Intermunicipal",
           "description": "Coordinación de rutas entre ciudades con horarios sincronizados",
-          "benefits": ["Conexiones optimizadas", "Horarios coordinados", "Transbordos eficientes"]
+          "benefits": ["Conexiones optimizadas", "Horarios coordinados", "Transferencias eficientes"]
         }
       ]
     },
     "testimonials": {
       "title": "Lo que Dicen Nuestros Clientes",
-      "subtitle": "Historias reales de transformación digital en el transporte público",
+      "subtitle": "Historias reales de transformación digital en el transporte público"
+    },
+    "awards": {
+      "title": "Premios y Reconocimientos",
+      "subtitle": "Reconocidos por nuestra innovación y potencial en el sector"
+    },
+    "testimonials": {
       "items": [
         {
-          "texto": "Como ciudad piloto, TranSync nos ha permitido probar tecnologías que antes parecían imposibles. Los resultados iniciales son prometedores y vemos un gran potencial de escalabilidad.",
+          "texto": "Como ciudad piloto, TranSync nos ha permitido probar tecnologías que antes parecían imposibles. Los resultados iniciales son prometedores y vemos un gran potencial para escalar.",
           "autor": "Carlos Rodríguez",
           "cargo": "Director de Operaciones",
           "empresa": "TransUrbe Bogotá - Ciudad Piloto",
-          "beneficio": "Resultados Prometedores"
+          "beneficio": "Resultados prometedores"
         },
         {
-          "texto": "La implementación fue muy fluida y el equipo de soporte nos acompañó en cada paso. Ya vemos mejoras en la eficiencia operativa y nuestros conductores se están adaptando rápidamente.",
+          "texto": "La implementación fue muy suave y el equipo de soporte nos acompañó en cada paso. Ya vemos mejoras en la eficiencia operativa y nuestros conductores están adaptándose rápidamente.",
           "autor": "Ana Martínez",
           "cargo": "Gerente de Flota",
           "empresa": "Metroplús Medellín - Programa Piloto",
-          "beneficio": "Implementación Exitosa"
+          "beneficio": "Implementación exitosa"
         },
         {
-          "texto": "La plataforma nos da una visibilidad en tiempo real de nuestra flota por primera vez. Es un cambio significativo en cómo operamos y estamos entusiasmados con las posibilidades futuras.",
+          "texto": "La plataforma nos da visibilidad en tiempo real de nuestra flota por primera vez. Es un cambio significativo en cómo operamos y estamos emocionados con las posibilidades futuras.",
           "autor": "Luis Fernández",
           "cargo": "Jefe de Operaciones",
           "empresa": "MIO Cali - Proyecto Piloto",
-          "beneficio": "Visibilidad en Tiempo Real"
+          "beneficio": "Visibilidad en tiempo real"
         },
         {
-          "texto": "Como empresa de transporte mediana, esta tecnología nos pone a la vanguardia. La interfaz es intuitiva y el potencial de crecimiento es evidente desde las primeras semanas.",
+          "texto": "Como empresa de transporte mediano, esta tecnología nos pone a la vanguardia. La interfaz es intuitiva y el potencial de crecimiento es evidente desde las primeras semanas.",
           "autor": "María González",
           "cargo": "Directora de Tecnología",
-          "empresa": "Transportes del Valle - Socio Inicial",
-          "beneficio": "Tecnología de Punta"
+          "empresa": "Transportes del Valle - Partner Inicial",
+          "beneficio": "Tecnología de vanguardia"
         }
       ]
     },
     "awards": {
-      "title": "Premios y Reconocimientos",
-      "subtitle": "Reconocidos por nuestra innovación y potencial en el sector",
       "items": [
         {
           "titulo": "Startup Innovadora 2024",
           "organizacion": "TechHub Colombia"
         },
         {
-          "titulo": "Mención Especial en IA",
-          "organizacion": "Cumbre de Innovación"
+          "titulo": "Mención Especial IA",
+          "organizacion": "Innovation Summit"
         },
         {
           "titulo": "Finalista Transporte Inteligente",
-          "organizacion": "Premios Smart Mobility"
+          "organizacion": "Smart Mobility Awards"
         },
         {
-          "titulo": "Certificación en Seguridad",
-          "organizacion": "Estándares de Ciberseguridad"
+          "titulo": "Certificación de Seguridad",
+          "organizacion": "CyberSecurity Standards"
         }
       ]
     },
-    "cta": {
-      "title": "¿Listo para Transformar tu Sistema de Transporte?",
-      "subtitle": "Sé parte de la revolución del transporte inteligente. Únete a nuestro programa de adopción temprana y transforma tu operación",
-      "buttons": {
-        "demo": "Solicitar Demo Gratis",
-        "expert": "Hablar con un Experto"
-      },
-      "features": ["Implementación en 30 días", "Soporte 24/7 incluido", "Garantía de resultados"]
-    },
     "mobileDownload": {
-      "qrCodeTitle": "Código QR de Instalación",
-      "appBenefits": "Beneficios de la App",
+      "qrCodeTitle": "Código QR de instalación",
+      "appBenefits": "Beneficios de la aplicación",
       "offlineFunctionality": "Funciona sin conexión",
       "directInstallQuestion": "¿Prefieres instalación directa?",
       "installationInstructions": "Cómo instalar la aplicación",
       "openCamera": "Abre la cámara de tu móvil",
       "scanQR": "Escanea el código QR",
       "followInstructions": "Sigue las instrucciones de instalación",
-      "iosGuide": "Guía de Instalación para iOS",
-      "directAccess": "También puedes acceder directamente desde el navegador de tu móvil",
-      "url": "https://transync1.netlify.app/mobile-download"
+      "iosGuide": "Guía de instalación para iOS"
     }
   },
   "navbar": {
@@ -453,6 +443,96 @@
       "updateError": "No se pudo actualizar el rol.",
       "loadingUsers": "Cargando usuarios...",
       "noPermission": "No tienes permiso para ver esta página."
+    }
+  },
+  "dashboard": {
+    "title": "Panel de Control TransSync",
+    "stats": {
+      "busesInService": "Buses en servicio",
+      "activeDrivers": "Conductores activos",
+      "activeRoutes": "Rutas activas",
+      "tripsInProgress": "Viajes en curso",
+      "criticalAlerts": "Alertas críticas"
+    },
+    "charts": {
+      "tripFrequency": "Frecuencia de Viajes",
+      "routeDistribution": "Distribución por Rutas",
+      "periods": {
+        "week": "Semana",
+        "month": "Mes",
+        "year": "Año"
+      },
+      "periodTooltips": {
+        "week": "Muestra datos de los últimos 7 días",
+        "month": "Muestra datos del último mes",
+        "year": "Muestra datos del último año"
+      }
+    },
+    "fleetStatus": {
+      "title": "Estado de la Flota",
+      "available": "Disponibles",
+      "inRoute": "En ruta",
+      "maintenance": "En mantenimiento"
+    },
+    "alerts": {
+      "title": "Alertas del Sistema",
+      "active": "activas",
+      "noAlerts": "No hay alertas activas",
+      "systemOk": "Sistema funcionando correctamente"
+    },
+    "realtime": {
+      "realTime": "Tiempo Real",
+      "hourly": "Cada Hora",
+      "connecting": "Conectando...",
+      "disconnected": "Desconectado",
+      "switchToHourly": "Click para cambiar a actualizaciones cada hora",
+      "switchToRealtime": "Click para cambiar a actualizaciones en tiempo real"
+    },
+    "controls": {
+      "disableNotifications": "Deshabilitar notificaciones",
+      "enableNotifications": "Habilitar notificaciones",
+      "forceUpdate": "Forzar actualización de datos",
+      "clearCache": "Limpiar cache del dashboard",
+      "showPerformance": "Mostrar métricas de rendimiento"
+    },
+    "performance": {
+      "title": "Métricas de Rendimiento",
+      "connectionStatus": "Estado de Conexión",
+      "systemPerformance": "Rendimiento del Sistema",
+      "updates": "Actualizaciones",
+      "cache": "Cache",
+      "notifications": "Notificaciones",
+      "systemInfo": "Información del Sistema",
+      "status": {
+        "connected": "Conectado",
+        "connecting": "Conectando...",
+        "disconnected": "Desconectado",
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "metrics": {
+        "responseTime": "Tiempo de respuesta",
+        "queriesPerSecond": "Consultas/segundo",
+        "cpu": "CPU",
+        "memory": "Memoria",
+        "totalUpdates": "Total actualizaciones",
+        "lastUpdate": "Última actualización",
+        "cacheHits": "Hits",
+        "cacheMisses": "Misses",
+        "hitRate": "Tasa de aciertos",
+        "sent": "Enviadas",
+        "pending": "Pendientes",
+        "errors": "Errores",
+        "uptime": "Uptime",
+        "version": "Versión",
+        "environment": "Entorno"
+      },
+      "close": "Cerrar"
+    },
+    "errors": {
+      "loadError": "Error al cargar el dashboard",
+      "retry": "Reintentar",
+      "dataLoadError": "Error al cargar los datos. Verifique su conexión."
     }
   },
   "drivers": {
