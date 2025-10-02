@@ -126,7 +126,7 @@
     }
   },
   "dashboard": {
-    "title": "TransSync Control Panel",
+    "title": "TranSync Control Panel",
     "stats": {
       "busesInService": "Buses in service",
       "activeDrivers": "Active drivers",
@@ -217,9 +217,9 @@
   },
   "homePage": {
     "hero": {
-      "badge": "🚀 Innovative Startup in Smart Transportation",
+      "badge": "Innovative Startup in Smart Transportation",
       "title": "TranSync",
-      "subtitle": "The emerging AI platform revolutionizing public transportation management in Colombia",
+      "subtitle": "The emerging platform revolutionizing public transportation management in Colombia",
       "stats": {
         "cities": "5+ Pilot Cities",
         "passengers": "150K+ Passengers Impacted",
@@ -228,8 +228,7 @@
       }
     },
     "cities": {
-      "title": "Cities That Trust TranSync",
-      "subtitle": "And many more cities throughout Latin America"
+      "title": "Cities That Trust TranSync"
     },
     "features": {
       "title": "Cutting-Edge Technology",

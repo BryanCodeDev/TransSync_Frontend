@@ -126,7 +126,7 @@
     }
   },
   "dashboard": {
-    "title": "Panel de Control TransSync",
+    "title": "Panel de Control TranSync",
     "stats": {
       "busesInService": "Buses en servicio",
       "activeDrivers": "Conductores activos",
@@ -219,7 +219,7 @@
     "hero": {
       "badge": "Startup Innovadora en Transporte Inteligente",
       "title": "TranSync",
-      "subtitle": "La plataforma emergente de IA que está revolucionando la gestión del transporte público en Colombia",
+      "subtitle": "La plataforma emergente que está revolucionando la gestión del transporte público en Colombia",
       "stats": {
         "cities": "5+ Ciudades piloto",
         "passengers": "150K+ Pasajeros impactados",
