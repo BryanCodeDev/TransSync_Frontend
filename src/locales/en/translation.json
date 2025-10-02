@@ -363,10 +363,9 @@
       "openCamera": "Open your mobile camera",
       "scanQR": "Scan the QR code",
       "followInstructions": "Follow the installation instructions",
-      "iosGuide": "iOS Installation Guide",
       "directAccess": "You can also access directly from your mobile browser",
       "url": "https://transync1.netlify.app/mobile-download",
-      "footer": "TransSync is a progressive web app (PWA) that can be installed on any mobile device",
+      "footer": "TransSync is a progressive web app (PWA) that can be installed on any mobile device for quick access and offline functionality",
       "features": {
         "title": "Featured features",
         "list": [
@@ -396,9 +395,9 @@
       },
       "iosGuide": "iOS installation guide",
       "alternative": {
-        "title": "Alternative installation",
-        "description": "You can also install the application directly from the app store",
-        "button": "Go to app store"
+        "title": "Web access",
+        "description": "You can also access directly from your mobile device's web browser",
+        "button": "Access from browser"
       }
     }
   },
