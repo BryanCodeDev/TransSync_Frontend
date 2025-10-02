@@ -477,7 +477,7 @@ const Home = () => {
             <div className="order-2 lg:order-1">
               <div className="bg-background-light dark:bg-gray-800 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-2xl border border-border-light dark:border-gray-600 text-center">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 sm:mb-6">
-                  {t('homePage.mobileDownload.qrCodeTitle')}
+                  {t('mobileDownload.qrCodeTitle')}
                 </h3>
 
                 <div className="flex justify-center mb-4 sm:mb-6">
@@ -506,7 +506,7 @@ const Home = () => {
               <div className="space-y-4 sm:space-y-6">
                 <div>
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3 sm:mb-4">
-                    {t('homePage.mobileDownload.appBenefits')}
+                    {t('mobileDownload.appBenefits')}
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     {[
@@ -515,7 +515,7 @@ const Home = () => {
                       { icon: Bell, text: t('mobileDownload.features.list.2') },
                       { icon: Palette, text: t('mobileDownload.features.list.3') },
                       { icon: RefreshCw, text: t('mobileDownload.features.list.4') },
-                      { icon: HardDrive, text: t('homePage.mobileDownload.offlineFunctionality') }
+                      { icon: HardDrive, text: t('mobileDownload.offlineFunctionality') }
                     ].map((feature, index) => (
                       <div key={index} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                         <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
@@ -530,7 +530,7 @@ const Home = () => {
                 {/* Botón de instalación directa */}
                 <div className="text-center p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl sm:rounded-2xl border border-blue-200 dark:border-blue-800">
                   <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-3 text-sm sm:text-base">
-                    {t('homePage.mobileDownload.directInstallQuestion')}
+                    {t('mobileDownload.directInstallQuestion')}
                   </h4>
                 </div>
               </div>
@@ -541,25 +541,25 @@ const Home = () => {
           <div className="mt-8 sm:mt-10 md:mt-12 text-center">
             <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-yellow-200 dark:border-yellow-800 max-w-4xl mx-auto">
               <h4 className="font-bold text-yellow-800 dark:text-yellow-300 mb-3 sm:mb-4 text-sm sm:text-base">
-                {t('homePage.mobileDownload.installationInstructions')}
+                {t('mobileDownload.installationInstructions')}
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
                   <span className="text-yellow-700 dark:text-yellow-300 text-left">
-                    {t('homePage.mobileDownload.openCamera')}
+                    {t('mobileDownload.openCamera')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
                   <span className="text-yellow-700 dark:text-yellow-300 text-left">
-                    {t('homePage.mobileDownload.scanQR')}
+                    {t('mobileDownload.scanQR')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 sm:col-span-2 md:col-span-1">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
                   <span className="text-yellow-700 dark:text-yellow-300 text-left">
-                    {t('homePage.mobileDownload.followInstructions')}
+                    {t('mobileDownload.followInstructions')}
                   </span>
                 </div>
               </div>

@@ -221,7 +221,8 @@
       }
     },
     "cities": {
-      "title": "Cities That Trust TranSync"
+      "title": "Cities That Trust TranSync",
+      "subtitle": "And many more cities throughout Latin America"
     },
     "features": {
       "title": "Cutting-Edge Technology",
@@ -352,6 +353,8 @@
       "features": ["30-day implementation", "24/7 support included", "Results guarantee"]
     },
     "mobileDownload": {
+      "title": "Download TransSync Mobile",
+      "subtitle": "Install our mobile application to quickly access all TransSync features from your mobile device.",
       "qrCodeTitle": "Installation QR Code",
       "appBenefits": "App Benefits",
       "offlineFunctionality": "Works offline",
@@ -362,7 +365,41 @@
       "followInstructions": "Follow the installation instructions",
       "iosGuide": "iOS Installation Guide",
       "directAccess": "You can also access directly from your mobile browser",
-      "url": "https://transync1.netlify.app/mobile-download"
+      "url": "https://transync1.netlify.app/mobile-download",
+      "footer": "TransSync is a progressive web app (PWA) that can be installed on any mobile device",
+      "features": {
+        "title": "Featured features",
+        "list": [
+          "Quick access from your home screen",
+          "Works without internet connection",
+          "Real-time push notifications",
+          "Mobile-optimized interface",
+          "Automatic updates"
+        ]
+      },
+      "instructions": {
+        "title": "Installation instructions",
+        "steps": [
+          {
+            "title": "Step 1: Open your browser",
+            "description": "Open the browser on your mobile device"
+          },
+          {
+            "title": "Step 2: Enter the URL",
+            "description": "Type the TransSync web address"
+          },
+          {
+            "title": "Step 3: Install the application",
+            "description": "Look for the install button in your browser"
+          }
+        ]
+      },
+      "iosGuide": "iOS installation guide",
+      "alternative": {
+        "title": "Alternative installation",
+        "description": "You can also install the application directly from the app store",
+        "button": "Go to app store"
+      }
     }
   },
   "navbar": {

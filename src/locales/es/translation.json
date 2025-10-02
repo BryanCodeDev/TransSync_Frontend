@@ -12,7 +12,8 @@
       }
     },
     "cities": {
-      "title": "Ciudades Que Confían en TranSync"
+      "title": "Ciudades Que Confían en TranSync",
+      "subtitle": "Y muchas más ciudades en toda Latinoamérica"
     },
     "features": {
       "title": "Tecnología de Vanguardia",
@@ -143,8 +144,10 @@
       "features": ["Implementación en 30 días", "Soporte 24/7 incluido", "Garantía de resultados"]
     },
     "mobileDownload": {
+      "title": "Descarga TransSync Móvil",
+      "subtitle": "Instala nuestra aplicación móvil para acceder rápidamente a todas las funciones de TransSync desde tu dispositivo móvil.",
       "qrCodeTitle": "Código QR de Instalación",
-      "appBenefits": "Beneficios de la App",
+      "appBenefits": "Beneficios de la aplicación",
       "offlineFunctionality": "Funciona sin conexión",
       "directInstallQuestion": "¿Prefieres instalación directa?",
       "installationInstructions": "Cómo instalar la aplicación",
@@ -153,7 +156,41 @@
       "followInstructions": "Sigue las instrucciones de instalación",
       "iosGuide": "Guía de Instalación para iOS",
       "directAccess": "También puedes acceder directamente desde el navegador de tu móvil",
-      "url": "https://transync1.netlify.app/mobile-download"
+      "url": "https://transync1.netlify.app/mobile-download",
+      "footer": "TransSync es una aplicación web progresiva (PWA) que se puede instalar en cualquier dispositivo móvil",
+      "features": {
+        "title": "Características destacadas",
+        "list": [
+          "Acceso rápido desde tu pantalla de inicio",
+          "Funciona sin conexión a internet",
+          "Notificaciones push en tiempo real",
+          "Interfaz optimizada para móviles",
+          "Actualizaciones automáticas"
+        ]
+      },
+      "instructions": {
+        "title": "Instrucciones de instalación",
+        "steps": [
+          {
+            "title": "Paso 1: Abre tu navegador",
+            "description": "Abre el navegador de tu dispositivo móvil"
+          },
+          {
+            "title": "Paso 2: Ingresa la URL",
+            "description": "Escribe la dirección web de TransSync"
+          },
+          {
+            "title": "Paso 3: Instala la aplicación",
+            "description": "Busca el botón de instalación en tu navegador"
+          }
+        ]
+      },
+      "iosGuide": "Guía de instalación para iOS",
+      "alternative": {
+        "title": "Instalación alternativa",
+        "description": "También puedes instalar la aplicación directamente desde la tienda de aplicaciones",
+        "button": "Ir a la tienda de aplicaciones"
+      }
     }
   }
 }
