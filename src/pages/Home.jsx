@@ -483,7 +483,7 @@ const Home = () => {
                 <div className="flex justify-center mb-4 sm:mb-6">
                   <div className="bg-white dark:bg-gray-700 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xl border-2 border-gray-200 dark:border-gray-600">
                     <QRCode
-                      url={t('mobileDownload.url')}
+                      url={t('https://transync1.netlify.app/mobile-download')}
                       size={window.innerWidth < 640 ? 150 : 180}
                     />
                   </div>
@@ -491,7 +491,7 @@ const Home = () => {
 
                 <div className="bg-gradient-to-r from-surface-light to-primary-50/50 dark:from-gray-800 dark:to-gray-700/50 rounded-xl p-3 sm:p-4 border border-border-light dark:border-gray-600 shadow-lg">
                   <p className="text-xs sm:text-sm font-mono text-text-primary-light dark:text-gray-200 break-all">
-                    {t('mobileDownload.url')}
+                    {t('https://transync1.netlify.app/mobile-download')}
                   </p>
                 </div>
 
