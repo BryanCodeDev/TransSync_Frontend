@@ -185,6 +185,23 @@
         }
       },
       "iosGuide": "Guía de instalación para iOS",
+      "instructions": {
+        "title": "Instrucciones de instalación",
+        "steps": {
+          "0": {
+            "title": "Paso 1: Abre tu navegador",
+            "description": "Abre el navegador de tu dispositivo móvil"
+          },
+          "1": {
+            "title": "Paso 2: Ingresa la URL",
+            "description": "Escribe la dirección web de TransSync"
+          },
+          "2": {
+            "title": "Paso 3: Instala la aplicación",
+            "description": "Busca el botón de instalación en tu navegador"
+          }
+        }
+      },
       "alternative": {
         "title": "Acceso web",
         "description": "También puedes acceder directamente desde el navegador de tu dispositivo móvil",
