@@ -133,6 +133,9 @@ class RealTimeService {
 
     // Eventos del dashboard
     this.setupDashboardListeners();
+
+    // Eventos de ubicación en tiempo real
+    this.setupLocationEventListeners();
   }
 
   /**
@@ -246,6 +249,43 @@ class RealTimeService {
     this.socket.on('dashboard:cache:invalidated', (data) => {
       console.log('💾 Cache invalidado:', data);
       this.emit('dashboard:cache:invalidated', data);
+    });
+  }
+
+  /**
+   * Configurar listeners para eventos de ubicación en tiempo real
+   */
+  setupLocationEventListeners() {
+    if (!this.socket) return;
+
+    // Nueva ubicación de conductor recibida
+    this.socket.on('conductor:location:update', (data) => {
+      console.log('📍 Nueva ubicación de conductor:', data);
+      this.emit('conductor:location:update', data);
+    });
+
+    // Conductor inició seguimiento de ubicación
+    this.socket.on('conductor:tracking:started', (data) => {
+      console.log('🎯 Conductor inició seguimiento:', data);
+      this.emit('conductor:tracking:started', data);
+    });
+
+    // Conductor detuvo seguimiento de ubicación
+    this.socket.on('conductor:tracking:stopped', (data) => {
+      console.log('⏹️ Conductor detuvo seguimiento:', data);
+      this.emit('conductor:tracking:stopped', data);
+    });
+
+    // Actualización masiva de ubicaciones de conductores
+    this.socket.on('conductores:locations:update', (data) => {
+      console.log('📍 Actualización masiva de ubicaciones:', data);
+      this.emit('conductores:locations:update', data);
+    });
+
+    // Error en ubicación de conductor
+    this.socket.on('conductor:location:error', (data) => {
+      console.error('❌ Error en ubicación de conductor:', data);
+      this.emit('conductor:location:error', data);
     });
   }
 
@@ -854,6 +894,95 @@ class RealTimeService {
       eventThrottleDelay: this.eventThrottleDelay,
       activeThrottledEvents: this.eventThrottleTimers.size
     };
+  }
+
+  // ===============================
+  // FUNCIONES DE UBICACIÓN EN TIEMPO REAL
+  // ===============================
+
+  /**
+   * Suscribirse a ubicaciones de un conductor específico
+   * @param {string} conductorId - ID del conductor
+   */
+  subscribeToConductorLocation(conductorId) {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('subscribe:conductor:location', {
+        conductorId,
+        timestamp: new Date()
+      });
+      console.log(`📍 Suscrito a ubicación del conductor ${conductorId}`);
+    }
+  }
+
+  /**
+   * Desuscribirse de ubicaciones de un conductor específico
+   * @param {string} conductorId - ID del conductor
+   */
+  unsubscribeFromConductorLocation(conductorId) {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('unsubscribe:conductor:location', {
+        conductorId,
+        timestamp: new Date()
+      });
+      console.log(`📍 Desuscrito de ubicación del conductor ${conductorId}`);
+    }
+  }
+
+  /**
+   * Suscribirse a ubicaciones de todos los conductores de la empresa
+   */
+  subscribeToAllConductoresLocations() {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('subscribe:empresa:conductores:locations', {
+        empresaId: this.userContext?.idEmpresa,
+        timestamp: new Date()
+      });
+      console.log(`📍 Suscrito a ubicaciones de todos los conductores de la empresa`);
+    }
+  }
+
+  /**
+   * Enviar ubicación vía WebSocket (alternativa a la API REST)
+   * @param {Object} locationData - Datos de ubicación
+   * @param {string} conductorId - ID del conductor
+   */
+  sendLocationUpdate(locationData, conductorId) {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('conductor:location:update', {
+        conductorId,
+        location: locationData,
+        timestamp: new Date()
+      });
+      console.log('📍 Ubicación enviada vía WebSocket:', locationData);
+    }
+  }
+
+  /**
+   * Notificar inicio de seguimiento de ubicación
+   * @param {string} conductorId - ID del conductor
+   */
+  notifyTrackingStarted(conductorId) {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('conductor:tracking:started', {
+        conductorId,
+        timestamp: new Date()
+      });
+      console.log(`🎯 Inicio de seguimiento notificado para conductor ${conductorId}`);
+    }
+  }
+
+  /**
+   * Notificar fin de seguimiento de ubicación
+   * @param {string} conductorId - ID del conductor
+   */
+  notifyTrackingStopped(conductorId) {
+    if (this.socket && this.isConnected) {
+      this.socket.emit('conductor:tracking:stopped', {
+        conductorId,
+        timestamp: new Date()
+      });
+      console.log(`⏹️ Fin de seguimiento notificado para conductor ${conductorId}`);
+    }
   }
 }
 

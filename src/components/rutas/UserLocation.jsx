@@ -7,22 +7,44 @@ import {
   CheckCircle,
   Loader2
 } from 'lucide-react';
+import locationAPI from '../../utilidades/locationAPI';
+import { useAuthContext } from '../../context/AuthContext';
 
 const UserLocation = ({
   onLocationUpdate,
-  className = ""
+  className = "",
+  enableAutoSend = false,
+  conductorId = null
 }) => {
   useTranslation();
+  const { user } = useAuthContext();
   const [userLocation, setUserLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState('unknown'); // unknown, requesting, success, error
   const [locationError, setLocationError] = useState(null);
   const [watchId, setWatchId] = useState(null);
+  const [isTracking, setIsTracking] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   // Opciones de geolocalización
   const locationOptions = {
     enableHighAccuracy: true,
     timeout: 10000,
     maximumAge: 300000 // 5 minutos
+  };
+
+  // Función para enviar ubicación al servidor
+  const sendLocationToServer = async (location) => {
+    if (!enableAutoSend || !conductorId || isSending) return;
+
+    try {
+      setIsSending(true);
+      await locationAPI.sendLocation(location, conductorId);
+      console.log('✅ Ubicación enviada al servidor:', location);
+    } catch (error) {
+      console.error('❌ Error enviando ubicación al servidor:', error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   // Función para obtener ubicación actual
@@ -42,12 +64,19 @@ const UserLocation = ({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
           accuracy: position.coords.accuracy,
-          timestamp: position.timestamp
+          timestamp: position.timestamp,
+          speed: position.coords.speed,
+          heading: position.coords.heading
         };
 
         setUserLocation(location);
         setLocationStatus('success');
         onLocationUpdate?.(location);
+
+        // Enviar ubicación al servidor si está habilitado
+        if (enableAutoSend && conductorId) {
+          sendLocationToServer(location);
+        }
       },
       (error) => {
         let errorMessage = 'Error desconocido de geolocalización';
@@ -74,7 +103,7 @@ const UserLocation = ({
   };
 
   // Función para iniciar seguimiento continuo
-  const startLocationTracking = () => {
+  const startLocationTracking = async () => {
     if (!navigator.geolocation) {
       setLocationError('Geolocalización no soportada en este navegador');
       setLocationStatus('error');
@@ -85,6 +114,16 @@ const UserLocation = ({
       stopLocationTracking();
     }
 
+    // Iniciar seguimiento en el servidor si es conductor
+    if (enableAutoSend && conductorId) {
+      try {
+        await locationAPI.startLocationTracking(conductorId, 30); // 30 segundos de intervalo
+        setIsTracking(true);
+      } catch (error) {
+        console.error('Error iniciando seguimiento en servidor:', error);
+      }
+    }
+
     setLocationStatus('requesting');
 
     const id = navigator.geolocation.watchPosition(
@@ -93,12 +132,19 @@ const UserLocation = ({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
           accuracy: position.coords.accuracy,
-          timestamp: position.timestamp
+          timestamp: position.timestamp,
+          speed: position.coords.speed,
+          heading: position.coords.heading
         };
 
         setUserLocation(location);
         setLocationStatus('success');
         onLocationUpdate?.(location);
+
+        // Enviar ubicación al servidor si está habilitado
+        if (enableAutoSend && conductorId) {
+          sendLocationToServer(location);
+        }
       },
       (error) => {
         console.error('Error en seguimiento de ubicación:', error);
@@ -115,10 +161,20 @@ const UserLocation = ({
   };
 
   // Función para detener seguimiento
-  const stopLocationTracking = () => {
+  const stopLocationTracking = async () => {
     if (watchId) {
       navigator.geolocation.clearWatch(watchId);
       setWatchId(null);
+    }
+
+    // Detener seguimiento en el servidor si es conductor
+    if (enableAutoSend && conductorId && isTracking) {
+      try {
+        await locationAPI.stopLocationTracking(conductorId);
+        setIsTracking(false);
+      } catch (error) {
+        console.error('Error deteniendo seguimiento en servidor:', error);
+      }
     }
   };
 
@@ -292,7 +348,18 @@ const UserLocation = ({
             <div className="flex items-center gap-2 text-sm text-success-700 dark:text-success-300">
               <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse" />
               <span>Seguimiento de ubicación activo</span>
+              {enableAutoSend && conductorId && (
+                <span className="text-xs bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-2 py-1 rounded">
+                  Enviando al servidor
+                </span>
+              )}
             </div>
+            {isSending && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-primary-600 dark:text-primary-400">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>Enviando ubicación...</span>
+              </div>
+            )}
           </div>
         )}
       </div>
