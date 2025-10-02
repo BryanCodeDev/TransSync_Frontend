@@ -217,9 +217,6 @@
   },
   "homePage": {
     "hero": {
-      "badge": "Startup Innovadora en Transporte Inteligente",
-      "title": "TranSync",
-      "subtitle": "La plataforma emergente que está revolucionando la gestión del transporte público en Colombia",
       "stats": {
         "cities": "5+ Ciudades piloto",
         "passengers": "150K+ Pasajeros impactados",
@@ -229,7 +226,12 @@
     },
     "cities": {
       "title": "Ciudades que Confían en TranSync",
-      "subtitle": "Y muchas más ciudades en toda Latinoamérica"
+      "subtitle": "Y muchas más ciudades en toda Latinoamérica",
+      "list": [
+        "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucaramanga",
+        "Pereira", "Santa Marta", "Cúcuta", "Ibagué", "Manizales", "Pasto",
+        "Villavicencio", "Sincelejo", "Yopal", "Popayán", "Armenia", "Neiva"
+      ]
     },
     "features": {
       "title": "Tecnología de Vanguardia",
@@ -301,15 +303,6 @@
     "awards": {
       "title": "Premios y Reconocimientos",
       "subtitle": "Reconocidos por nuestra innovación y potencial en el sector"
-    },
-    "cta": {
-      "title": "¿Listo para Transformar tu Sistema de Transporte?",
-      "subtitle": "Sé parte de la revolución del transporte inteligente. Únete a nuestro programa de adopción temprana y transforma tu operación",
-      "buttons": {
-        "demo": "Conoce Más",
-        "expert": "Contacto"
-      },
-      "features": ["Solución Personalizada", "Tecnología Avanzada", "Resultados Comprobados"]
     },
     "testimonials": {
       "items": [
@@ -1092,7 +1085,8 @@
         "Funciona sin conexión a internet",
         "Notificaciones push en tiempo real",
         "Interfaz optimizada para móviles",
-        "Actualizaciones automáticas"
+        "Actualizaciones automáticas",
+        "Funciona sin conexión"
       ]
     },
     "alternative": {
