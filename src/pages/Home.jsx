@@ -541,25 +541,25 @@ const Home = () => {
           <div className="mt-8 sm:mt-10 md:mt-12 text-center">
             <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-yellow-200 dark:border-yellow-800 max-w-4xl mx-auto">
               <h4 className="font-bold text-yellow-800 dark:text-yellow-300 mb-3 sm:mb-4 text-sm sm:text-base">
-                {t('mobileDownload.installationInstructions')}
+                {t('homePage.mobileDownload.installationInstructions')}
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
                   <span className="text-yellow-700 dark:text-yellow-300 text-left">
-                    {t('mobileDownload.openCamera')}
+                    {t('homePage.mobileDownload.openCamera')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
                   <span className="text-yellow-700 dark:text-yellow-300 text-left">
-                    {t('mobileDownload.scanQR')}
+                    {t('homePage.mobileDownload.scanQR')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 sm:col-span-2 md:col-span-1">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
                   <span className="text-yellow-700 dark:text-yellow-300 text-left">
-                    {t('mobileDownload.followInstructions')}
+                    {t('homePage.mobileDownload.followInstructions')}
                   </span>
                 </div>
               </div>
