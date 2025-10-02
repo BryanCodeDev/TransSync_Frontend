@@ -778,146 +778,145 @@ const Rutas = () => {
                 </Popup>
               </Marker>
             )}
-{/* Buses */}
-{showBuses && buses.map(bus => {
-  // Si es gestor y tiene activado "Ver Todos Conductores", mostrar todos los buses
-  // Si no es gestor, mostrar solo buses activos
-  const shouldShowBus = userRole === 'GESTOR' ? showAllDriverLocations || bus.estVehiculo === 'EN_RUTA' : showBuses;
 
-  if (!shouldShowBus) return null;
+            {/* Buses */}
+            {showBuses && buses.map(bus => {
+              // Si es gestor y tiene activado "Ver Todos Conductores", mostrar todos los buses
+              // Si no es gestor, mostrar solo buses activos
+              const shouldShowBus = userRole === 'GESTOR' ? showAllDriverLocations || bus.estVehiculo === 'EN_RUTA' : showBuses;
 
-  return (
-  <Marker
-    key={bus.idVehiculo}
-    position={[
-      (bus.lat && !isNaN(bus.lat) && bus.lat !== 0) ? bus.lat : 4.6482,
-      (bus.lng && !isNaN(bus.lng) && bus.lng !== 0) ? bus.lng : -74.0648
-    ]} // Usar coordenadas por defecto si no hay GPS válidas
-    icon={L.divIcon({
-      html: `<div style="
-        background-color: ${getStatusColor(bus.estVehiculo)};
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        ${isTracking && selectedBus?.idVehiculo === bus.idVehiculo ? 'animation: pulse 1s infinite;' : ''}
-      "><svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><path d="M8 6v6h8V6l2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8l2-2Z"/><path d="M16 16v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2"/></svg></div>
-      <style>
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-          100% { transform: scale(1); }
-        }
-      </style>`,
+              if (!shouldShowBus) return null;
 
-      iconSize: [35, 35],
-      iconAnchor: [17, 17]
-    })}
-    eventHandlers={{
-      click: () => handleBusClick(bus)
-    }}
-  >
-                <Popup>
-                  <div className="min-w-[200px] text-gray-800 dark:text-gray-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Bus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                      <h3 className="font-bold text-blue-900 dark:text-blue-300">
-                        {bus.plaVehiculo || `Vehículo ${bus.numVehiculo}`}
-                      </h3>
-                    </div>
-                    <div className="mt-2 space-y-1 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Navigation className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                        <span>
-                          <strong>Placa:</strong> {bus.plaVehiculo}
-                        </span>
+              return (
+                <Marker
+                  key={bus.idVehiculo}
+                  position={[
+                    (bus.lat && !isNaN(bus.lat) && bus.lat !== 0) ? bus.lat : 4.6482,
+                    (bus.lng && !isNaN(bus.lng) && bus.lng !== 0) ? bus.lng : -74.0648
+                  ]}
+                  icon={L.divIcon({
+                    html: `<div style="
+                      background-color: ${getStatusColor(bus.estVehiculo)};
+                      width: 35px;
+                      height: 35px;
+                      border-radius: 50%;
+                      border: 3px solid white;
+                      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 16px;
+                      ${isTracking && selectedBus?.idVehiculo === bus.idVehiculo ? 'animation: pulse 1s infinite;' : ''}
+                    "><svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><path d="M8 6v6h8V6l2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8l2-2Z"/><path d="M16 16v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2"/></svg></div>
+                    <style>
+                      @keyframes pulse {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.1); }
+                        100% { transform: scale(1); }
+                      }
+                    </style>`,
+                    iconSize: [35, 35],
+                    iconAnchor: [17, 17]
+                  })}
+                  eventHandlers={{
+                    click: () => handleBusClick(bus)
+                  }}
+                >
+                  <Popup>
+                    <div className="min-w-[200px] text-gray-800 dark:text-gray-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Bus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <h3 className="font-bold text-blue-900 dark:text-blue-300">
+                          {bus.plaVehiculo || `Vehículo ${bus.numVehiculo}`}
+                        </h3>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(bus.estVehiculo)}
-                        <span>
-                          <strong>Estado:</strong>
-                        </span>
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${bus.estVehiculo === "EN_RUTA"
-                            ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200"
-                            : "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
-                            }`}
-                        >
-                          {getStatusText(bus.estVehiculo)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>
-                          <strong>Modelo:</strong> {bus.marVehiculo} {bus.modVehiculo}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>
-                          <strong>Año:</strong> {bus.anioVehiculo}
-                        </span>
-                      </div>
-                      {bus.speed && (
+                      <div className="mt-2 space-y-1 text-sm">
                         <div className="flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          <Navigation className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                           <span>
-                            <strong>Velocidad:</strong> {bus.speed} km/h
+                            <strong>Placa:</strong> {bus.plaVehiculo}
                           </span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                        <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-                        <span>
-                          <strong>Última actualización:</strong>{" "}
-                          {bus.lastUpdate ? new Date(bus.lastUpdate).toLocaleTimeString() : 'N/A'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(bus.estVehiculo)}
+                          <span>
+                            <strong>Estado:</strong>
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${bus.estVehiculo === "EN_RUTA"
+                              ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200"
+                              : "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
+                              }`}
+                          >
+                            {getStatusText(bus.estVehiculo)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>
+                            <strong>Modelo:</strong> {bus.marVehiculo} {bus.modVehiculo}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>
+                            <strong>Año:</strong> {bus.anioVehiculo}
+                          </span>
+                        </div>
+                        {bus.speed && (
+                          <div className="flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                            <span>
+                              <strong>Velocidad:</strong> {bus.speed} km/h
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                          <Clock className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                          <span>
+                            <strong>Última actualización:</strong>{" "}
+                            {bus.lastUpdate ? new Date(bus.lastUpdate).toLocaleTimeString() : 'N/A'}
+                          </span>
+                        </div>
+                        {/* Información adicional para gestores */}
+                        {userRole === 'GESTOR' && (
+                          <>
+                            <div className="flex items-center gap-2 text-xs">
+                              <Navigation className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                              <span>
+                                <strong>Coordenadas:</strong> {bus.lat?.toFixed(4)}, {bus.lng?.toFixed(4)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <Activity className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                              <span>
+                                <strong>ID Vehículo:</strong> {bus.idVehiculo}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
-                      {/* Información adicional para gestores */}
-                      {userRole === 'GESTOR' && (
-                        <>
-                          <div className="flex items-center gap-2 text-xs">
-                            <Navigation className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                            <span>
-                              <strong>Coordenadas:</strong> {bus.lat?.toFixed(4)}, {bus.lng?.toFixed(4)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs">
-                            <Activity className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                            <span>
-                              <strong>ID Vehículo:</strong> {bus.idVehiculo}
-                            </span>
-                          </div>
-                        </>
-                      )}
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          key="track-bus-popup"
+                          onClick={() => startTracking(bus)}
+                          className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors flex items-center gap-1"
+                        >
+                          <Target className="w-3 h-3" />
+                          Seguir
+                        </button>
+                        <button
+                          key="details-bus-popup"
+                          onClick={() => setSelectedBus(bus)}
+                          className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors flex items-center gap-1"
+                        >
+                          <Info className="w-3 h-3" />
+                          Detalles
+                        </button>
+                      </div>
                     </div>
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        key="track-bus-popup"
-                        onClick={() => startTracking(bus)}
-                        className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors flex items-center gap-1"
-                      >
-                        <Target className="w-3 h-3" />
-                        Seguir
-                      </button>
-                      <button
-                        key="details-bus-popup"
-                        onClick={() => setSelectedBus(bus)}
-                        className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors flex items-center gap-1"
-                      >
-                        <Info className="w-3 h-3" />
-                        Detalles
-                      </button>
-                    </div>
-                  </div>
-                </Popup>
-
-              </Marker>
-            );
-          })}
+                  </Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
 
           {/* Indicador de tracking */}
