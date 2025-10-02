@@ -1,17 +1,10 @@
 {
   "welcome": "Welcome to Transsync",
-  "dashboard": "Dashboard",
+  "home": "Home",
   "admin_dashboard": "Admin Dashboard",
-  "drivers": "Drivers",
-  "routes": "Routes",
-  "vehicles": "Vehicles",
-  "schedules": "Schedules",
   "reports": "Reports",
   "emergency": "Emergency",
-  "login": "Login",
-  "register": "Register",
   "logout": "Log out",
-  "home": "Home",
   "login": {
     "title": "Login",
     "subtitle": "Access your business account",
@@ -295,22 +288,7 @@
     },
     "testimonials": {
       "title": "What Our Clients Say",
-      "subtitle": "Real stories of digital transformation in public transportation"
-    },
-    "awards": {
-      "title": "Awards and Recognition",
-      "subtitle": "Recognized for our innovation and potential in the sector"
-    },
-    "cta": {
-      "title": "Ready to Transform Your Transportation System?",
-      "subtitle": "Be part of the smart transportation revolution. Join our early adoption program and transform your operation",
-      "buttons": {
-        "demo": "Request Free Demo",
-        "expert": "Talk to an Expert"
-      },
-      "features": ["30-day implementation", "24/7 support included", "Results guarantee"]
-    },
-    "testimonials": {
+      "subtitle": "Real stories of digital transformation in public transportation",
       "items": [
         {
           "texto": "As a pilot city, TranSync has allowed us to test technologies that previously seemed impossible. The initial results are promising and we see great potential for scaling.",
@@ -343,6 +321,8 @@
       ]
     },
     "awards": {
+      "title": "Awards and Recognition",
+      "subtitle": "Recognized for our innovation and potential in the sector",
       "items": [
         {
           "titulo": "Innovative Startup 2024",
@@ -361,6 +341,15 @@
           "organizacion": "CyberSecurity Standards"
         }
       ]
+    },
+    "cta": {
+      "title": "Ready to Transform Your Transportation System?",
+      "subtitle": "Be part of the smart transportation revolution. Join our early adoption program and transform your operation",
+      "buttons": {
+        "demo": "Request Free Demo",
+        "expert": "Talk to an Expert"
+      },
+      "features": ["30-day implementation", "24/7 support included", "Results guarantee"]
     },
     "mobileDownload": {
       "qrCodeTitle": "Installation QR Code",
@@ -451,96 +440,6 @@
       "updateError": "Could not update role.",
       "loadingUsers": "Loading users...",
       "noPermission": "You don't have permission to view this page."
-    }
-  },
-  "dashboard": {
-    "title": "TransSync Control Panel",
-    "stats": {
-      "busesInService": "Buses in service",
-      "activeDrivers": "Active drivers",
-      "activeRoutes": "Active routes",
-      "tripsInProgress": "Trips in progress",
-      "criticalAlerts": "Critical alerts"
-    },
-    "charts": {
-      "tripFrequency": "Trip Frequency",
-      "routeDistribution": "Distribution by Routes",
-      "periods": {
-        "week": "Week",
-        "month": "Month",
-        "year": "Year"
-      },
-      "periodTooltips": {
-        "week": "Shows data from the last 7 days",
-        "month": "Shows data from the last month",
-        "year": "Shows data from the last year"
-      }
-    },
-    "fleetStatus": {
-      "title": "Fleet Status",
-      "available": "Available",
-      "inRoute": "In route",
-      "maintenance": "In maintenance"
-    },
-    "alerts": {
-      "title": "System Alerts",
-      "active": "active",
-      "noAlerts": "No active alerts",
-      "systemOk": "System working correctly"
-    },
-    "realtime": {
-      "realTime": "Real Time",
-      "hourly": "Every Hour",
-      "connecting": "Connecting...",
-      "disconnected": "Disconnected",
-      "switchToHourly": "Click to switch to hourly updates",
-      "switchToRealtime": "Click to switch to real-time updates"
-    },
-    "controls": {
-      "disableNotifications": "Disable notifications",
-      "enableNotifications": "Enable notifications",
-      "forceUpdate": "Force data update",
-      "clearCache": "Clear dashboard cache",
-      "showPerformance": "Show performance metrics"
-    },
-    "performance": {
-      "title": "Performance Metrics",
-      "connectionStatus": "Connection Status",
-      "systemPerformance": "System Performance",
-      "updates": "Updates",
-      "cache": "Cache",
-      "notifications": "Notifications",
-      "systemInfo": "System Information",
-      "status": {
-        "connected": "Connected",
-        "connecting": "Connecting...",
-        "disconnected": "Disconnected",
-        "active": "Active",
-        "inactive": "Inactive"
-      },
-      "metrics": {
-        "responseTime": "Response time",
-        "queriesPerSecond": "Queries/second",
-        "cpu": "CPU",
-        "memory": "Memory",
-        "totalUpdates": "Total updates",
-        "lastUpdate": "Last update",
-        "cacheHits": "Hits",
-        "cacheMisses": "Misses",
-        "hitRate": "Hit rate",
-        "sent": "Sent",
-        "pending": "Pending",
-        "errors": "Errors",
-        "uptime": "Uptime",
-        "version": "Version",
-        "environment": "Environment"
-      },
-      "close": "Close"
-    },
-    "errors": {
-      "loadError": "Error loading dashboard",
-      "retry": "Retry",
-      "dataLoadError": "Error loading data. Check your connection."
     }
   },
   "drivers": {
@@ -727,52 +626,6 @@
       "deleteConfirm": "Delete this schedule?",
       "deleteSuccess": "Schedule deleted",
       "deleteError": "Error deleting schedule"
-    }
-  },
-  "reports": {
-    "title": "Reports and Analytics",
-    "subtitle": "Generate and view system reports",
-    "generate": "Generate Report",
-    "export": "Export",
-    "filters": {
-      "dateRange": "Date Range",
-      "route": "Route",
-      "driver": "Driver",
-      "vehicle": "Vehicle",
-      "status": "Status",
-      "all": "All"
-    },
-    "types": {
-      "trips": "Trips",
-      "performance": "Performance",
-      "routes": "Routes",
-      "drivers": "Drivers",
-      "vehicles": "Vehicles",
-      "incidents": "Incidents"
-    },
-    "table": {
-      "date": "Date",
-      "route": "Route",
-      "driver": "Driver",
-      "vehicle": "Vehicle",
-      "status": "Status",
-      "duration": "Duration",
-      "distance": "Distance",
-      "actions": "Actions"
-    },
-    "charts": {
-      "tripsByRoute": "Trips by Route",
-      "performanceByDriver": "Performance by Driver",
-      "incidentsByType": "Incidents by Type",
-      "usageByTime": "Usage by Time"
-    },
-    "messages": {
-      "loading": "Loading reports...",
-      "noData": "No data available",
-      "generating": "Generating report...",
-      "exporting": "Exporting...",
-      "success": "Report generated successfully",
-      "error": "Error generating report"
     }
   },
   "routes": {
