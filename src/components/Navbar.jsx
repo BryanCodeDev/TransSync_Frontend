@@ -2,25 +2,26 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  FaBars,
-  FaUser,
-  FaSignOutAlt,
-  FaUserCircle,
-  FaChevronDown,
-  FaUserShield,
-  FaCogs,
-  FaSignInAlt,
-  FaBell,
-  FaQuestionCircle,
-  FaMoon,
-  FaSun,
-  FaExclamationTriangle,
-  FaCheckCircle,
-  FaTimes,
-  FaBus,
-  FaHome,
-  FaChartLine
-} from 'react-icons/fa';
+   FaBars,
+   FaUser,
+   FaSignOutAlt,
+   FaUserCircle,
+   FaChevronDown,
+   FaUserShield,
+   FaCogs,
+   FaUserTie,
+   FaSignInAlt,
+   FaBell,
+   FaQuestionCircle,
+   FaMoon,
+   FaSun,
+   FaExclamationTriangle,
+   FaCheckCircle,
+   FaTimes,
+   FaBus,
+   FaHome,
+   FaChartLine
+ } from 'react-icons/fa';
 import { getUserRole } from '../utilidades/authAPI';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
@@ -256,14 +257,13 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   };
 
   // Función para navegar al dashboard
-  const goToDashboard = () => {
-    const userRole = getUserRole();
-    if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
-      navigate("/admin/dashboard", { replace: true });
-    } else {
-      navigate("/dashboard", { replace: true });
-    }
-  };
+   const goToDashboard = () => {
+     if (userRole === "SUPERADMIN") {
+       navigate("/admin/dashboard", { replace: true });
+     } else {
+       navigate("/dashboard", { replace: true });
+     }
+   };
 
   // Función para navegar al home
   const goToHome = () => {
@@ -407,25 +407,22 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
   const formatUserRole = (role) => {
     const roles = {
       'SUPERADMIN': 'Super Administrador',
-      'ADMINISTRADOR': 'Administrador',
-      'USER': 'Usuario',
-      'PENDIENTE': 'Usuario Pendiente'
+      'GESTOR': 'Gestor',
+      'CONDUCTOR': 'Conductor'
     };
-    return roles[role] || role || 'Usuario';
+    return roles[role] || 'Usuario';
   };
 
   const getAvatarGradient = () => {
     switch (userRole) {
       case 'SUPERADMIN':
         return 'from-purple-500 to-purple-700';
-      case 'ADMINISTRADOR':
-        return 'from-[#3949ab] to-[#1a237e]';
-      case 'USER':
-        return 'from-[#283593] to-[#1a237e]';
-      case 'PENDIENTE':
-        return 'from-yellow-500 to-orange-600';
+      case 'GESTOR':
+        return 'from-blue-500 to-blue-700';
+      case 'CONDUCTOR':
+        return 'from-green-500 to-green-700';
       default:
-        return 'from-[#3949ab] to-[#283593]';
+        return 'from-gray-500 to-gray-700';
     }
   };
 
@@ -433,8 +430,10 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return <FaUserShield size={14} className="text-white" />;
-      case 'ADMINISTRADOR':
+      case 'GESTOR':
         return <FaCogs size={14} className="text-white" />;
+      case 'CONDUCTOR':
+        return <FaUserTie size={14} className="text-white" />;
       default:
         return <FaUser size={14} className="text-white" />;
     }
@@ -444,12 +443,10 @@ const Navbar = ({ toggleSidebar, isMobile, isPublic = false }) => {
     switch (userRole) {
       case 'SUPERADMIN':
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'ADMINISTRADOR':
+      case 'GESTOR':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'USER':
+      case 'CONDUCTOR':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'PENDIENTE':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }

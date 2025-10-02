@@ -111,15 +111,49 @@ const useSidebar = () => {
 };
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { authData } = useAuth();
-  const userRole = authData?.user?.role || authData?.user?.rol;
+  const { isLoggedIn, user, userRole, loading } = useAuth();
+  const [isVerifying, setIsVerifying] = useState(false);
 
-  console.log('🔐 ProtectedRoute - Usuario autenticado:', isAuthenticated());
-  console.log('🔐 ProtectedRoute - Datos de auth:', authData);
+  console.log('🔐 ProtectedRoute - Usuario autenticado:', isLoggedIn);
+  console.log('🔐 ProtectedRoute - Datos del usuario:', user);
   console.log('🔐 ProtectedRoute - Rol del usuario:', userRole);
+  console.log('🔐 ProtectedRoute - Loading:', loading);
   console.log('🔐 ProtectedRoute - Roles permitidos:', allowedRoles);
 
-  if (!isAuthenticated()) {
+  // Verificación adicional de permisos si userRole está undefined pero el usuario está autenticado
+  useEffect(() => {
+    if (isLoggedIn && !userRole && !isVerifying) {
+      setIsVerifying(true);
+      console.log('🔄 Verificando permisos adicionales...');
+
+      // Intentar recuperar datos del usuario desde localStorage directamente
+      const token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('userData');
+      const storedRole = localStorage.getItem('userRole');
+
+      if (token && userData && storedRole) {
+        console.log('✅ Datos recuperados de localStorage:', { userData, storedRole });
+        // Los datos deberían actualizarse automáticamente a través del contexto
+        // pero esto ayuda con el debugging
+      }
+
+      setIsVerifying(false);
+    }
+  }, [isLoggedIn, userRole, isVerifying]);
+
+  // Si está cargando, mostrar indicador de carga
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-secondary-light dark:text-text-secondary-dark">Verificando permisos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
     console.log('❌ Usuario no autenticado, redirigiendo a login');
     return <Navigate to="/login" replace />;
   }
@@ -129,10 +163,14 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return children;
   }
 
+  // Obtener el rol actual (ya sea del contexto o de localStorage como fallback)
+  const currentRole = userRole || localStorage.getItem('userRole');
+
   const hasPermission = allowedRoles.some(
-    (role) => role.toUpperCase() === userRole?.toUpperCase()
+    (role) => role.toUpperCase() === currentRole?.toUpperCase()
   );
 
+  console.log('🔐 ProtectedRoute - Rol actual usado:', currentRole);
   console.log('🔐 ProtectedRoute - Tiene permisos:', hasPermission);
 
   if (!hasPermission) {
@@ -226,7 +264,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/horarios" element={
-                    <ProtectedRoute allowedRoles={['SUPERADMIN', 'GESTOR']}>
+                    <ProtectedRoute allowedRoles={['SUPERADMIN', 'GESTOR', 'CONDUCTOR']}>
                       <ProtectedLayout><Horarios /></ProtectedLayout>
                     </ProtectedRoute>
                   } />

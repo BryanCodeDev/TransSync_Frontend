@@ -107,12 +107,10 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     const upperRole = role?.toUpperCase();
     const roles = {
       'SUPERADMIN': 'Super Administrador',
-      'GESTOR': 'Gestor', // CORREGIDO
-      'CONDUCTOR': 'Conductor',
-      'USER': 'Usuario',
-      'PENDIENTE': 'Usuario Pendiente'
+      'GESTOR': 'Gestor',
+      'CONDUCTOR': 'Conductor'
     };
-    return roles[upperRole] || role || 'Usuario';
+    return roles[upperRole] || 'Usuario';
   };
 
   const getUserInitials = () => { /* ...código original sin cambios... */ };
@@ -121,16 +119,16 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
   const getAvatarGradient = () => {
     switch (userRole?.toUpperCase()) {
       case 'SUPERADMIN': return 'from-purple-500 to-purple-700';
-      case 'GESTOR': return 'from-[#3949ab] to-[#1a237e]'; // CORREGIDO
+      case 'GESTOR': return 'from-blue-500 to-blue-700';
       case 'CONDUCTOR': return 'from-green-500 to-green-700';
-      default: return 'from-[#3949ab] to-[#283593]'; // Roles no usados eliminados
+      default: return 'from-gray-500 to-gray-700';
     }
   };
 
   const getUserRoleIcon = () => {
     switch (userRole?.toUpperCase()) {
       case 'SUPERADMIN': return <FaUserShield size={20} className="text-white" />;
-      case 'GESTOR': return <FaCogs size={20} className="text-white" />; // CORREGIDO
+      case 'GESTOR': return <FaCogs size={20} className="text-white" />;
       case 'CONDUCTOR': return <FaUserTie size={20} className="text-white" />;
       default: return <FaUser size={20} className="text-white" />;
     }
@@ -144,7 +142,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onOverlayClick, isMobile: isMobileProp
     const rolePermissions = {
       'SUPERADMIN': ['/dashboard', '/admin/dashboard', '/drivers', '/rutas', '/vehiculos', '/horarios'],
       'GESTOR': ['/dashboard', '/drivers', '/rutas', '/vehiculos', '/horarios'],
-      'CONDUCTOR': ['/dashboard', '/rutas'],
+      'CONDUCTOR': ['/dashboard', '/rutas', '/horarios'],
     };
     return rolePermissions[upperCaseRole]?.includes(path) || false;
   };

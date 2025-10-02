@@ -194,6 +194,31 @@ const AdminDashboard = () => {
 
   if (loading) return <div className={`p-8 min-h-screen text-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>{t('adminDashboard.messages.loading')}</div>;
 
+  // Si hay error de permisos, mostrar solo el mensaje de error
+  if (error && error.includes('permiso')) {
+    return (
+      <div className={`p-8 min-h-screen text-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
+        <div className={`text-6xl mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>🔒</div>
+        <h2 className={`text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+          Acceso Denegado
+        </h2>
+        <p className={`text-lg mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          {error}
+        </p>
+        <button
+          onClick={() => window.history.back()}
+          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+            theme === 'dark'
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
+        >
+          Volver Atrás
+        </button>
+      </div>
+    );
+  }
+
   const stats = getStats();
 
   return (

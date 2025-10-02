@@ -182,7 +182,7 @@ const Login = () => {
         if (from && from !== '/login' && from !== '/register') {
           navigate(from, { replace: true });
         } else {
-          if (userRole === "SUPERADMIN" || userRole === "ADMINISTRADOR") {
+          if (userRole === "SUPERADMIN") {
             navigate("/admin/dashboard", { replace: true });
           } else {
             navigate("/dashboard", { replace: true });
