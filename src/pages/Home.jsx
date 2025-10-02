@@ -568,7 +568,7 @@ const Home = () => {
 
           <div className="text-center mt-8">
             <p className="text-sm text-text-secondary-light dark:text-gray-400">
-              {t('mobileDownload.footer')}
+              {t('homePage.mobileDownload.footer')}
             </p>
           </div>
         </div>
