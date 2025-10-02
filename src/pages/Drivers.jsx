@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Edit, Trash2, Filter, Phone, Calendar, Map, List, Navigation, NavigationOff } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Filter, Phone, Calendar } from "lucide-react";
 import driversAPI from "../utilidades/driversAPI";
-import locationAPI from "../utilidades/locationAPI";
 import toast from 'react-hot-toast';
 import { useTheme } from '../context/ThemeContext';
-import ConductoresLocationMap from '../components/rutas/ConductoresLocationMap';
 
 // --- COMPONENTES AUXILIARES ---
 
@@ -87,8 +85,6 @@ const Drivers = () => {
     const [modal, setModal] = useState({ type: null, data: null });
     const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState({ estConductor: '', tipLicConductor: '', conVehiculo: '' });
-    const [activeView, setActiveView] = useState('list'); // 'list' o 'map'
-    const [trackingStatus, setTrackingStatus] = useState({}); // Estado de seguimiento por conductor
 
     const loadDrivers = useCallback(async () => {
         setLoading(true);
@@ -176,29 +172,6 @@ const Drivers = () => {
         ));
     };
 
-    // Función para iniciar seguimiento de ubicación
-    const handleStartTracking = async (driver) => {
-        try {
-            await locationAPI.startLocationTracking(driver.idConductor, 30);
-            setTrackingStatus(prev => ({ ...prev, [driver.idConductor]: true }));
-            toast.success(`Seguimiento iniciado para ${driver.nomUsuario}`);
-        } catch (error) {
-            console.error('Error iniciando seguimiento:', error);
-            toast.error('Error al iniciar seguimiento de ubicación');
-        }
-    };
-
-    // Función para detener seguimiento de ubicación
-    const handleStopTracking = async (driver) => {
-        try {
-            await locationAPI.stopLocationTracking(driver.idConductor);
-            setTrackingStatus(prev => ({ ...prev, [driver.idConductor]: false }));
-            toast.success(`Seguimiento detenido para ${driver.nomUsuario}`);
-        } catch (error) {
-            console.error('Error deteniendo seguimiento:', error);
-            toast.error('Error al detener seguimiento de ubicación');
-        }
-    };
 
     if (loading) return <div className={`p-8 min-h-full text-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-surface-light text-text-primary-light'}`}>Cargando...</div>;
 
@@ -218,39 +191,8 @@ const Drivers = () => {
                 <StatCard title={t('drivers.stats.inactive')} value={stats.inactivos} theme={theme} />
             </div>
 
-            {/* Pestañas de navegación */}
+            {/* Contenido directamente en lista */}
             <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg min-w-0 flex-shrink-0 ${theme === 'dark' ? 'bg-gray-800' : 'bg-background-light'}`}>
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setActiveView('list')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                activeView === 'list'
-                                    ? 'bg-primary-600 text-white'
-                                    : theme === 'dark'
-                                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                        : 'bg-surface-light text-text-primary-light hover:bg-background-light'
-                            }`}
-                        >
-                            <List className="w-4 h-4" />
-                            Lista
-                        </button>
-
-                        <button
-                            onClick={() => setActiveView('map')}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                activeView === 'map'
-                                    ? 'bg-primary-600 text-white'
-                                    : theme === 'dark'
-                                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                        : 'bg-surface-light text-text-primary-light hover:bg-background-light'
-                            }`}
-                        >
-                            <Map className="w-4 h-4" />
-                            Mapa en Tiempo Real
-                        </button>
-                    </div>
-                </div>
 
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                     <div className="relative w-full sm:w-auto sm:flex-1 min-w-0">
@@ -293,9 +235,7 @@ const Drivers = () => {
                 </div>
             )}
 
-            {/* Contenido de la vista activa */}
-            {activeView === 'list' ? (
-                <>
+            {/* Contenido de la lista */}
                     {/* Mobile Card View */}
                     <div className="block md:hidden space-y-3 sm:space-y-4 mt-4 sm:mt-5 md:mt-6 min-w-0 flex-shrink-0">
                         {loading ? (
@@ -344,21 +284,6 @@ const Drivers = () => {
                                     </div>
 
                                     <div className={`flex justify-end gap-2 sm:gap-3 pt-2 sm:pt-3 border-t min-w-0 flex-shrink-0 ${theme === 'dark' ? 'border-gray-700' : 'border-border-light'}`}>
-                                        <button
-                                            onClick={() => trackingStatus[driver.idConductor] ? handleStopTracking(driver) : handleStartTracking(driver)}
-                                            className={`p-2 sm:p-2.5 md:p-3 rounded-lg transition-colors min-h-[40px] sm:min-h-[44px] md:min-h-[48px] min-w-[40px] sm:min-w-[44px] md:min-w-[48px] flex items-center justify-center flex-shrink-0 ${
-                                                trackingStatus[driver.idConductor]
-                                                    ? 'text-orange-400 hover:bg-orange-900/20'
-                                                    : 'text-success-400 hover:bg-success-900/20'
-                                            }`}
-                                            title={trackingStatus[driver.idConductor] ? 'Detener seguimiento' : 'Iniciar seguimiento'}
-                                        >
-                                            {trackingStatus[driver.idConductor] ? (
-                                                <NavigationOff size={14} className="sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0"/>
-                                            ) : (
-                                                <Navigation size={14} className="sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0"/>
-                                            )}
-                                        </button>
                                         <button
                                             onClick={() => setModal({ type: 'edit', data: { ...driver, fecVenLicConductor: driver.fecVenLicConductor.split('T')[0] } })}
                                             className={`p-2 sm:p-2.5 md:p-3 rounded-lg transition-colors min-h-[40px] sm:min-h-[44px] md:min-h-[48px] min-w-[40px] sm:min-w-[44px] md:min-w-[48px] flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'text-blue-400 hover:bg-gray-700' : 'text-blue-600 hover:bg-background-light'}`}
@@ -440,21 +365,6 @@ const Drivers = () => {
                                         <td className="p-3 sm:p-4 md:p-5 text-center min-w-0 flex-shrink-0">
                                             <div className="flex justify-center gap-1 sm:gap-2 min-w-0 flex-shrink-0">
                                                 <button
-                                                    onClick={() => trackingStatus[driver.idConductor] ? handleStopTracking(driver) : handleStartTracking(driver)}
-                                                    className={`p-2 sm:p-2.5 md:p-3 rounded-lg min-h-[36px] sm:min-h-[40px] md:min-h-[44px] min-w-[36px] sm:min-w-[40px] md:min-w-[44px] flex items-center justify-center flex-shrink-0 ${
-                                                        trackingStatus[driver.idConductor]
-                                                            ? 'text-orange-400 hover:bg-orange-900/20'
-                                                            : 'text-success-400 hover:bg-success-900/20'
-                                                    }`}
-                                                    title={trackingStatus[driver.idConductor] ? 'Detener seguimiento' : 'Iniciar seguimiento'}
-                                                >
-                                                    {trackingStatus[driver.idConductor] ? (
-                                                        <NavigationOff size={14} className="sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0"/>
-                                                    ) : (
-                                                        <Navigation size={14} className="sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0"/>
-                                                    )}
-                                                </button>
-                                                <button
                                                     onClick={() => setModal({ type: 'edit', data: { ...driver, fecVenLicConductor: driver.fecVenLicConductor.split('T')[0] } })}
                                                     className={`p-2 sm:p-2.5 md:p-3 rounded-lg min-h-[36px] sm:min-h-[40px] md:min-h-[44px] min-w-[36px] sm:min-w-[40px] md:min-w-[44px] flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'text-blue-400 hover:bg-gray-700' : 'text-blue-600 hover:bg-background-light'}`}
                                                     title="Editar conductor"
@@ -475,18 +385,6 @@ const Drivers = () => {
                             </tbody>
                         </table>
                     </div>
-                </>
-            ) : (
-                /* Vista de mapa */
-                <div className="mt-4">
-                    <ConductoresLocationMap
-                        height="600px"
-                        showFilters={true}
-                        autoRefresh={true}
-                        refreshInterval={30000}
-                    />
-                </div>
-            )}
         </div>
     );
 };
