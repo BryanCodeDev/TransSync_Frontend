@@ -13,9 +13,11 @@ import 'leaflet/dist/leaflet.css';
 import rutasAPI from '../utilidades/rutasAPI';
 import vehiculosAPI from '../utilidades/vehiculosAPI';
 import dashboardAPI from '../utilidades/dashboardAPI';
+import { useAuthContext } from '../context/AuthContext';
 
 const Rutas = () => {
   const { t } = useTranslation();
+  const { userRole } = useAuthContext();
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [stops, setStops] = useState([]);
@@ -33,6 +35,9 @@ const Rutas = () => {
   const [error, setError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [showCurrentLocation, setShowCurrentLocation] = useState(false);
+  const [showAllDriverLocations, setShowAllDriverLocations] = useState(false);
 
   // Colombia bounds para restringir el mapa
   const colombiaBounds = [
@@ -244,6 +249,22 @@ const Rutas = () => {
     });
   };
 
+  // Función para crear ícono de ubicación actual
+  const currentLocationIcon = L.divIcon({
+    html: `<div style="background-color: #3b82f6; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(59,130,246,0.5); display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
+      <div style="width: 10px; height: 10px; background-color: white; border-radius: 50%;"></div>
+    </div>
+    <style>
+      @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 2px 8px rgba(59,130,246,0.5); }
+        50% { transform: scale(1.1); box-shadow: 0 2px 12px rgba(59,130,246,0.8); }
+        100% { transform: scale(1); box-shadow: 0 2px 8px rgba(59,130,246,0.5); }
+      }
+    </style>`,
+    iconSize: [25, 25],
+    iconAnchor: [12, 12]
+  });
+
   if (loading) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
@@ -356,6 +377,23 @@ const Rutas = () => {
                 <Home className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline truncate">Vista General</span>
               </button>
+
+              {/* Botón para gestores - mostrar todas las ubicaciones de conductores */}
+              {userRole === 'GESTOR' && (
+                <button
+                  onClick={() => setShowAllDriverLocations(!showAllDriverLocations)}
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base transition-colors flex items-center gap-2 min-h-[44px] ${
+                    showAllDriverLocations
+                      ? 'bg-warning-600 dark:bg-warning-700 text-white hover:bg-warning-700 dark:hover:bg-warning-600'
+                      : 'bg-info-600 dark:bg-info-700 text-white hover:bg-info-700 dark:hover:bg-info-600'
+                  }`}
+                >
+                  <Users className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline truncate">
+                    {showAllDriverLocations ? 'Ocultar Conductores' : 'Ver Todos Conductores'}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -712,8 +750,43 @@ const Rutas = () => {
                 </Popup>
               </Marker>
             ))}
+
+            {/* Ubicación actual del usuario */}
+            {showCurrentLocation && currentLocation && (
+              <Marker
+                position={currentLocation}
+                icon={currentLocationIcon}
+              >
+                <Popup>
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Locate className="w-4 h-4 text-blue-600" />
+                      <h3 className="font-bold">Mi Ubicación</h3>
+                    </div>
+                    <p className="text-sm">Tu ubicación actual</p>
+                    <button
+                      onClick={() => {
+                        setShowCurrentLocation(false);
+                        setCurrentLocation(null);
+                      }}
+                      className="bg-secondary-500 text-white px-2 py-1 rounded text-xs mt-2 hover:bg-secondary-600 flex items-center gap-1"
+                    >
+                      <X className="w-3 h-3" />
+                      Ocultar
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
 {/* Buses */}
-{showBuses && buses.map(bus => (
+{showBuses && buses.map(bus => {
+  // Si es gestor y tiene activado "Ver Todos Conductores", mostrar todos los buses
+  // Si no es gestor, mostrar solo buses activos
+  const shouldShowBus = userRole === 'GESTOR' ? showAllDriverLocations || bus.estVehiculo === 'EN_RUTA' : showBuses;
+
+  if (!shouldShowBus) return null;
+
+  return (
   <Marker
     key={bus.idVehiculo}
     position={[
@@ -803,6 +876,23 @@ const Rutas = () => {
                           {bus.lastUpdate ? new Date(bus.lastUpdate).toLocaleTimeString() : 'N/A'}
                         </span>
                       </div>
+                      {/* Información adicional para gestores */}
+                      {userRole === 'GESTOR' && (
+                        <>
+                          <div className="flex items-center gap-2 text-xs">
+                            <Navigation className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                            <span>
+                              <strong>Coordenadas:</strong> {bus.lat?.toFixed(4)}, {bus.lng?.toFixed(4)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs">
+                            <Activity className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                            <span>
+                              <strong>ID Vehículo:</strong> {bus.idVehiculo}
+                            </span>
+                          </div>
+                        </>
+                      )}
                     </div>
                     <div className="mt-3 flex gap-2">
                       <button
@@ -826,7 +916,8 @@ const Rutas = () => {
                 </Popup>
 
               </Marker>
-            ))}
+            );
+          })}
           </MapContainer>
 
           {/* Indicador de tracking */}
@@ -860,12 +951,18 @@ const Rutas = () => {
               onClick={() => {
                 navigator.geolocation?.getCurrentPosition(
                   (position) => {
-                    setMapCenter([position.coords.latitude, position.coords.longitude]);
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    setMapCenter([lat, lng]);
                     setMapZoom(15);
+                    setCurrentLocation([lat, lng]);
+                    setShowCurrentLocation(true);
                   },
                   () => {
                     setMapCenter([4.6482, -74.0648]);
                     setMapZoom(12);
+                    setCurrentLocation(null);
+                    setShowCurrentLocation(false);
                   }
                 );
               }}
@@ -908,6 +1005,20 @@ const Rutas = () => {
                 <div className="w-4 h-1 border-b-2 border-dashed border-secondary-500"></div>
                 <span className="text-text-primary-light dark:text-text-primary-dark">Ruta inactiva</span>
               </div>
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-sm">
+                  <Locate className="w-3 h-3" />
+                </div>
+                <span className="text-text-primary-light dark:text-text-primary-dark">Mi ubicación</span>
+              </div>
+              {userRole === 'GESTOR' && (
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-warning-500 flex items-center justify-center text-white shadow-sm">
+                    <Users className="w-3 h-3" />
+                  </div>
+                  <span className="text-text-primary-light dark:text-text-primary-dark">Todos los conductores</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
