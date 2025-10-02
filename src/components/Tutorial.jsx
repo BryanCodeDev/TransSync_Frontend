@@ -3,7 +3,7 @@ import { useTutorial } from '../hooks/useTutorial';
 import { useAuthContext } from '../context/AuthContext';
 import Button from './Button';
 
-// Estilos CSS para el tutorial
+// Estilos CSS para el tutorial mejorados para móvil
 const tutorialStyles = `
   .tutorial-highlight {
     position: relative;
@@ -13,43 +13,96 @@ const tutorialStyles = `
     transition: all 0.3s ease;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    /* Optimizaciones táctiles */
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
   }
+
   .tutorial-highlight:hover {
     box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.7), 0 0 0 12px rgba(59, 130, 246, 0.3);
   }
+
   .tutorial-highlight:active {
     transform: scale(0.98);
     transition: transform 0.1s ease;
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.8);
   }
 
-  /* Feedback táctil para botones */
+  /* Área táctil más grande en móvil */
+  @media (max-width: 768px) {
+    .tutorial-highlight {
+      min-height: 44px;
+      min-width: 44px;
+      padding: 8px;
+      margin: -8px;
+    }
+  }
+
+  /* Feedback táctil mejorado para botones */
   .touch-feedback {
     -webkit-tap-highlight-color: transparent;
     transition: all 0.2s ease;
+    /* Área táctil mínima */
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+
   .touch-feedback:active {
     transform: scale(0.95);
     opacity: 0.8;
+    transition: all 0.1s ease;
   }
 
   /* Mejorar scroll en móvil */
   .tutorial-overlay {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    /* Prevenir scroll horizontal no deseado */
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   /* Prevenir zoom en inputs en iOS */
   .tutorial-input {
     font-size: 16px;
+    /* Prevenir zoom automático en iOS */
+    transform: scale(1);
+    transform-origin: left top;
   }
 
   /* Optimizaciones de rendimiento */
   .tutorial-overlay * {
     will-change: transform;
+    /* Optimizar rendering */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   .tutorial-highlight {
     will-change: box-shadow, transform;
+    /* Optimizar para GPU */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
+  /* Animaciones mejoradas para móvil */
+  @keyframes tutorial-pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
+  .tutorial-pulse {
+    animation: tutorial-pulse 2s infinite;
   }
 
   /* Reducir motion para usuarios que prefieren menos animaciones */
@@ -57,12 +110,38 @@ const tutorialStyles = `
     .tutorial-highlight,
     .touch-feedback,
     .animate-bounce,
-    .animate-pulse {
+    .animate-pulse,
+    .tutorial-pulse {
       animation: none !important;
       transition: none !important;
     }
   }
-`;
+
+  /* Modo oscuro mejorado */
+  @media (prefers-color-scheme: dark) {
+    .tutorial-highlight {
+      box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.6), 0 0 0 8px rgba(147, 197, 253, 0.3);
+    }
+  }
+
+  /* Landscape orientation en móvil */
+  @media screen and (max-height: 500px) and (orientation: landscape) {
+    .tutorial-overlay .fixed.bottom-4 {
+      bottom: 2px;
+    }
+
+    .tutorial-overlay .p-6 {
+      padding: 1rem;
+    }
+  }
+
+  /* Tablets */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .tutorial-highlight {
+      box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.6), 0 0 0 10px rgba(59, 130, 246, 0.25);
+    }
+  }
+ `;
 
 // Inyectar estilos en el head
 if (typeof document !== 'undefined') {
@@ -73,7 +152,7 @@ if (typeof document !== 'undefined') {
 }
 
 const Tutorial = () => {
-  const { userRole } = useAuthContext();
+  const { userRole, user } = useAuthContext();
   const {
     isActive,
     currentStep,
@@ -86,6 +165,9 @@ const Tutorial = () => {
     texts
   } = useTutorial();
 
+  // Estado para rastrear información específica del usuario
+  const [userDisplayName, setUserDisplayName] = useState('');
+
   const [showWelcome, setShowWelcome] = useState(false);
   const [highlightedElement, setHighlightedElement] = useState(null);
   const [showArrow, setShowArrow] = useState(false);
@@ -96,25 +178,25 @@ const Tutorial = () => {
   // Función para obtener mensajes personalizados según el rol usando traducciones
   const getRoleSpecificContent = () => {
     const t = (key) => {
-      // Por simplicidad, usaremos las traducciones directamente
+      // Mensajes más específicos y útiles según el rol
       const translations = {
         'SUPERADMIN': {
-          title: '¡Bienvenido SuperAdmin!',
-          description: 'Como SuperAdministrador, tienes acceso completo al sistema. Te guiaremos por las funciones de gestión de usuarios, empresas y configuración global del sistema.'
+          title: `¡Bienvenido SuperAdministrador${userDisplayName ? ', ' + userDisplayName : ''}!`,
+          description: 'Como SuperAdmin, tienes control total del sistema. Te guiaremos por las funciones avanzadas de gestión de usuarios, configuración global, monitoreo del sistema y administración de múltiples empresas. Aprenderás a gestionar roles, permisos y mantener la plataforma segura y eficiente.'
         },
         'GESTOR': {
-          title: '¡Bienvenido Gestor!',
-          description: 'Como Gestor, tienes el control total de tu empresa. Te mostraremos cómo administrar conductores, vehículos, rutas y horarios de manera eficiente.'
+          title: `¡Bienvenido Gestor${userDisplayName ? ', ' + userDisplayName : ''}!`,
+          description: 'Como Gestor, tienes el control completo de tu empresa en TransSync. Te mostraremos cómo optimizar tu operación diaria: gestionar conductores eficientemente, mantener tu flota en perfectas condiciones, crear rutas inteligentes y analizar el rendimiento de tu negocio. Descubrirás herramientas que te ayudarán a reducir costos y mejorar la calidad del servicio.'
         },
         'CONDUCTOR': {
-          title: '¡Bienvenido Conductor!',
-          description: 'Como Conductor, podrás ver tus horarios, rutas asignadas y gestionar tu perfil personal. Te guiaremos por las funciones específicas para tu rol.'
+          title: `¡Bienvenido Conductor${userDisplayName ? ', ' + userDisplayName : ''}!`,
+          description: 'Como Conductor, eres parte fundamental de TransSync. Te guiaremos por las herramientas diseñadas especialmente para ti: revisar tus horarios y rutas asignadas, gestionar tu información personal, mantener actualizados tus documentos y acceder rápidamente a información importante de tus viajes. Aprenderás a usar funciones que harán tu trabajo más eficiente y seguro.'
         }
       };
 
       return translations[userRole] || {
-        title: '¡Bienvenido a TransSync!',
-        description: 'Te guiaremos por las funcionalidades disponibles en tu cuenta. Comenzaremos explorando las opciones principales del sistema.'
+        title: `¡Bienvenido a TransSync${userDisplayName ? ', ' + userDisplayName : ''}!`,
+        description: 'Te guiaremos por las funcionalidades disponibles en tu cuenta. Comenzaremos explorando las opciones principales del sistema para que puedas aprovechar al máximo todas las herramientas disponibles.'
       };
     };
 
@@ -123,6 +205,7 @@ const Tutorial = () => {
       description: t(userRole).description
     };
   };
+
 
   // Funciones para manejar gestos de swipe
   const minSwipeDistance = 50;
@@ -156,80 +239,124 @@ const Tutorial = () => {
     setShowWelcome(currentStep === 0);
   }, [currentStep]);
 
-  // Efecto para resaltar elementos del tutorial
+  // Efecto para obtener información del usuario
+  useEffect(() => {
+    if (user) {
+      // Obtener nombre del usuario para personalización
+      let displayName = 'Usuario';
+
+      if (user.name) {
+        displayName = user.name;
+      } else if (user.email) {
+        displayName = user.email.split('@')[0];
+      }
+
+      setUserDisplayName(displayName);
+    }
+  }, [user]);
+
+  // Efecto para resaltar elementos del tutorial con mejor manejo de errores
   useEffect(() => {
     if (currentStepData?.target && !showWelcome) {
-      const element = document.querySelector(currentStepData.target);
-      if (element) {
-        // Para el menú de usuario, abrirlo automáticamente si está cerrado
-        if (currentStepData.target === '[data-tutorial="user-menu"]') {
-          const userMenuButton = element;
-          const isMenuOpen = document.querySelector('[data-tutorial="profile-menu-item"]') !== null;
-          if (!isMenuOpen) {
-            // Simular clic para abrir el menú
-            userMenuButton.click();
-            // Esperar un poco para que se renderice el menú
-            setTimeout(() => {
-              const profileItem = document.querySelector('[data-tutorial="profile-menu-item"]');
-              if (profileItem) {
-                profileItem.classList.add('tutorial-highlight');
-                setHighlightedElement(profileItem);
-                setShowArrow(currentStepData.isNavigation || false);
+      let retryCount = 0;
+      const maxRetries = 3;
+      const retryDelay = 200;
 
-                // Calcular posición de la flecha
-                const rect = profileItem.getBoundingClientRect();
-                const arrowTop = rect.top + rect.height / 2 - 16;
-                const arrowLeft = rect.left - 40;
-                setArrowPosition({ top: arrowTop, left: arrowLeft });
+      const tryHighlightElement = () => {
+        try {
+          const element = document.querySelector(currentStepData.target);
 
-                // Función para manejar clics
-                const handleElementClick = (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  nextStep();
-                };
+          if (element) {
+            // Para el menú de usuario, abrirlo automáticamente si está cerrado
+            if (currentStepData.target === '[data-tutorial="user-menu"]') {
+              const userMenuButton = element;
+              const isMenuOpen = document.querySelector('[data-tutorial="profile-menu-item"]') !== null;
 
-                profileItem.addEventListener('click', handleElementClick);
+              if (!isMenuOpen) {
+                // Simular clic para abrir el menú
+                userMenuButton.click();
 
-                return () => {
-                  profileItem.classList.remove('tutorial-highlight');
-                  profileItem.removeEventListener('click', handleElementClick);
-                  setHighlightedElement(null);
-                  setShowArrow(false);
-                };
+                // Esperar un poco más para que se renderice el menú
+                setTimeout(() => {
+                  const profileItem = document.querySelector('[data-tutorial="profile-menu-item"]');
+                  if (profileItem) {
+                    setupElementHighlight(profileItem);
+                  } else if (retryCount < maxRetries) {
+                    retryCount++;
+                    setTimeout(tryHighlightElement, retryDelay);
+                  }
+                }, 150);
+                return;
               }
-            }, 100);
-            return;
+            }
+
+            setupElementHighlight(element);
+          } else if (retryCount < maxRetries) {
+            console.log(`Element not found, retrying... (${retryCount + 1}/${maxRetries})`);
+            retryCount++;
+            setTimeout(tryHighlightElement, retryDelay);
+          } else {
+            console.warn('Element not found after retries:', currentStepData.target);
+            // Continuar con el siguiente paso si el elemento no existe
+            setTimeout(() => nextStep(), 1000);
+          }
+        } catch (error) {
+          console.error('Error highlighting element:', error);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(tryHighlightElement, retryDelay);
           }
         }
+      };
 
-        // Añadir clase de resaltado
-        element.classList.add('tutorial-highlight');
-        setHighlightedElement(element);
-        setShowArrow(currentStepData.isNavigation || false);
+      const setupElementHighlight = (targetElement) => {
+        try {
+          // Añadir clase de resaltado
+          targetElement.classList.add('tutorial-highlight');
+          setHighlightedElement(targetElement);
+          setShowArrow(currentStepData.isNavigation || false);
 
-        // Calcular posición de la flecha
-        const rect = element.getBoundingClientRect();
-        const arrowTop = rect.top + rect.height / 2 - 16; // Centrar verticalmente
-        const arrowLeft = rect.left - 40; // A la izquierda del elemento
-        setArrowPosition({ top: arrowTop, left: arrowLeft });
+          // Calcular posición de la flecha con límites de pantalla
+          const rect = targetElement.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
 
-        // Función para manejar clics en elementos resaltados
-        const handleElementClick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          nextStep();
-        };
+          let arrowTop = rect.top + rect.height / 2 - 16;
+          let arrowLeft = rect.left - 40;
 
-        element.addEventListener('click', handleElementClick);
+          // Ajustar posición si se sale de la pantalla
+          if (arrowTop < 20) arrowTop = 20;
+          if (arrowTop > viewportHeight - 60) arrowTop = viewportHeight - 60;
+          if (arrowLeft < 20) arrowLeft = rect.right + 20;
 
-        return () => {
-          element.classList.remove('tutorial-highlight');
-          element.removeEventListener('click', handleElementClick);
-          setHighlightedElement(null);
-          setShowArrow(false);
-        };
-      }
+          setArrowPosition({ top: arrowTop, left: arrowLeft });
+
+          // Función para manejar clics en elementos resaltados
+          const handleElementClick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            nextStep();
+          };
+
+          targetElement.addEventListener('click', handleElementClick);
+          targetElement.addEventListener('touchend', handleElementClick);
+
+          return () => {
+            try {
+              targetElement.classList.remove('tutorial-highlight');
+              targetElement.removeEventListener('click', handleElementClick);
+              targetElement.removeEventListener('touchend', handleElementClick);
+              setHighlightedElement(null);
+              setShowArrow(false);
+            } catch (error) {
+              console.error('Error cleaning up element highlight:', error);
+            }
+          };
+        } catch (error) {
+          console.error('Error setting up element highlight:', error);
+        }
+      };
+
+      tryHighlightElement();
     }
   }, [currentStepData, showWelcome, nextStep]);
 

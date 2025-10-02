@@ -3,14 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext';
 
-const STORAGE_KEY = 'transsync_tutorial_completed';
-const STORAGE_SKIP_KEY = 'transsync_tutorial_skipped';
+const STORAGE_USER_KEY = 'transync_tutorial_user_';
 
 export const useTutorial = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const { userRole } = useAuthContext();
+  const { userRole, user } = useAuthContext();
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -85,7 +84,7 @@ export const useTutorial = () => {
         {
           id: 'navigate-admin-dashboard',
           title: 'Panel de Administración',
-          description: 'Como SuperAdmin, haz clic en "Administración" para gestionar usuarios y roles del sistema.',
+          description: 'Como SuperAdmin, accede al panel de administración para gestionar usuarios, empresas y configuración global del sistema.',
           target: '[data-tutorial="admin-dashboard"]',
           placement: 'right',
           page: null,
@@ -94,17 +93,26 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-admin-dashboard',
-          title: 'Gestión de Usuarios',
-          description: 'Administra usuarios, asigna roles (Gestor, Conductor) y controla el acceso al sistema.',
+          title: 'Gestión Completa de Usuarios',
+          description: 'Aquí puedes crear nuevos usuarios, asignar roles (SuperAdmin, Gestor, Conductor), editar permisos y gestionar el acceso al sistema completo.',
           target: '[data-tutorial="admin-dashboard"]',
           placement: 'bottom',
           page: '/admin-dashboard',
           isNavigation: false
         },
         {
+          id: 'user-management-actions',
+          title: 'Acciones de Usuario',
+          description: 'Usa los botones de acción para editar usuarios existentes, cambiar sus roles o eliminar cuentas cuando sea necesario.',
+          target: '[data-tutorial="user-actions"]',
+          placement: 'left',
+          page: '/admin-dashboard',
+          isNavigation: false
+        },
+        {
           id: 'navigate-dashboard',
-          title: 'Ve al Dashboard General',
-          description: 'Accede al panel principal para ver estadísticas generales del sistema completo.',
+          title: 'Dashboard General del Sistema',
+          description: 'Accede al panel principal para monitorear métricas globales, rendimiento de todas las empresas y estadísticas del sistema completo.',
           target: '[data-tutorial="dashboard"]',
           placement: 'right',
           page: '/admin-dashboard',
@@ -113,10 +121,19 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-dashboard',
-          title: 'Panel de Control General',
-          description: 'Visualiza métricas globales, rendimiento de todas las empresas y estadísticas del sistema.',
+          title: 'Panel de Control Global',
+          description: 'Visualiza métricas en tiempo real de todas las empresas, conductores activos, rutas operativas y alertas del sistema completo.',
           target: '[data-tutorial="dashboard"]',
           placement: 'bottom',
+          page: '/dashboard',
+          isNavigation: false
+        },
+        {
+          id: 'system-monitoring',
+          title: 'Monitoreo del Sistema',
+          description: 'Supervisa el estado general del sistema, conexiones activas, rendimiento de servidores y métricas de uso en tiempo real.',
+          target: '[data-tutorial="system-status"]',
+          placement: 'top',
           page: '/dashboard',
           isNavigation: false
         },
@@ -134,8 +151,8 @@ export const useTutorial = () => {
         baseSteps.sidebar,
         {
           id: 'navigate-dashboard',
-          title: 'Panel de Control',
-          description: 'Como Gestor, haz clic en "Dashboard" para ver las estadísticas de tu empresa.',
+          title: 'Panel de Control Empresarial',
+          description: 'Como Gestor, accede al dashboard para monitorear el rendimiento de tu empresa, métricas clave y estado operativo en tiempo real.',
           target: '[data-tutorial="dashboard"]',
           placement: 'right',
           page: null,
@@ -144,17 +161,26 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-dashboard',
-          title: 'Panel de Control Empresarial',
-          description: 'Visualiza métricas de tu empresa, rendimiento de conductores y estado de la flota.',
+          title: 'Panel de Control Completo',
+          description: 'Visualiza métricas específicas de tu empresa: conductores activos, vehículos en operación, rutas activas y alertas importantes del día.',
           target: '[data-tutorial="dashboard"]',
           placement: 'bottom',
           page: '/dashboard',
           isNavigation: false
         },
         {
+          id: 'dashboard-metrics',
+          title: 'Métricas Clave',
+          description: 'Revisa las tarjetas de métricas para entender rápidamente el estado de tu operación: buses en servicio, viajes completados y alertas pendientes.',
+          target: '[data-tutorial="dashboard-metrics"]',
+          placement: 'top',
+          page: '/dashboard',
+          isNavigation: false
+        },
+        {
           id: 'navigate-drivers',
-          title: 'Gestiona tus Conductores',
-          description: 'Haz clic en "Conductores" para administrar el personal de tu empresa.',
+          title: 'Gestión de Conductores',
+          description: 'Administra tu equipo de conductores: asigna vehículos, verifica licencias, revisa historial y gestiona permisos del personal.',
           target: '[data-tutorial="drivers"]',
           placement: 'right',
           page: '/dashboard',
@@ -163,17 +189,26 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-drivers',
-          title: 'Gestión de Conductores',
-          description: 'Administra conductores, asigna vehículos, verifica licencias y mantén el control de tu personal.',
+          title: 'Panel de Conductores',
+          description: 'Aquí puedes ver todos tus conductores, su estado actual, vehículos asignados, fechas de vencimiento de licencias y estadísticas de rendimiento.',
           target: '[data-tutorial="drivers"]',
           placement: 'right',
           page: '/drivers',
           isNavigation: false
         },
         {
+          id: 'driver-actions',
+          title: 'Acciones con Conductores',
+          description: 'Usa las opciones de cada conductor para editar información, cambiar asignaciones de vehículos o gestionar estados laborales.',
+          target: '[data-tutorial="driver-actions"]',
+          placement: 'left',
+          page: '/drivers',
+          isNavigation: false
+        },
+        {
           id: 'navigate-vehicles',
-          title: 'Administra tu Flota',
-          description: 'Haz clic en "Vehículos" para gestionar todos los vehículos de tu empresa.',
+          title: 'Gestión de Flota Vehicular',
+          description: 'Controla todos los vehículos de tu empresa: estado operativo, mantenimiento programado, ubicación actual y asignaciones.',
           target: '[data-tutorial="vehicles"]',
           placement: 'right',
           page: '/drivers',
@@ -182,17 +217,26 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-vehicles',
-          title: 'Flota de Vehículos',
-          description: 'Controla el estado de tus vehículos, programa mantenimientos y asigna conductores.',
+          title: 'Panel de Vehículos',
+          description: 'Visualiza tu flota completa con información detallada: placas, modelos, capacidad, estado de mantenimiento y conductores asignados.',
           target: '[data-tutorial="vehicles"]',
           placement: 'right',
           page: '/vehiculos',
           isNavigation: false
         },
         {
+          id: 'vehicle-maintenance',
+          title: 'Control de Mantenimiento',
+          description: 'Gestiona mantenimientos preventivos, revisa historial de servicios y programa mantenimientos para mantener tu flota en óptimas condiciones.',
+          target: '[data-tutorial="vehicle-maintenance"]',
+          placement: 'bottom',
+          page: '/vehiculos',
+          isNavigation: false
+        },
+        {
           id: 'navigate-routes',
-          title: 'Configura tus Rutas',
-          description: 'Haz clic en "Rutas" para definir y gestionar las rutas de tu empresa.',
+          title: 'Sistema de Rutas Inteligente',
+          description: 'Crea y administra rutas optimizadas para tu operación, define paradas estratégicas y mejora la eficiencia de tu servicio.',
           target: '[data-tutorial="routes"]',
           placement: 'right',
           page: '/vehiculos',
@@ -201,17 +245,26 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-routes',
-          title: 'Sistema de Rutas',
-          description: 'Crea rutas optimizadas, define paradas y administra los recorridos de tu flota.',
+          title: 'Gestión Avanzada de Rutas',
+          description: 'Diseña rutas eficientes considerando tráfico, distancia y demanda. Asigna rutas específicas a vehículos y conductores según necesidades.',
           target: '[data-tutorial="routes"]',
           placement: 'right',
           page: '/rutas',
           isNavigation: false
         },
         {
+          id: 'route-optimization',
+          title: 'Optimización de Rutas',
+          description: 'Utiliza herramientas de optimización para reducir tiempos de viaje, minimizar costos de combustible y mejorar la satisfacción del usuario.',
+          target: '[data-tutorial="route-optimization"]',
+          placement: 'top',
+          page: '/rutas',
+          isNavigation: false
+        },
+        {
           id: 'navigate-schedules',
-          title: 'Programa Horarios',
-          description: 'Haz clic en "Horarios" para organizar los turnos y horarios de operación.',
+          title: 'Programación de Horarios',
+          description: 'Organiza horarios de manera inteligente: crea turnos, asigna rutas específicas y sincroniza toda tu operación para máxima eficiencia.',
           target: '[data-tutorial="schedules"]',
           placement: 'right',
           page: '/rutas',
@@ -220,8 +273,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-schedules',
-          title: 'Gestión de Horarios',
-          description: 'Crea horarios de salida, asigna rutas y optimiza la programación de tu servicio.',
+          title: 'Centro de Programación',
+          description: 'Gestiona horarios de salida, asigna conductores y vehículos específicos, y mantén toda tu operación perfectamente sincronizada.',
           target: '[data-tutorial="schedules"]',
           placement: 'right',
           page: '/horarios',
@@ -229,8 +282,8 @@ export const useTutorial = () => {
         },
         {
           id: 'navigate-reports',
-          title: 'Revisa tus Reportes',
-          description: 'Haz clic en "Informes" para ver análisis detallados y reportes del rendimiento.',
+          title: 'Análisis e Informes',
+          description: 'Genera reportes detallados sobre el rendimiento de tu empresa, analiza tendencias y toma decisiones basadas en datos reales.',
           target: '[data-tutorial="reports"]',
           placement: 'right',
           page: '/horarios',
@@ -239,8 +292,8 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-reports',
-          title: 'Sistema de Reportes',
-          description: 'Genera reportes de rendimiento, estadísticas de uso y análisis de eficiencia de tu empresa.',
+          title: 'Sistema de Analytics',
+          description: 'Accede a métricas avanzadas, gráficos de rendimiento, análisis de eficiencia y reportes personalizados para optimizar tu operación.',
           target: '[data-tutorial="reports"]',
           placement: 'right',
           page: '/informes',
@@ -260,8 +313,8 @@ export const useTutorial = () => {
         baseSteps.sidebar,
         {
           id: 'navigate-dashboard',
-          title: 'Panel de Control',
-          description: 'Como Conductor, haz clic en "Dashboard" para ver tus viajes y estadísticas personales.',
+          title: 'Panel de Control Personal',
+          description: 'Como Conductor, accede a tu dashboard personal para ver tus viajes asignados, horarios de trabajo y estadísticas de rendimiento.',
           target: '[data-tutorial="dashboard"]',
           placement: 'right',
           page: null,
@@ -270,17 +323,26 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-dashboard',
-          title: 'Panel Personal',
-          description: 'Visualiza tus viajes asignados, horarios y estadísticas de tu rendimiento como conductor.',
+          title: 'Tu Centro de Operaciones',
+          description: 'Visualiza tus métricas personales: viajes completados hoy, próximos horarios, rutas asignadas y tu rendimiento general como conductor.',
           target: '[data-tutorial="dashboard"]',
           placement: 'bottom',
           page: '/dashboard',
           isNavigation: false
         },
         {
+          id: 'personal-metrics',
+          title: 'Métricas Personales',
+          description: 'Revisa tus estadísticas individuales: viajes completados, puntualidad, distancia recorrida y calificaciones de servicio.',
+          target: '[data-tutorial="personal-metrics"]',
+          placement: 'top',
+          page: '/dashboard',
+          isNavigation: false
+        },
+        {
           id: 'navigate-schedules',
-          title: 'Tus Horarios',
-          description: 'Haz clic en "Horarios" para ver tus viajes programados y asignaciones.',
+          title: 'Gestión de Horarios',
+          description: 'Consulta tus horarios de trabajo, rutas asignadas, cambios de turno y programación específica de tus viajes.',
           target: '[data-tutorial="schedules"]',
           placement: 'right',
           page: '/dashboard',
@@ -289,17 +351,35 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-schedules',
-          title: 'Gestión de Horarios',
-          description: 'Revisa tus horarios de trabajo, rutas asignadas y estado de tus viajes.',
+          title: 'Tu Programación Diaria',
+          description: 'Aquí encontrarás todos tus viajes programados, rutas específicas asignadas, horarios de salida y llegada, y cambios de último momento.',
           target: '[data-tutorial="schedules"]',
           placement: 'right',
           page: '/horarios',
           isNavigation: false
         },
         {
+          id: 'schedule-details',
+          title: 'Detalles de Viajes',
+          description: 'Revisa información detallada de cada viaje: ruta específica, vehículo asignado, pasajeros esperados y notas importantes del supervisor.',
+          target: '[data-tutorial="schedule-details"]',
+          placement: 'left',
+          page: '/horarios',
+          isNavigation: false
+        },
+        {
+          id: 'route-preview',
+          title: 'Vista Previa de Rutas',
+          description: 'Visualiza el mapa de tu ruta asignada, puntos de parada, tráfico estimado y tiempo de duración para planificar mejor tu viaje.',
+          target: '[data-tutorial="route-preview"]',
+          placement: 'bottom',
+          page: '/horarios',
+          isNavigation: false
+        },
+        {
           id: 'navigate-profile',
-          title: 'Configura tu Perfil',
-          description: 'Haz clic en tu avatar para acceder a tu perfil personal.',
+          title: 'Perfil y Configuración',
+          description: 'Gestiona tu información personal, cambia tu contraseña, actualiza datos de contacto y configura tus preferencias de notificación.',
           target: '[data-tutorial="user-menu"]',
           placement: 'bottom',
           page: '/horarios',
@@ -308,7 +388,7 @@ export const useTutorial = () => {
         {
           id: 'show-profile-menu',
           title: 'Menú Personal',
-          description: 'Aquí puedes ver tu información personal, cambiar contraseña y configurar preferencias.',
+          description: 'Accede rápidamente a tu información personal, historial de viajes, documentos y configuraciones de cuenta.',
           target: '[data-tutorial="profile-menu-item"]',
           placement: 'left',
           page: '/horarios',
@@ -317,10 +397,28 @@ export const useTutorial = () => {
         },
         {
           id: 'explain-profile',
-          title: 'Configuración Personal',
-          description: 'Actualiza tu información personal, cambia tu contraseña y configura tus preferencias.',
+          title: 'Gestión de Perfil',
+          description: 'Mantén actualizada tu información: foto de perfil, datos de contacto, documentos de identificación y certificaciones profesionales.',
           target: '[data-tutorial="profile"]',
           placement: 'bottom',
+          page: '/profile',
+          isNavigation: false
+        },
+        {
+          id: 'document-management',
+          title: 'Gestión de Documentos',
+          description: 'Sube y administra tus documentos importantes: licencia de conducir, certificados médicos, credenciales y otros documentos requeridos.',
+          target: '[data-tutorial="documents"]',
+          placement: 'top',
+          page: '/profile',
+          isNavigation: false
+        },
+        {
+          id: 'emergency-contact',
+          title: 'Contactos de Emergencia',
+          description: 'Configura tus contactos de emergencia y números importantes para situaciones críticas durante tus rutas.',
+          target: '[data-tutorial="emergency"]',
+          placement: 'right',
           page: '/profile',
           isNavigation: false
         },
@@ -339,31 +437,98 @@ export const useTutorial = () => {
     ];
   }, [userRole]);
 
-  // Función para verificar si un elemento existe en el DOM
+  // Función para verificar si un elemento existe en el DOM con mejor manejo de errores
   const elementExists = useCallback((selector) => {
     if (!selector) return true; // Para pasos sin target (como welcome)
-    return document.querySelector(selector) !== null;
+
+    try {
+      // Manejar diferentes tipos de selectores
+      let element = null;
+
+      if (selector.startsWith('#')) {
+        // Selector de ID
+        element = document.getElementById(selector.substring(1));
+      } else if (selector.startsWith('.')) {
+        // Selector de clase
+        element = document.querySelector(selector);
+      } else if (selector.startsWith('[')) {
+        // Selector de atributo
+        element = document.querySelector(selector);
+      } else if (selector.includes(' ')) {
+        // Selector complejo
+        element = document.querySelector(selector);
+      } else {
+        // Selector de etiqueta o clase simple
+        element = document.querySelector(selector);
+      }
+
+      // Verificar si el elemento está visible
+      if (element) {
+        const style = window.getComputedStyle(element);
+        const isVisible = style.display !== 'none' &&
+                         style.visibility !== 'hidden' &&
+                         element.offsetParent !== null &&
+                         style.opacity !== '0';
+
+        return isVisible;
+      }
+
+      return false;
+    } catch (error) {
+      console.warn('Error checking element existence for selector:', selector, error);
+      return false;
+    }
   }, []);
 
-  // Función para obtener el siguiente paso disponible
+  // Función para obtener el siguiente paso disponible con mejor manejo de errores
   const getNextAvailableStep = useCallback((startIndex = 0) => {
+    console.log('Looking for next available step starting from index:', startIndex);
+
     for (let i = startIndex; i < tutorialSteps.length; i++) {
       const step = tutorialSteps[i];
-      // Si el paso no tiene página específica o coincide con la página actual
-      if (!step.page || location.pathname === step.page) {
-        // Verificar si el elemento existe
-        if (elementExists(step.target)) {
-          return i;
+      console.log(`Checking step ${i}:`, step.id, 'Target:', step.target, 'Page:', step.page);
+
+      try {
+        // Si el paso no tiene página específica o coincide con la página actual
+        if (!step.page || location.pathname === step.page) {
+          console.log(`Step ${i} matches current page or has no page restriction`);
+
+          // Verificar si el elemento existe y está disponible
+          if (elementExists(step.target)) {
+            console.log(`Step ${i} element exists and is visible`);
+            return i;
+          } else {
+            console.log(`Step ${i} element does not exist or is not visible`);
+          }
+        } else {
+          console.log(`Step ${i} skipped - page mismatch. Expected: ${step.page}, Current: ${location.pathname}`);
         }
+      } catch (error) {
+        console.warn(`Error checking step ${i}:`, error);
+        // Continuar con el siguiente paso en caso de error
+        continue;
       }
     }
+
+    console.log('No more available steps found');
     return -1; // No hay más pasos disponibles
   }, [tutorialSteps, location.pathname, elementExists]);
 
+  // Función para obtener clave específica del usuario
+  const getUserSpecificKey = useCallback((key) => {
+    if (!user?.id) return key;
+    return `${STORAGE_USER_KEY}${user.id}_${key}`;
+  }, [user?.id]);
+
   // Verificar si el usuario ya completó o saltó el tutorial
   useEffect(() => {
-    const completed = localStorage.getItem(STORAGE_KEY) === 'true';
-    const skipped = localStorage.getItem(STORAGE_SKIP_KEY) === 'true';
+    if (!user?.id || !userRole) return;
+
+    const userCompletedKey = getUserSpecificKey('completed');
+    const userSkippedKey = getUserSpecificKey('skipped');
+
+    const completed = localStorage.getItem(userCompletedKey) === 'true';
+    const skipped = localStorage.getItem(userSkippedKey) === 'true';
 
     setIsCompleted(completed);
     setIsSkipped(skipped);
@@ -372,21 +537,23 @@ export const useTutorial = () => {
     // y está en una página protegida
     if (!completed && !skipped && !isActive && location.pathname !== '/home' && location.pathname !== '/login' && location.pathname !== '/register') {
       // Verificar si es la primera vez que se activa el tutorial para este usuario
-      const tutorialStarted = localStorage.getItem('tutorial_started') === 'true';
+      const tutorialStartedKey = getUserSpecificKey('started');
+      const tutorialStarted = localStorage.getItem(tutorialStartedKey) === 'true';
+
       if (!tutorialStarted) {
         // Pequeño delay para que la UI se cargue completamente
         const timer = setTimeout(() => {
           const firstStep = getNextAvailableStep(0);
           if (firstStep !== -1) {
-            localStorage.setItem('tutorial_started', 'true');
+            localStorage.setItem(tutorialStartedKey, 'true');
             setIsActive(true);
             setCurrentStep(firstStep);
           }
-        }, 2000); // Más delay para mejor UX
+        }, 1500); // Delay optimizado para mejor UX
         return () => clearTimeout(timer);
       }
     }
-  }, [getNextAvailableStep, isActive, location.pathname]);
+  }, [getNextAvailableStep, isActive, location.pathname, user?.id, userRole, getUserSpecificKey]);
 
   // Efecto para manejar cambios de página durante el tutorial
   useEffect(() => {
@@ -440,9 +607,17 @@ export const useTutorial = () => {
     setIsCompleted(false);
     setIsSkipped(false);
     setIsPaused(false);
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_SKIP_KEY);
-    localStorage.removeItem('tutorial_started');
+
+    if (user?.id) {
+      // Limpiar claves específicas del usuario
+      const userCompletedKey = getUserSpecificKey('completed');
+      const userSkippedKey = getUserSpecificKey('skipped');
+      const tutorialStartedKey = getUserSpecificKey('started');
+
+      localStorage.removeItem(userCompletedKey);
+      localStorage.removeItem(userSkippedKey);
+      localStorage.removeItem(tutorialStartedKey);
+    }
 
     // Encontrar el primer paso disponible en la página actual
     const firstStep = getNextAvailableStep(0);
@@ -455,15 +630,22 @@ export const useTutorial = () => {
       navigate('/dashboard');
       // El efecto de navegación se encargará de iniciar el tutorial
     }
-  }, [getNextAvailableStep, navigate]);
+  }, [getNextAvailableStep, navigate, user?.id, getUserSpecificKey]);
 
   // Función para completar el tutorial
   const completeTutorial = useCallback(() => {
     setIsActive(false);
     setIsCompleted(true);
-    localStorage.setItem(STORAGE_KEY, 'true');
-    localStorage.removeItem('tutorial_started');
-  }, []);
+
+    if (user?.id) {
+      const userCompletedKey = getUserSpecificKey('completed');
+      localStorage.setItem(userCompletedKey, 'true');
+
+      // Limpiar claves específicas del usuario
+      const tutorialStartedKey = getUserSpecificKey('started');
+      localStorage.removeItem(tutorialStartedKey);
+    }
+  }, [user?.id, getUserSpecificKey]);
 
   // Función para ir al siguiente paso
   const nextStep = useCallback(() => {
@@ -509,9 +691,16 @@ export const useTutorial = () => {
   const skipTutorial = useCallback(() => {
     setIsActive(false);
     setIsSkipped(true);
-    localStorage.setItem(STORAGE_SKIP_KEY, 'true');
-    localStorage.removeItem('tutorial_started');
-  }, []);
+
+    if (user?.id) {
+      const userSkippedKey = getUserSpecificKey('skipped');
+      localStorage.setItem(userSkippedKey, 'true');
+
+      // Limpiar claves específicas del usuario
+      const tutorialStartedKey = getUserSpecificKey('started');
+      localStorage.removeItem(tutorialStartedKey);
+    }
+  }, [user?.id, getUserSpecificKey]);
 
   // Función para reiniciar el tutorial
   const restartTutorial = useCallback(() => {
@@ -519,10 +708,18 @@ export const useTutorial = () => {
     setCurrentStep(0);
     setIsCompleted(false);
     setIsSkipped(false);
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_SKIP_KEY);
-    localStorage.removeItem('tutorial_started');
-  }, []);
+
+    if (user?.id) {
+      // Limpiar claves específicas del usuario
+      const userCompletedKey = getUserSpecificKey('completed');
+      const userSkippedKey = getUserSpecificKey('skipped');
+      const tutorialStartedKey = getUserSpecificKey('started');
+
+      localStorage.removeItem(userCompletedKey);
+      localStorage.removeItem(userSkippedKey);
+      localStorage.removeItem(tutorialStartedKey);
+    }
+  }, [user?.id, getUserSpecificKey]);
 
   // Función para verificar si un paso específico está activo
   const isStepActive = useCallback((stepId) => {

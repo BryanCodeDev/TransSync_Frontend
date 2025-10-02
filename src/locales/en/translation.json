@@ -371,7 +371,9 @@
       "openCamera": "Open your mobile camera",
       "scanQR": "Scan the QR code",
       "followInstructions": "Follow the installation instructions",
-      "iosGuide": "iOS Installation Guide"
+      "iosGuide": "iOS Installation Guide",
+      "directAccess": "You can also access directly from your mobile browser",
+      "url": "https://transync1.netlify.app/mobile-download"
     }
   },
   "navbar": {

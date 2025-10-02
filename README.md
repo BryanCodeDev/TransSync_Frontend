@@ -114,7 +114,7 @@ TransSync es una plataforma integral diseñada para empresas de transporte que c
 
 1. **Clonar el repositorio**
    ```bash
-   git clone https://github.com/tu-usuario/transsync.git
+   git clone https://github.com/tu-usuario/transync.git
    cd transsync
    ```
 
@@ -156,8 +156,8 @@ TransSync es una plataforma integral diseñada para empresas de transporte que c
 
 3. **Variables de entorno**
    ```env
-   REACT_APP_API_URL=https://api.transsync.com
-   REACT_APP_WS_URL=wss://api.transsync.com
+   REACT_APP_API_URL=https://api.transync.com
+   REACT_APP_WS_URL=wss://api.transync.com
    REACT_APP_NAME=TransSync
    REACT_APP_VERSION=1.1.0
    REACT_APP_DEBUG_MODE=false
@@ -197,15 +197,15 @@ REACT_APP_DEBUG_MODE=true
 
 #### Producción
 ```env
-REACT_APP_API_URL=https://api.transsync.com
-REACT_APP_WS_URL=wss://api.transsync.com
+REACT_APP_API_URL=https://api.transync.com
+REACT_APP_WS_URL=wss://api.transync.com
 REACT_APP_DEBUG_MODE=false
 ```
 
 ## 📁 Estructura del Proyecto
 
 ```
-transsync/
+transync/
 ├── public/                 # Archivos estáticos
 │   ├── assets/            # Imágenes y recursos
 │   ├── _redirects         # Reglas de redirección Netlify
@@ -347,10 +347,10 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 📞 Contacto
 
-- **Sitio Web**: [https://transsync.com](https://transsync.com)
-- **Email**: info@transsync.com
-- **LinkedIn**: [TransSync Company](https://linkedin.com/company/transsync)
-- **GitHub**: [transsync](https://github.com/transsync)
+- **Sitio Web**: [https://transync.com](https://transync.com)
+- **Email**: info@transync.com
+- **LinkedIn**: [TransSync Company](https://linkedin.com/company/transync)
+- **GitHub**: [transync](https://github.com/transync)
 
 ## 🙏 Agradecimientos
 
@@ -365,6 +365,6 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 **TransSync** - Revolucionando el transporte público con tecnología
 
-[🌐 Sitio Web](https://transsync.com) • [📚 Documentación](https://docs.transsync.com) • [💬 Soporte](https://support.transsync.com)
+[🌐 Sitio Web](https://transync.com) • [📚 Documentación](https://docs.transync.com) • [💬 Soporte](https://support.transync.com)
 
 </div>

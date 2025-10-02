@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://transsync.com/sitemap.xml
+Sitemap: https://transync.com/sitemap.xml
 
 # Allow all major search engines
 User-agent: Googlebot
