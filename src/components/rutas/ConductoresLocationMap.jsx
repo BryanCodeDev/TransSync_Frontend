@@ -25,22 +25,24 @@ const ConductoresLocationMap = ({
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [selectedConductor, setSelectedConductor] = useState(null);
+  const [totalConductores, setTotalConductores] = useState(0);
+
+  // Usar totalConductores en las estadísticas
+  const activeStats = {
+    total: totalConductores,
+    activos: conductoresLocations.filter(c => c.isActive).length,
+    actualizados: conductoresLocations.filter(c => {
+      if (!c.lastUpdate) return false;
+      const minutos = (new Date() - new Date(c.lastUpdate)) / (1000 * 60);
+      return minutos <= 5;
+    }).length
+  };
   const [filters, setFilters] = useState({
     activos: true,
     rutaId: '',
     tiempo: 60 // minutos
   });
 
-  // Estadísticas
-  const stats = {
-    total: conductoresLocations.length,
-    activos: conductoresLocations.filter(c => c.isActive).length,
-    actualizados: conductoresLocations.filter(c => {
-      if (!c.lastUpdate) return false;
-      const minutos = (new Date() - new Date(c.lastUpdate)) / (1000 * 60);
-      return minutos <= 5; // Actualizados en los últimos 5 minutos
-    }).length
-  };
 
   // Cargar ubicaciones de conductores
   const loadConductoresLocations = useCallback(async () => {
@@ -118,10 +120,69 @@ const ConductoresLocationMap = ({
       );
     };
 
+    const handleConductorEntered = (data) => {
+      console.log('🚪 Conductor entró al sistema:', data);
+
+      // Agregar conductor a la lista si no existe
+      setConductoresLocations(prev => {
+        const exists = prev.find(c => c.conductorId === data.conductorId);
+        if (!exists) {
+          return [...prev, {
+            conductorId: data.conductorId,
+            nomConductor: data.userInfo?.name || `Conductor ${data.conductorId}`,
+            isActive: false,
+            lastUpdate: new Date(),
+            estConductor: 'ACTIVO'
+          }];
+        }
+        return prev;
+      });
+
+      setTotalConductores(prev => prev + 1);
+    };
+
+    const handleConductorLeft = (data) => {
+      console.log('🚪 Conductor salió del sistema:', data);
+
+      // Marcar conductor como inactivo
+      setConductoresLocations(prev =>
+        prev.map(c =>
+          c.conductorId === data.conductorId
+            ? { ...c, isActive: false, estConductor: 'INACTIVO' }
+            : c
+        )
+      );
+
+      setTotalConductores(prev => Math.max(0, prev - 1));
+    };
+
+    const handleMapLocationUpdate = (data) => {
+      // Manejar actualizaciones específicas del mapa
+      if (data.type === 'conductor_location') {
+        handleLocationUpdate(data);
+      }
+    };
+
+    const handleBulkUpdate = (data) => {
+      console.log('📍 Actualización masiva recibida:', data);
+      if (data.locations && Array.isArray(data.locations)) {
+        setConductoresLocations(data.locations.map(location => ({
+          ...location,
+          lastUpdate: new Date(),
+          isActive: true
+        })));
+        setLastUpdate(new Date());
+      }
+    };
+
     // Suscribirse a eventos
     realTimeService.on('conductor:location:update', handleLocationUpdate);
     realTimeService.on('conductor:tracking:started', handleTrackingStarted);
     realTimeService.on('conductor:tracking:stopped', handleTrackingStopped);
+    realTimeService.on('conductor:entered', handleConductorEntered);
+    realTimeService.on('conductor:left', handleConductorLeft);
+    realTimeService.on('map:location:update', handleMapLocationUpdate);
+    realTimeService.on('conductores:locations:update', handleBulkUpdate);
 
     // Suscribirse a ubicaciones de la empresa
     realTimeService.subscribeToAllConductoresLocations();
@@ -131,6 +192,10 @@ const ConductoresLocationMap = ({
       realTimeService.off('conductor:location:update', handleLocationUpdate);
       realTimeService.off('conductor:tracking:started', handleTrackingStarted);
       realTimeService.off('conductor:tracking:stopped', handleTrackingStopped);
+      realTimeService.off('conductor:entered', handleConductorEntered);
+      realTimeService.off('conductor:left', handleConductorLeft);
+      realTimeService.off('map:location:update', handleMapLocationUpdate);
+      realTimeService.off('conductores:locations:update', handleBulkUpdate);
     };
   }, []);
 
@@ -214,7 +279,7 @@ const ConductoresLocationMap = ({
         <div className="grid grid-cols-3 gap-4 mb-3">
           <div className="text-center">
             <div className="text-lg font-bold text-primary-600 dark:text-primary-400">
-              {stats.total}
+              {activeStats.total}
             </div>
             <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
               Total
@@ -223,7 +288,7 @@ const ConductoresLocationMap = ({
 
           <div className="text-center">
             <div className="text-lg font-bold text-success-600 dark:text-success-400">
-              {stats.activos}
+              {activeStats.activos}
             </div>
             <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
               Activos
@@ -232,7 +297,7 @@ const ConductoresLocationMap = ({
 
           <div className="text-center">
             <div className="text-lg font-bold text-info-600 dark:text-info-400">
-              {stats.actualizados}
+              {activeStats.actualizados}
             </div>
             <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
               En línea

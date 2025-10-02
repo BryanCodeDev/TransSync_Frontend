@@ -287,6 +287,31 @@ class RealTimeService {
       console.error('❌ Error en ubicación de conductor:', data);
       this.emit('conductor:location:error', data);
     });
+
+    // Conductor entró al sistema
+    this.socket.on('conductor:entered', (data) => {
+      console.log('🚪 Conductor entró al sistema:', data);
+      this.emit('conductor:entered', data);
+
+      // Emitir evento para mostrar conductor en mapa inmediatamente
+      this.emit('map:conductor:entered', {
+        conductorId: data.conductorId,
+        userInfo: data.userInfo,
+        timestamp: new Date()
+      });
+    });
+
+    // Conductor salió del sistema
+    this.socket.on('conductor:left', (data) => {
+      console.log('🚪 Conductor salió del sistema:', data);
+      this.emit('conductor:left', data);
+
+      // Emitir evento para remover conductor del mapa
+      this.emit('map:conductor:left', {
+        conductorId: data.conductorId,
+        timestamp: new Date()
+      });
+    });
   }
 
   /**
